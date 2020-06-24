@@ -34,7 +34,7 @@
 
 class ViewInterface;
 class ViewContextInterface;
-class LogData;
+class ILogData;
 class LogFilteredData;
 class SavedSearches;
 
@@ -101,7 +101,7 @@ class Session {
   private:
     struct OpenFile {
         std::string fileName;
-        std::shared_ptr<LogData> logData;
+        std::shared_ptr<ILogData> logData;
         std::shared_ptr<LogFilteredData> logFilteredData;
         ViewInterface* view;
     };

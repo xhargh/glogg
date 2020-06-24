@@ -90,7 +90,7 @@ class CrawlerWidget : public QSplitter,
   protected:
     // Implementation of the ViewInterface functions
     virtual void doSetData(
-            std::shared_ptr<LogData> log_data,
+            std::shared_ptr<ILogData> log_data,
             std::shared_ptr<LogFilteredData> filtered_data );
     virtual void doSetQuickFindPattern(
             std::shared_ptr<QuickFindPattern> qfp );
@@ -260,7 +260,7 @@ class CrawlerWidget : public QSplitter,
     // Reference to the QuickFind Pattern (not owned)
     std::shared_ptr<QuickFindPattern> quickFindPattern_;
 
-    LogData*        logData_;
+    ILogData*        logData_;
     LogFilteredData* logFilteredData_;
 
     qint64          logFileSize_;

@@ -62,7 +62,7 @@ void LogData::PartialIndexOperation::doStart(
 
 // Constructs an empty log file.
 // It must be displayed without error.
-LogData::LogData() : AbstractLogData(), indexing_data_(),
+LogData::LogData() : ILogData(), indexing_data_(),
     fileMutex_(), workerThread_( &indexing_data_ )
 {
     // Start with an "empty" log

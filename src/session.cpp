@@ -30,6 +30,7 @@
 #include "savedsearches.h"
 #include "sessioninfo.h"
 #include "data/logdata.h"
+#include "data/ilogdata.h"
 #include "data/logfiltereddata.h"
 
 Session::Session()

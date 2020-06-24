@@ -29,7 +29,7 @@
 
 #include <QKeyEvent>
 
-LogMainView::LogMainView( const LogData* newLogData,
+LogMainView::LogMainView( const ILogData* newLogData,
         const QuickFindPattern* const quickFindPattern,
         Overview* overview,
         OverviewWidget* overview_widget,

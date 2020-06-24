@@ -217,7 +217,7 @@ void CrawlerWidget::setEncoding( Encoding encoding )
 // Protected functions
 //
 void CrawlerWidget::doSetData(
-        std::shared_ptr<LogData> log_data,
+        std::shared_ptr<ILogData> log_data,
         std::shared_ptr<LogFilteredData> filtered_data )
 {
     logData_         = log_data.get();

@@ -32,7 +32,7 @@
 
 #include "utils.h"
 
-#include "abstractlogdata.h"
+#include "ilogdata.h"
 #include "logdataworkerthread.h"
 #include "filewatcher.h"
 #include "loadingstatus.h"
@@ -44,7 +44,7 @@ class CantReattachErr {};
 
 // Represents a complete set of data to be displayed (ie. a log file content)
 // This class is thread-safe.
-class LogData : public AbstractLogData {
+class LogData : public ILogData {
   Q_OBJECT
 
   public:

@@ -1,10 +1,9 @@
 #include <QDebug>
+
 #include "ttylogdata.h"
 
-
-TtyLogData::TtyLogData() : ILogData()
+TtyLogData::TtyLogData() : ILogData(), m_maxLineLength(0)
 {
-    // m_serialPort.setPortName("/dev/tty.usbmodem14103" /* "/dev/ttyACM0" */);
     m_serialPort.setBaudRate(QSerialPort::Baud115200);
     m_serialPort.setDataBits(QSerialPort::Data8);
     m_serialPort.setParity(QSerialPort::NoParity);
@@ -17,21 +16,30 @@ TtyLogData::~TtyLogData()
 
 }
 
+void TtyLogData::attachFile( const QString& fileName ) {
+    m_serialPort.setPortName(fileName);
+    if (m_serialPort.open(QIODevice::ReadWrite)) {
+        qInfo() << __func__ << " " << fileName << " opened successfully";
+        connect(&m_serialPort, &QSerialPort::readyRead, this, &TtyLogData::readDataSlot);
+    }
+}
+
 QString TtyLogData::doGetLineString(qint64 line) const
 {
-    return QString("doGetLineString: ") + QString::number(line);
+    return m_lines[line].second;
 }
 
 QString TtyLogData::doGetExpandedLineString(qint64 line) const
 {
-    return QString("doGetExpandedLineString: ") + QString::number(line);
+    auto l = m_lines[line];
+    return l.first.toString(Qt::ISODateWithMs) + " " + l.second;
 }
 
 QStringList TtyLogData::doGetLines(qint64 first_line, int number) const
 {
     QStringList qs;
     for (int i = 0; i < number; i++) {
-        qs.append(QString("doGetLines: ") + QString::number(first_line + i));
+        qs.append(doGetLineString(i + first_line));
     }
     return qs;
 }
@@ -40,19 +48,19 @@ QStringList TtyLogData::doGetExpandedLines(qint64 first_line, int number) const
 {
     QStringList qs;
     for (int i = 0; i < number; i++) {
-        qs.append(QString("doGetExpandedLines: ") + QString::number(first_line + i));
+        qs.append(doGetExpandedLineString(i + first_line));
     }
     return qs;
 }
 
 qint64 TtyLogData::doGetNbLine() const
 {
-    return 200;
+    return m_lines.size();
 }
 
 int TtyLogData::doGetMaxLength() const
 {
-    return 200;
+    return m_maxLineLength;
 }
 
 int TtyLogData::doGetLineLength(qint64 line) const
@@ -69,5 +77,20 @@ void TtyLogData::doSetMultibyteEncodingOffsets(int before_cr, int after_cr)
 {
     qInfo() << __func__ << before_cr << " - " << after_cr << "\n";
 
+}
+
+void TtyLogData::readDataSlot()
+{
+    while (m_serialPort.canReadLine()) {
+        const QByteArray data = m_serialPort.readLine();
+        QString d = QString(data);
+        if (d.length() > m_maxLineLength) {
+            m_maxLineLength = d.length();
+        }
+        m_lines.push_back(std::make_pair(QDateTime::currentDateTime(), d));
+        qDebug() << d;
+        emit fileChanged( LogData::MonitoredFileStatus::DataAdded );
+        emit loadingFinished ( LoadingStatus::Successful );
+    }
 }
 

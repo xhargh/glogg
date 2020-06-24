@@ -21,7 +21,7 @@
 
 #include "log.h"
 
-#include "logdata.h"
+#include "ilogdata.h"
 #include "logdataworkerthread.h"
 
 // Size of the chunk to read (5 MiB)

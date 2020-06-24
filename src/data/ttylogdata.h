@@ -11,13 +11,16 @@ class QSerialPort;
 class TtyLogData : public ILogData {
   Q_OBJECT
 private:
-
+  std::vector<std::pair<QDateTime, QString>> m_lines;
   QSerialPort m_serialPort;
+  int m_maxLineLength;
 public:
   // Creates an empty LogData
   TtyLogData();
   // Destroy an object
   ~TtyLogData();
+
+  virtual void attachFile( const QString& fileName );
 
   // AbstractLogData interface
 protected:
@@ -25,7 +28,9 @@ protected:
   QString doGetExpandedLineString(qint64 line) const override;
   QStringList doGetLines(qint64 first_line, int number) const override;
   QStringList doGetExpandedLines(qint64 first_line, int number) const override;
+  // Get the length of the longest line
   qint64 doGetNbLine() const override;
+  // Get the total number of lines
   int doGetMaxLength() const override;
   int doGetLineLength(qint64 line) const override;
   void doSetDisplayEncoding(Encoding encoding) override;
@@ -40,6 +45,9 @@ signals:
   // Sent when the file on disk has changed, will be followed
   // by loadingProgressed if needed and then a loadingFinished.
   void fileChanged( LogData::MonitoredFileStatus status );
+
+private slots:
+  void readDataSlot();
 };
 
 #endif // TTYLOGDATA_H

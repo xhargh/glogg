@@ -23,6 +23,7 @@
 
 #include <cassert>
 #include <QFileInfo>
+#include <QString>
 #include <algorithm>
 
 #include "viewinterface.h"
@@ -177,6 +178,13 @@ ViewInterface* Session::openAlways( const std::string& file_name, bool isTTY,
         std::function<ViewInterface*()> view_factory,
         const char* view_context )
 {
+
+    QString fn(file_name.c_str());
+    if (fn.contains("/dev/tty")) {
+        qDebug() << "Assuming tty";
+        isTTY = true;
+    }
+
     // Create the data objects
     std::shared_ptr<ILogData> log_data;
     if (isTTY) {

@@ -255,6 +255,12 @@ void MainWindow::createActions()
     openAction->setStatusTip(tr("Open a file"));
     connect(openAction, SIGNAL(triggered()), this, SLOT(open()));
 
+    openTTYAction = new QAction(tr("&Open TTY..."), this);
+    openTTYAction->setShortcut(QKeySequence::Open);
+    openTTYAction->setIcon( QIcon( ":/images/open14.png" ) );
+    openTTYAction->setStatusTip(tr("Open a TTY"));
+    connect(openTTYAction, SIGNAL(triggered()), this, SLOT(openTTY()));
+
     closeAction = new QAction(tr("&Close"), this);
     closeAction->setShortcut(tr("Ctrl+W"));
     closeAction->setStatusTip(tr("Close document"));
@@ -365,6 +371,7 @@ void MainWindow::createMenus()
 {
     fileMenu = menuBar()->addMenu( tr("&File") );
     fileMenu->addAction( openAction );
+    fileMenu->addAction( openTTYAction );
     fileMenu->addAction( closeAction );
     fileMenu->addAction( closeAllAction );
     fileMenu->addSeparator();
@@ -453,6 +460,12 @@ void MainWindow::open()
             tr("Open file"), defaultDir, tr("All files (*)"));
     if (!fileName.isEmpty())
         loadFile(fileName);
+}
+
+void MainWindow::openTTY()
+{
+    qDebug() << "Try to open hard coded TTY";
+    loadFile(tr("/dev/tty.usbmodem14103"), true);
 }
 
 // Opens a log file from the recent files list
@@ -819,7 +832,7 @@ void MainWindow::keyPressEvent( QKeyEvent* keyEvent )
 // Create a CrawlerWidget for the passed file, start its loading
 // and update the title bar.
 // The loading is done asynchronously.
-bool MainWindow::loadFile( const QString& fileName )
+bool MainWindow::loadFile( const QString& fileName, bool isTTY )
 {
     LOG(logDEBUG) << "loadFile ( " << fileName.toStdString() << " )";
 
@@ -837,9 +850,10 @@ bool MainWindow::loadFile( const QString& fileName )
     loadingFileName = fileName;
 
     try {
-        CrawlerWidget* crawler_widget = dynamic_cast<CrawlerWidget*>(
-                session_->open( fileName.toStdString(),
-                    []() { return new CrawlerWidget(); } ) );
+        CrawlerWidget* crawler_widget;
+        crawler_widget = dynamic_cast<CrawlerWidget*>(
+            session_->open( fileName.toStdString(), isTTY,
+                            []() { return new CrawlerWidget(); } ) );
         assert( crawler_widget );
 
         // We won't show the widget until the file is fully loaded

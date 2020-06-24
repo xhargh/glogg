@@ -32,7 +32,7 @@
 #include "logfiltereddataworkerthread.h"
 #include "marks.h"
 
-class LogData;
+class ILogData;
 class Marks;
 
 // A list of matches found in a LogData, it stores all the matching lines,
@@ -47,7 +47,7 @@ class LogFilteredData : public AbstractLogData {
     // Creates an empty LogFilteredData
     LogFilteredData();
     // Constructor used by LogData
-    LogFilteredData( const LogData* logData );
+    LogFilteredData( const ILogData* logData );
 
     ~LogFilteredData();
 
@@ -138,7 +138,7 @@ class LogFilteredData : public AbstractLogData {
     // List of the matching line numbers
     SearchResultArray matching_lines_;
 
-    const LogData* sourceLogData_;
+    const ILogData* sourceLogData_;
     QRegularExpression currentRegExp_;
     bool searchDone_;
     int maxLength_;

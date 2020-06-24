@@ -30,6 +30,7 @@
 #include "savedsearches.h"
 #include "sessioninfo.h"
 #include "data/logdata.h"
+#include "data/ttylogdata.h"
 #include "data/ilogdata.h"
 #include "data/logfiltereddata.h"
 
@@ -61,14 +62,14 @@ ViewInterface* Session::getViewIfOpen( const std::string& file_name ) const
         return nullptr;
 }
 
-ViewInterface* Session::open( const std::string& file_name,
+ViewInterface* Session::open( const std::string& file_name, bool isTTY,
         std::function<ViewInterface*()> view_factory )
 {
     ViewInterface* view = nullptr;
 
     QFileInfo fileInfo( file_name.c_str() );
     if ( fileInfo.isReadable() ) {
-        return openAlways( file_name, view_factory, nullptr );
+        return openAlways( file_name, isTTY, view_factory, nullptr );
     }
     else {
         throw FileUnreadableErr();
@@ -128,7 +129,7 @@ std::vector<std::pair<std::string, ViewInterface*>> Session::restore(
     for ( auto file: session_files )
     {
         LOG(logDEBUG) << "Create view for " << file.fileName;
-        ViewInterface* view = openAlways( file.fileName, view_factory, file.viewContext.c_str() );
+        ViewInterface* view = openAlways( file.fileName, file.isTTY, view_factory, file.viewContext.c_str() );
         result.push_back( { file.fileName, view } );
     }
 
@@ -172,12 +173,17 @@ void Session::getFileInfo( const ViewInterface* view, uint64_t* fileSize,
  * Private methods
  */
 
-ViewInterface* Session::openAlways( const std::string& file_name,
+ViewInterface* Session::openAlways( const std::string& file_name, bool isTTY,
         std::function<ViewInterface*()> view_factory,
         const char* view_context )
 {
     // Create the data objects
-    auto log_data          = std::make_shared<LogData>();
+    std::shared_ptr<ILogData> log_data;
+    if (isTTY) {
+        log_data = std::make_shared<TtyLogData>();
+    } else {
+        log_data = std::make_shared<LogData>();
+    }
     auto log_filtered_data =
         std::shared_ptr<LogFilteredData>( log_data->getNewFilteredData() );
 

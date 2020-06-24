@@ -2,22 +2,22 @@
 #define TTYLOGDATA_H
 
 #include <QObject>
+#include <QSerialPort>
 
 #include "logdata.h"
 
-class TtyLogData : public AbstractLogData {
-    Q_OBJECT
+class QSerialPort;
 
+class TtyLogData : public ILogData {
+  Q_OBJECT
+private:
+
+  QSerialPort m_serialPort;
 public:
   // Creates an empty LogData
   TtyLogData();
   // Destroy an object
   ~TtyLogData();
-
-  // Creates a new filtered data.
-  // ownership is passed to the caller
-  LogFilteredData* getNewFilteredData() const {return nullptr;}
-
 
   // AbstractLogData interface
 protected:

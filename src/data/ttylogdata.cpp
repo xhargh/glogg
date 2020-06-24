@@ -2,9 +2,14 @@
 #include "ttylogdata.h"
 
 
-TtyLogData::TtyLogData() : AbstractLogData()
+TtyLogData::TtyLogData() : ILogData()
 {
-
+    // m_serialPort.setPortName("/dev/tty.usbmodem14103" /* "/dev/ttyACM0" */);
+    m_serialPort.setBaudRate(QSerialPort::Baud115200);
+    m_serialPort.setDataBits(QSerialPort::Data8);
+    m_serialPort.setParity(QSerialPort::NoParity);
+    m_serialPort.setStopBits(QSerialPort::OneStop);
+    m_serialPort.setFlowControl(QSerialPort::NoFlowControl);
 }
 
 TtyLogData::~TtyLogData()

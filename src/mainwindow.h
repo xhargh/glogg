@@ -74,6 +74,7 @@ class MainWindow : public QMainWindow
 
   private slots:
     void open();
+    void openTTY();
     void openRecentFile();
     void closeTab();
     void closeAll();
@@ -146,7 +147,7 @@ class MainWindow : public QMainWindow
     void createRecentFileToolTipTimer();
     void readSettings();
     void writeSettings();
-    bool loadFile( const QString& fileName );
+    bool loadFile( const QString& fileName, bool isTTY = false);
     void updateTitleBar( const QString& file_name );
     void updateRecentFileActions();
     QString strippedName( const QString& fullFileName ) const;
@@ -184,6 +185,7 @@ class MainWindow : public QMainWindow
     QToolBar *toolBar;
 
     QAction *openAction;
+    QAction *openTTYAction;
     QAction *closeAction;
     QAction *closeAllAction;
     QAction *exitAction;

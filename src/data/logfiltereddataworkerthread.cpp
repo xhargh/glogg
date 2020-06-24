@@ -99,7 +99,7 @@ void SearchData::clear()
 }
 
 LogFilteredDataWorkerThread::LogFilteredDataWorkerThread(
-        const LogData* sourceLogData )
+        const ILogData* sourceLogData )
     : QThread(), mutex_(), operationRequestedCond_(), nothingToDoCond_(), searchData_()
 {
     terminate_          = false;
@@ -208,7 +208,7 @@ void LogFilteredDataWorkerThread::run()
 // Operations implementation
 //
 
-SearchOperation::SearchOperation( const LogData* sourceLogData,
+SearchOperation::SearchOperation( const ILogData* sourceLogData,
         const QRegularExpression& regExp, bool* interruptRequest )
     : regexp_( regExp ), sourceLogData_( sourceLogData )
 {

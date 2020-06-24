@@ -8,7 +8,7 @@
 TARGET = glogg
 TEMPLATE = app
 
-QT += network
+QT += serialport network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += core widgets
 

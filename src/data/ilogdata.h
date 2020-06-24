@@ -15,38 +15,40 @@ public:
         qInfo() << __func__;
     }
 
-    LogFilteredData* getNewFilteredData() const {
+    virtual LogFilteredData* getNewFilteredData() const {
         qInfo() << __func__;
-        return nullptr;
+        LogFilteredData* newFilteredData = new LogFilteredData( this );
+
+        return newFilteredData;
     }
 
-    qint64 getFileSize() const {
+    virtual qint64 getFileSize() const {
         qInfo() << __func__;
         return 0;
     }
 
-    QDateTime getLastModifiedDate() const {
+    virtual QDateTime getLastModifiedDate() const {
         qInfo() << __func__;
         return QDateTime::currentDateTime();
     }
 
-    void attachFile( const QString& fileName ) {
+    virtual void attachFile( const QString& fileName ) {
         qInfo() << __func__ << " " << fileName;
     }
 
-    void interruptLoading() {
+    virtual void interruptLoading() {
         qInfo() << __func__;
     }
 
-    void reload() {
+    virtual void reload() {
         qInfo() << __func__;
     }
 
-    void setPollingInterval( uint32_t interval_ms ) {
+    virtual void setPollingInterval( uint32_t interval_ms ) {
         qInfo() << __func__ << " " << interval_ms;
     }
 
-    EncodingSpeculator::Encoding getDetectedEncoding() const {
+    virtual EncodingSpeculator::Encoding getDetectedEncoding() const {
         qInfo() << __func__;
         return EncodingSpeculator::Encoding();
     }

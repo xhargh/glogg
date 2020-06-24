@@ -62,7 +62,7 @@ class Session {
     // view for it (the caller passes a factory to build the concrete view)
     // The ownership of the view is given to the caller
     // Throw exceptions if the file is already open or if it cannot be open.
-    ViewInterface* open( const std::string& file_name,
+    ViewInterface* open( const std::string& file_name, bool isTTY,
             std::function<ViewInterface*()> view_factory );
     // Close the file identified by the view passed
     // Throw an exception if it does not exist.
@@ -107,7 +107,7 @@ class Session {
     };
 
     // Open a file without checking if it is existing/readable
-    ViewInterface* openAlways( const std::string& file_name,
+    ViewInterface* openAlways( const std::string& file_name, bool isTTY,
             std::function<ViewInterface*()> view_factory,
             const char* view_context );
     // Find an open file from its associated view

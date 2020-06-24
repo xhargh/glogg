@@ -49,6 +49,7 @@ class SessionInfo : public Persistable {
         // The view context contains parameter specific to the view's
         // implementation (such as geometry...)
         std::string viewContext;
+        bool isTTY;
     };
 
     // List of the loaded files

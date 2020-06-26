@@ -25,7 +25,7 @@
 #include "log.h"
 
 #include <cassert>
-
+#include <vector>
 #include <Qt>
 #include <QApplication>
 #include <QFile>
@@ -34,6 +34,7 @@
 #include <QStandardItemModel>
 #include <QHeaderView>
 #include <QListView>
+#include "cmdbutton.h"
 
 #include "crawlerwidget.h"
 
@@ -166,9 +167,60 @@ void CrawlerWidget::keyPressEvent( QKeyEvent* keyEvent )
 {
     bool noModifier = keyEvent->modifiers() == Qt::NoModifier;
 
+#if defined(Q_OS_MACOS)
+    const Qt::KeyboardModifier controlModifier = Qt::MetaModifier;
+#else
+    const Qt::KeyboardModifier controlModifier = Qt::ControlModifier;
+#endif
+
     if ( keyEvent->key() == Qt::Key_V && noModifier )
         visibilityBox->setCurrentIndex(
                 ( visibilityBox->currentIndex() + 1 ) % visibilityBox->count() );
+    else if (keyEvent->modifiers() == controlModifier) {
+        switch (keyEvent->key()) {
+
+        case Qt::Key_1:
+            qInfo() << "Key 1";
+            emit cmdBtns[0]->clicked();
+            break;
+        case Qt::Key_2:
+            qInfo() << "Key 2";
+            emit cmdBtns[1]->clicked();
+            break;
+        case Qt::Key_3:
+            qInfo() << "Key 3";
+            emit cmdBtns[2]->clicked();
+            break;
+        case Qt::Key_4:
+            qInfo() << "Key 4";
+            emit cmdBtns[3]->clicked();
+            break;
+        case Qt::Key_5:
+            qInfo() << "Key 5";
+            emit cmdBtns[4]->clicked();
+            break;
+        case Qt::Key_6:
+            qInfo() << "Key 6";
+            emit cmdBtns[5]->clicked();
+            break;
+        case Qt::Key_7:
+            qInfo() << "Key 7";
+            emit cmdBtns[6]->clicked();
+            break;
+        case Qt::Key_8:
+            qInfo() << "Key 8";
+            emit cmdBtns[7]->clicked();
+            break;
+        case Qt::Key_9:
+            qInfo() << "Key 9";
+            emit cmdBtns[8]->clicked();
+            break;
+        case Qt::Key_0:
+            qInfo() << "Key 0";
+            emit cmdBtns[9]->clicked();
+            break;
+        }
+    }
     else {
         const char character = (keyEvent->text())[0].toLatin1();
 
@@ -281,6 +333,11 @@ CrawlerWidget::doGetViewContext() const
 //
 // Slots
 //
+
+void CrawlerWidget::executeBtnCommand(QString cmd) {
+    qInfo() << __func__ << " " << cmd;
+    logData_->write(cmd);
+}
 
 void CrawlerWidget::executeCommand()
 {
@@ -736,6 +793,20 @@ void CrawlerWidget::setup()
     cmdLayout->addWidget(cmdEntryBox);
     cmdView->setLayout(cmdLayout);
 
+    auto* btnRow = new QWidget;
+    auto* btnLayout = new QHBoxLayout(cmdView);
+    btnLayout->setContentsMargins(6, 0, 3, 3);
+    btnLayout->setAlignment(Qt::AlignLeft);
+
+    for (auto i : { 1, 2, 3, 4 ,5 ,6 ,7 ,8, 9, 0}) {
+        auto* btn = new CmdButton(i, "");
+        connect(btn, &CmdButton::execute, this, &CrawlerWidget::executeBtnCommand);
+        btnLayout->addWidget(btn);
+        cmdBtns.push_back(btn);
+    }
+
+    btnRow->setLayout(btnLayout);
+
     // Construct the Search line
     searchLabel = new QLabel(tr("&Text: "));
     searchLineEdit = new QComboBox;
@@ -775,6 +846,7 @@ void CrawlerWidget::setup()
     mainLayout = new QVBoxLayout;
     mainLayout->addWidget(logMainView);
     mainLayout->addWidget(cmdView);
+    mainLayout->addWidget(btnRow);
     mainLayout->setContentsMargins(2,1,2,1);
     mainLayout->setSpacing(0);
     mainWindow->setLayout(mainLayout);

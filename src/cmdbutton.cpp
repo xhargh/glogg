@@ -1,0 +1,46 @@
+#include "cmdbutton.h"
+
+#include <QDebug>
+#include <QMouseEvent>
+#include <QLineEdit>
+#include <QInputDialog>
+
+CmdButton::CmdButton(int prefix, QString cmdLine) : m_prefix(prefix), m_cmdLine(cmdLine)
+{
+    setText(QString("&" + QString::number(m_prefix) + ": ") + m_cmdLine);
+    setAutoRaise( true );
+
+    connect(this, &CmdButton::clicked, this, &CmdButton::runCmd);
+    connect(this, &CmdButton::rightClicked, this, &CmdButton::editCmd);
+}
+
+void CmdButton::runCmd()
+{
+    qInfo() << __func__ << " " << m_cmdLine;
+    if (m_cmdLine != "") {
+        emit execute(m_cmdLine);
+    }
+}
+
+void CmdButton::editCmd()
+{
+    bool ok;
+    QString text = QInputDialog::getText(this, tr("Command") + QString::number(m_prefix),
+                                         tr("Command:"), QLineEdit::Normal,
+                                         m_cmdLine, &ok);
+
+    if (ok && !text.isEmpty()) {
+        m_cmdLine = text;
+        setText(QString("&" + QString::number(m_prefix) + ": ") + m_cmdLine);
+    }
+}
+
+void CmdButton::mousePressEvent(QMouseEvent *e)
+{
+    if(e->button()==Qt::RightButton) {
+        emit rightClicked();
+    }
+    else if (e->button()==Qt::LeftButton) {
+        emit clicked();
+    }
+}

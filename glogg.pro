@@ -19,6 +19,7 @@ win32:Release:QMAKE_LFLAGS += "-Wl,-subsystem,windows"
 
 # Input
 SOURCES += \
+  src/cmdbutton.cpp \
     src/data/filelogdata.cpp \
     src/data/ttylogdata.cpp \
     src/main.cpp \
@@ -63,6 +64,7 @@ SOURCES += \
 INCLUDEPATH += src/
 
 HEADERS += \
+  src/cmdbutton.h \
     src/data/abstractlogdata.h \
     src/data/filelogdata.h \
     src/data/ilogdata.h \

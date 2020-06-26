@@ -258,7 +258,7 @@ void MainWindow::createActions()
 
     openTTYAction = new QAction(tr("&Open TTY..."), this);
     openTTYAction->setShortcut(QKeySequence::Open);
-    openTTYAction->setIcon( QIcon( ":/images/open14.png" ) );
+    openTTYAction->setIcon( QIcon( ":/images/port14.png" ) );
     openTTYAction->setStatusTip(tr("Open a TTY"));
     connect(openTTYAction, SIGNAL(triggered()), this, SLOT(openSerialPortDialog()));
 
@@ -434,6 +434,7 @@ void MainWindow::createToolBars()
     toolBar->setIconSize( QSize( 14, 14 ) );
     toolBar->setMovable( false );
     toolBar->addAction( openAction );
+    toolBar->addAction( openTTYAction );
     toolBar->addAction( reloadAction );
     toolBar->addWidget( infoLine );
     toolBar->addAction( stopAction );

@@ -17,7 +17,6 @@ public:
     QString stringStopBits;
     QSerialPort::FlowControl flowControl;
     QString stringFlowControl;
-    bool localEchoEnabled;
 };
 
 #endif // SERIALPORTSETTINGS_H

@@ -25,6 +25,7 @@
 class ILogData;
 class LogFilteredData;
 class SavedSearches;
+class SavedCommands;
 class QuickFindPattern;
 
 // ViewContextInterface represents the private information
@@ -56,6 +57,15 @@ class ViewInterface {
     void setSavedSearches( std::shared_ptr<SavedSearches> saved_searches )
     { doSetSavedSearches( saved_searches ); }
 
+    // Set the (shared) command history object
+    void setSavedCommands( std::shared_ptr<SavedCommands> saved_commands )
+    { doSetSavedCommands( saved_commands ); }
+
+    // Finish the setup
+    void finishSetup() {
+        doFinishSetup();
+    }
+
     // For save/restore of the context
     void setViewContext( const char* view_context )
     { doSetViewContext( view_context ); }
@@ -74,6 +84,9 @@ class ViewInterface {
             std::shared_ptr<QuickFindPattern> qfp ) = 0;
     virtual void doSetSavedSearches(
             std::shared_ptr<SavedSearches> saved_searches ) = 0;
+    virtual void doSetSavedCommands(
+            std::shared_ptr<SavedCommands> saved_commands ) = 0;
+    virtual void doFinishSetup() = 0;
     virtual void doSetViewContext(
             const char* view_context ) = 0;
     virtual std::shared_ptr<const ViewContextInterface>

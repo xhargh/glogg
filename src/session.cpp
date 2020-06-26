@@ -29,6 +29,7 @@
 #include "viewinterface.h"
 #include "persistentinfo.h"
 #include "savedsearches.h"
+#include "savedcommands.h"
 #include "sessioninfo.h"
 #include "data/logdata.h"
 #include "data/ttylogdata.h"
@@ -38,10 +39,12 @@
 Session::Session()
 {
     GetPersistentInfo().retrieve( QString( "savedSearches" ) );
+    GetPersistentInfo().retrieve( QString( "savedCommands" ) );
 
     // Get the global search history (it remains the property
     // of the Persistent)
     savedSearches_ = Persistent<SavedSearches>( "savedSearches" );
+    savedCommands_ = Persistent<SavedCommands>( "savedCommands" );
 
     quickFindPattern_ = std::make_shared<QuickFindPattern>();
 }
@@ -198,7 +201,9 @@ ViewInterface* Session::openAlways( const std::string& file_name, bool isTTY,
     ViewInterface* view = view_factory();
     view->setData( log_data, log_filtered_data );
     view->setQuickFindPattern( quickFindPattern_ );
+    view->setSavedCommands( savedCommands_ );
     view->setSavedSearches( savedSearches_ );
+    view->finishSetup();
 
     if ( view_context )
         view->setViewContext( view_context );

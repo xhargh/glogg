@@ -73,6 +73,7 @@ HEADERS += \
     src/data/linepositionarray.h \
     src/data/ttylogdata.h \
     src/mainwindow.h \
+    src/savedcommands.h \
     src/savedstrings.h \
     src/session.h \
     src/viewinterface.h \

@@ -53,6 +53,10 @@ public:
         return EncodingSpeculator::Encoding();
     }
 
+    virtual void write(QString str) {
+        qInfo() << __func__;
+    }
+
 };
 
 #endif // ILOGDATA_H

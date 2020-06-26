@@ -37,6 +37,7 @@ class ViewContextInterface;
 class ILogData;
 class LogFilteredData;
 class SavedSearches;
+class SavedCommands;
 
 // File unreadable error
 class FileUnreadableErr {};
@@ -120,6 +121,9 @@ class Session {
 
     // Global search history
     std::shared_ptr<SavedSearches> savedSearches_;
+
+    // Global command history
+    std::shared_ptr<SavedCommands> savedCommands_;
 
     // Global quickfind pattern
     std::shared_ptr<QuickFindPattern> quickFindPattern_;

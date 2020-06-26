@@ -40,6 +40,7 @@
 #include "quickfindpattern.h"
 #include "overview.h"
 #include "infoline.h"
+#include "savedcommands.h"
 #include "savedsearches.h"
 #include "quickfindwidget.h"
 #include "persistentinfo.h"
@@ -230,15 +231,22 @@ void CrawlerWidget::doSetQuickFindPattern(
     quickFindPattern_ = qfp;
 }
 
+void CrawlerWidget::doSetSavedCommands(
+        std::shared_ptr<SavedCommands> saved_commands )
+{
+    savedCommands_ = saved_commands;
+}
+
 void CrawlerWidget::doSetSavedSearches(
         std::shared_ptr<SavedSearches> saved_searches )
 {
     savedSearches_ = saved_searches;
+}
 
-    // We do setup now, assuming doSetData has been called before
-    // us, that's not great really...
+void CrawlerWidget::doFinishSetup() {
     setup();
 }
+
 
 void CrawlerWidget::doSetViewContext(
         const char* view_context )
@@ -273,6 +281,20 @@ CrawlerWidget::doGetViewContext() const
 //
 // Slots
 //
+
+void CrawlerWidget::executeCommand()
+{
+    GetPersistentInfo().retrieve( "savedCommands" );
+    auto cmd = cmdEntryBox->currentText();
+    savedCommands_->addRecent( cmd );
+    GetPersistentInfo().save( "savedCommands" );
+
+    // Update the EntryBox (history)
+    updateCommandCombo();
+    // Call the private function to do the search
+    qInfo() << "execute command: " << cmd;
+    logData_->write(cmd);
+}
 
 void CrawlerWidget::startNewSearch()
 {
@@ -438,6 +460,7 @@ void CrawlerWidget::applyConfiguration()
 
     // Update the SearchLine (history)
     updateSearchCombo();
+    updateCommandCombo();
 }
 
 void CrawlerWidget::enteringQuickFind()
@@ -701,11 +724,11 @@ void CrawlerWidget::setup()
     cmdView = new QWidget();
     auto* cmdLayout = new QHBoxLayout(cmdView);
     auto* cmdLbl = new QLabel(tr("Cmd:"));
-    auto* cmdEntryBox = new QComboBox();
+    cmdEntryBox = new QComboBox();
 
     cmdEntryBox->setEditable(true);
     cmdEntryBox->setCompleter(0);
-    // qqq cmdEntryBox->addItems(.,,);
+    cmdEntryBox->addItems( savedCommands_->recentStrings() );
     cmdEntryBox->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Minimum );
     cmdEntryBox->setSizeAdjustPolicy( QComboBox::AdjustToMinimumContentsLengthWithIcon );
     cmdLayout->addWidget(cmdLbl);
@@ -786,6 +809,9 @@ void CrawlerWidget::setup()
             this, SLOT( startNewSearch() ) );
     connect(stopButton, SIGNAL( clicked() ),
             this, SLOT( stopSearch() ) );
+
+    connect(cmdEntryBox->lineEdit(), SIGNAL( returnPressed() ),
+            this, SLOT( executeCommand() ) );
 
     connect(visibilityBox, SIGNAL( currentIndexChanged( int ) ),
             this, SLOT( changeFilteredViewVisibility( int ) ) );
@@ -952,6 +978,17 @@ void CrawlerWidget::updateSearchCombo()
     searchLineEdit->addItems( savedSearches_->recentStrings() );
     // In case we had something that wasn't added to the list (blank...):
     searchLineEdit->lineEdit()->setText( text );
+}
+
+// Updates the content of the drop down list for the saved commands,
+// called when the SavedCommand has been changed.
+void CrawlerWidget::updateCommandCombo()
+{
+    const QString text = cmdEntryBox->lineEdit()->text();
+    cmdEntryBox->clear();
+    cmdEntryBox->addItems( savedCommands_->recentStrings() );
+
+    cmdEntryBox->lineEdit()->setText( "" );
 }
 
 // Print the search info message.

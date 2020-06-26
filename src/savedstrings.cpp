@@ -64,7 +64,7 @@ QStringList SavedStrings::recentStrings() const
 
 QDataStream& operator<<( QDataStream& out, const SavedStrings& object )
 {
-    LOG(logDEBUG) << "<<operator from SavedStrings";
+    LOG(logDEBUG) << QString("<<operator from " + object.getClassName()).toStdString().c_str();
 
     out << object.savedStrings_;
 
@@ -73,7 +73,7 @@ QDataStream& operator<<( QDataStream& out, const SavedStrings& object )
 
 QDataStream& operator>>( QDataStream& in, SavedStrings& object )
 {
-    LOG(logDEBUG) << ">>operator from SavedStrings";
+    LOG(logDEBUG) << QString(">>operator from " + object.getClassName()).toStdString().c_str();
 
     in >> object.savedStrings_;
 
@@ -86,7 +86,7 @@ QDataStream& operator>>( QDataStream& in, SavedStrings& object )
 
 void SavedStrings::saveToStorage(QSettings &settings) const
 {
-    LOG(logDEBUG) << "SavedStrings::saveToStorage";
+    LOG(logDEBUG) << QString(getClassName() + "::saveToStorage").toStdString().c_str();
 
     settings.beginGroup( getClassName() );
     // Remove everything in case the array is shorter than the previous one
@@ -103,7 +103,7 @@ void SavedStrings::saveToStorage(QSettings &settings) const
 
 void SavedStrings::retrieveFromStorage(QSettings &settings)
 {
-    LOG(logDEBUG) << "SavedStrings::retrieveFromStorage";
+    LOG(logDEBUG) << QString(getClassName() + "::retrieveFromStorage").toStdString().c_str();
 
     savedStrings_.clear();
 

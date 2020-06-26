@@ -24,6 +24,12 @@ void TtyLogData::attachFile( const QString& fileName ) {
     }
 }
 
+void TtyLogData::write(QString str)
+{
+    qInfo() << "write: " + str;
+    m_serialPort.write(str.toLatin1() + "\n");
+}
+
 QString TtyLogData::doGetLineString(qint64 line) const
 {
     return m_lines[line].second;

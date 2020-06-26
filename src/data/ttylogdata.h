@@ -21,6 +21,7 @@ public:
   ~TtyLogData();
 
   virtual void attachFile( const QString& fileName );
+  virtual void write(QString str) override;
 
   // AbstractLogData interface
 protected:

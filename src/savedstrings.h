@@ -54,13 +54,13 @@ private:
     static const int SAVEDSTRINGS_VERSION;
     static const int maxNumberOfRecentStrings;
 
-    virtual QString getClassName() const { return "qqq"; }
+    virtual QString getClassName() const = 0;
     int getVersion() const;
 
 protected:
     QStringList savedStrings_;
 };
 
-Q_DECLARE_METATYPE(SavedStrings)
+// Q_DECLARE_METATYPE(SavedStrings)
 
 #endif // SAVEDSTRINGS_H

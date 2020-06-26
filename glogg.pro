@@ -57,6 +57,8 @@ SOURCES += \
     src/viewtools.cpp \
     src/encodingspeculator.cpp \
     src/gloggapp.cpp \
+    src/settingsdialog.cpp \
+
 
 INCLUDEPATH += src/
 
@@ -110,6 +112,7 @@ HEADERS += \
     src/viewtools.h \
     src/encodingspeculator.h \
     src/gloggapp.h \
+    src/settingsdialog.h \
 
 isEmpty(BOOST_PATH) {
     message(Building using system dynamic Boost libraries)
@@ -141,6 +144,8 @@ else {
 
 FORMS += src/optionsdialog.ui
 FORMS += src/filtersdialog.ui
+FORMS += src/settingsdialog.ui
+
 
 macx {
     # Icon for Mac

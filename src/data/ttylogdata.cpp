@@ -1,14 +1,16 @@
 #include <QDebug>
 
 #include "ttylogdata.h"
+#include "settingsdialog.h"
 
-TtyLogData::TtyLogData() : ILogData(), m_maxLineLength(0)
+TtyLogData::TtyLogData(const SettingsDialog::Settings* settings) : ILogData(), m_maxLineLength(0)
 {
-    m_serialPort.setBaudRate(QSerialPort::Baud115200);
-    m_serialPort.setDataBits(QSerialPort::Data8);
-    m_serialPort.setParity(QSerialPort::NoParity);
-    m_serialPort.setStopBits(QSerialPort::OneStop);
-    m_serialPort.setFlowControl(QSerialPort::NoFlowControl);
+    m_serialPort.setPortName(settings->name);
+    m_serialPort.setBaudRate(settings->baudRate);
+    m_serialPort.setDataBits(settings->dataBits);
+    m_serialPort.setParity(settings->parity);
+    m_serialPort.setStopBits(settings->stopBits);
+    m_serialPort.setFlowControl(settings->flowControl);
 }
 
 TtyLogData::~TtyLogData()
@@ -17,6 +19,7 @@ TtyLogData::~TtyLogData()
 }
 
 void TtyLogData::attachFile( const QString& fileName ) {
+
     m_serialPort.setPortName(fileName);
     if (m_serialPort.open(QIODevice::ReadWrite)) {
         qInfo() << __func__ << " " << fileName << " opened successfully";

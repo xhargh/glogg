@@ -66,17 +66,22 @@ ViewInterface* Session::getViewIfOpen( const std::string& file_name ) const
         return nullptr;
 }
 
-ViewInterface* Session::open( const std::string& file_name, bool isTTY,
+ViewInterface* Session::open( const std::string& file_name, SettingsDialog::Settings* p_portSettings,
         std::function<ViewInterface*()> view_factory )
 {
     ViewInterface* view = nullptr;
 
-    QFileInfo fileInfo( file_name.c_str() );
-    if ( fileInfo.isReadable() ) {
-        return openAlways( file_name, isTTY, view_factory, nullptr );
+    if (p_portSettings) {
+        return openAlways( file_name, p_portSettings, view_factory, nullptr );
     }
     else {
-        throw FileUnreadableErr();
+        QFileInfo fileInfo( file_name.c_str() );
+        if ( fileInfo.isReadable() ) {
+            return openAlways( file_name, p_portSettings, view_factory, nullptr );
+        }
+        else {
+            throw FileUnreadableErr();
+        }
     }
 
     return view;
@@ -133,7 +138,7 @@ std::vector<std::pair<std::string, ViewInterface*>> Session::restore(
     for ( auto file: session_files )
     {
         LOG(logDEBUG) << "Create view for " << file.fileName;
-        ViewInterface* view = openAlways( file.fileName, file.isTTY, view_factory, file.viewContext.c_str() );
+        ViewInterface* view = openAlways( file.fileName, nullptr, view_factory, file.viewContext.c_str() );
         result.push_back( { file.fileName, view } );
     }
 
@@ -177,21 +182,17 @@ void Session::getFileInfo( const ViewInterface* view, uint64_t* fileSize,
  * Private methods
  */
 
-ViewInterface* Session::openAlways( const std::string& file_name, bool isTTY,
+ViewInterface* Session::openAlways( const std::string& file_name, SettingsDialog::Settings* p_portSettings,
         std::function<ViewInterface*()> view_factory,
         const char* view_context )
 {
 
     QString fn(file_name.c_str());
-    if (fn.contains("/dev/tty")) {
-        qDebug() << "Assuming tty";
-        isTTY = true;
-    }
 
     // Create the data objects
     std::shared_ptr<ILogData> log_data;
-    if (isTTY) {
-        log_data = std::make_shared<TtyLogData>();
+    if (p_portSettings) {
+        log_data = std::make_shared<TtyLogData>(p_portSettings);
     } else {
         log_data = std::make_shared<LogData>();
     }

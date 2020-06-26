@@ -50,6 +50,7 @@
 #include "menuactiontooltipbehavior.h"
 #include "tabbedcrawlerwidget.h"
 #include "externalcom.h"
+#include "settingsdialog.h"
 
 // Returns the size in human readable format
 static QString readableSize( qint64 size );
@@ -259,7 +260,7 @@ void MainWindow::createActions()
     openTTYAction->setShortcut(QKeySequence::Open);
     openTTYAction->setIcon( QIcon( ":/images/open14.png" ) );
     openTTYAction->setStatusTip(tr("Open a TTY"));
-    connect(openTTYAction, SIGNAL(triggered()), this, SLOT(openTTY()));
+    connect(openTTYAction, SIGNAL(triggered()), this, SLOT(openSerialPortDialog()));
 
     closeAction = new QAction(tr("&Close"), this);
     closeAction->setShortcut(tr("Ctrl+W"));
@@ -463,12 +464,6 @@ void MainWindow::open()
         loadFile(fileName);
 }
 
-void MainWindow::openTTY()
-{
-    qDebug() << "Try to open hard coded TTY";
-    loadFile(tr("/dev/tty.usbmodem14103"), true);
-}
-
 // Opens a log file from the recent files list
 void MainWindow::openRecentFile()
 {
@@ -543,6 +538,19 @@ void MainWindow::options()
     signalMux_.connect(&dialog, SIGNAL( optionsChanged() ), SLOT( applyConfiguration() ));
     dialog.exec();
     signalMux_.disconnect(&dialog, SIGNAL( optionsChanged() ), SLOT( applyConfiguration() ));
+}
+
+void MainWindow::openSerialPortDialog()
+{
+    SettingsDialog dialog(this);
+    connect(&dialog, &SettingsDialog::optionChanged, this, &MainWindow::openSerialPort);
+    dialog.exec();
+    disconnect(&dialog, &SettingsDialog::optionChanged, this, &MainWindow::openSerialPort);
+}
+
+void MainWindow::openSerialPort(SettingsDialog::Settings settings) {
+    qInfo() << __func__;
+    loadFile(settings.name, &settings);
 }
 
 // Opens the 'About' dialog box.
@@ -833,9 +841,10 @@ void MainWindow::keyPressEvent( QKeyEvent* keyEvent )
 // Create a CrawlerWidget for the passed file, start its loading
 // and update the title bar.
 // The loading is done asynchronously.
-bool MainWindow::loadFile( const QString& fileName, bool isTTY )
+bool MainWindow::loadFile( const QString& fileName, SettingsDialog::Settings* p_portSettings )
 {
-    LOG(logDEBUG) << "loadFile ( " << fileName.toStdString() << " )";
+    bool isTTY = (p_portSettings != nullptr);
+    LOG(logDEBUG) << "loadFile ( " << fileName.toStdString() << ", " << (isTTY?"TTY":"") <<" )";
 
     // First check if the file is already open...
     CrawlerWidget* existing_crawler = dynamic_cast<CrawlerWidget*>(
@@ -853,7 +862,7 @@ bool MainWindow::loadFile( const QString& fileName, bool isTTY )
     try {
         CrawlerWidget* crawler_widget;
         crawler_widget = dynamic_cast<CrawlerWidget*>(
-            session_->open( fileName.toStdString(), isTTY,
+            session_->open( fileName.toStdString(), p_portSettings,
                             []() { return new CrawlerWidget(); } ) );
         assert( crawler_widget );
 

@@ -5,6 +5,7 @@
 #include <QSerialPort>
 
 #include "logdata.h"
+#include "settingsdialog.h"
 
 class QSerialPort;
 
@@ -16,7 +17,7 @@ private:
   int m_maxLineLength;
 public:
   // Creates an empty LogData
-  TtyLogData();
+  TtyLogData(const SettingsDialog::Settings* settings);
   // Destroy an object
   ~TtyLogData();
 

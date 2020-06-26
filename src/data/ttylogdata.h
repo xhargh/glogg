@@ -14,16 +14,18 @@ class TtyLogData : public ILogData {
 private:
   std::vector<std::pair<QDateTime, QString>> m_lines;
   QSerialPort m_serialPort;
+  SerialPortSettings m_serialPortSettings;
   int m_maxLineLength;
 public:
   // Creates an empty LogData
-  TtyLogData(const SerialPortSettings* settings);
+  TtyLogData(SerialPortSettings* settings);
   // Destroy an object
   ~TtyLogData();
 
   virtual void attachFile( const QString& fileName );
   virtual void write(QString str) override;
   virtual bool isWritable() const override;
+  virtual SerialPortSettings * GetIoSettings() override;
 
   // AbstractLogData interface
 protected:

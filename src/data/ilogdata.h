@@ -7,6 +7,8 @@
 #include "logfiltereddata.h"
 #include "encodingspeculator.h"
 
+class SerialPortSettings;
+
 class ILogData : public AbstractLogData {
     Q_OBJECT
 
@@ -59,6 +61,10 @@ public:
 
     virtual bool isWritable() const {
         return false;
+    }
+
+    virtual SerialPortSettings* GetIoSettings() {
+        return nullptr;
     }
 
 };

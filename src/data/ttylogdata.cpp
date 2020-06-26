@@ -3,7 +3,7 @@
 #include "ttylogdata.h"
 #include "serialportsettings.h"
 
-TtyLogData::TtyLogData(const SerialPortSettings* settings) : ILogData(), m_maxLineLength(0)
+TtyLogData::TtyLogData(SerialPortSettings* settings) : ILogData(), m_serialPortSettings(*settings), m_maxLineLength(0)
 {
     m_serialPort.setPortName(settings->name);
     m_serialPort.setBaudRate(settings->baudRate);
@@ -36,6 +36,11 @@ void TtyLogData::write(QString str)
 bool TtyLogData::isWritable() const
 {
     return true;
+}
+
+SerialPortSettings *TtyLogData::GetIoSettings()
+{
+    return &m_serialPortSettings;
 }
 
 QString TtyLogData::doGetLineString(qint64 line) const

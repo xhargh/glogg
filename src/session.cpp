@@ -113,7 +113,7 @@ void Session::save( std::vector<
         assert( file );
 
         LOG(logDEBUG) << "Saving " << file->fileName << " in session.";
-        session_files.push_back( { file->fileName, top_line, view_context->toString() } );
+        session_files.push_back( { file->fileName, top_line, view_context->toString(), file->logData->GetIoSettings() } );
     }
 
     std::shared_ptr<SessionInfo> session =
@@ -138,7 +138,7 @@ std::vector<std::pair<std::string, ViewInterface*>> Session::restore(
     for ( auto file: session_files )
     {
         LOG(logDEBUG) << "Create view for " << file.fileName;
-        ViewInterface* view = openAlways( file.fileName, nullptr, view_factory, file.viewContext.c_str() );
+        ViewInterface* view = openAlways( file.fileName, file.serialPortSettings, view_factory, file.viewContext.c_str() );
         result.push_back( { file.fileName, view } );
     }
 

@@ -28,6 +28,8 @@
 
 #include "persistable.h"
 
+class SerialPortSettings;
+
 // Simple component class containing information related to the session
 // to be persisted and reloaded upon start
 class SessionInfo : public Persistable {
@@ -49,7 +51,7 @@ class SessionInfo : public Persistable {
         // The view context contains parameter specific to the view's
         // implementation (such as geometry...)
         std::string viewContext;
-        bool isTTY;
+        SerialPortSettings* serialPortSettings;
     };
 
     // List of the loaded files

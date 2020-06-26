@@ -245,6 +245,7 @@ class CrawlerWidget : public QSplitter,
     LogMainView*    logMainView;
     QWidget*        cmdView;
     QComboBox*      cmdEntryBox;
+    QWidget*        mainWindow;
     QWidget*        bottomWindow;
     QLabel*         searchLabel;
     QComboBox*      searchLineEdit;
@@ -257,6 +258,7 @@ class CrawlerWidget : public QSplitter,
     QCheckBox*      searchRefreshCheck;
     OverviewWidget* overviewWidget_;
 
+    QVBoxLayout*    mainLayout;
     QVBoxLayout*    bottomMainLayout;
     QHBoxLayout*    searchLineLayout;
     QHBoxLayout*    searchInfoLineLayout;

@@ -642,6 +642,7 @@ void CrawlerWidget::setup()
     assert( logFilteredData_ );
 
     // The views
+    mainWindow = new QWidget;
     bottomWindow = new QWidget;
     overviewWidget_ = new OverviewWidget();
     logMainView     = new LogMainView(
@@ -719,10 +720,10 @@ void CrawlerWidget::setup()
     ignoreCaseCheck = new QCheckBox( "Ignore &case" );
     searchRefreshCheck = new QCheckBox( "Auto-&refresh" );
 
-    // QQQ - add a cmd-line with QLineEdit, return button and command buttons + a "..." button for cfg-menu
-
     cmdView = new QWidget();
     auto* cmdLayout = new QHBoxLayout(cmdView);
+    cmdLayout->setContentsMargins(6, 0, 6, 0);
+
     auto* cmdLbl = new QLabel(tr("Cmd:"));
     cmdEntryBox = new QComboBox();
 
@@ -770,24 +771,29 @@ void CrawlerWidget::setup()
     searchInfoLineLayout->addWidget( ignoreCaseCheck );
     searchInfoLineLayout->addWidget( searchRefreshCheck );
 
+    // Construct the main window
+    mainLayout = new QVBoxLayout;
+    mainLayout->addWidget(logMainView);
+    mainLayout->addWidget(cmdView);
+    mainLayout->setContentsMargins(2,1,2,1);
+    mainLayout->setSpacing(0);
+    mainWindow->setLayout(mainLayout);
+
     // Construct the bottom window
-    QVBoxLayout* bottomMainLayout = new QVBoxLayout;
+    bottomMainLayout = new QVBoxLayout;
     bottomMainLayout->addLayout(searchLineLayout);
     bottomMainLayout->addLayout(searchInfoLineLayout);
     bottomMainLayout->addWidget(filteredView);
     bottomMainLayout->setContentsMargins(2, 1, 2, 1);
+    // bottomMainLayout->setSpacing(0);
     bottomWindow->setLayout(bottomMainLayout);
 
-    addWidget( logMainView );
-    if (cmdView) {
-        addWidget( cmdView );
-    }
+    addWidget( mainWindow );
     addWidget( bottomWindow );
 
     // Default splitter position (usually overridden by the config file)
     QList<int> splitterSizes;
     splitterSizes += 400;
-    splitterSizes += 50;
     splitterSizes += 100;
     setSizes( splitterSizes );
 
@@ -1181,17 +1187,17 @@ void CrawlerWidget::SearchState::startSearch()
  */
 CrawlerWidgetContext::CrawlerWidgetContext( const char* string )
 {
-    QRegularExpression regex( "S(\\d+):(\\d+):(\\d+)" );
+    QRegularExpression regex( "S(\\d+):(\\d+)" );
     QRegularExpressionMatch match = regex.match( string );
     if ( match.hasMatch() ) {
-        sizes_ = { match.captured(1).toInt(), match.captured(2).toInt(), match.captured(3).toInt() };
-        LOG(logDEBUG) << "sizes_: " << sizes_[0] << " " << sizes_[1] << " " << sizes_[2];
+        sizes_ = { match.captured(1).toInt(), match.captured(2).toInt() };
+        LOG(logDEBUG) << "sizes_: " << sizes_[0] << " " << sizes_[1];
     }
     else {
         LOG(logWARNING) << "Unrecognised view size: " << string;
 
         // Default values;
-        sizes_ = { 400, 50, 155 };
+        sizes_ = { 400, 100 };
     }
 
     QRegularExpression case_refresh_regex( "IC(\\d+):AR(\\d+)" );
@@ -1226,8 +1232,8 @@ std::string CrawlerWidgetContext::toString() const
 {
     char string[160];
 
-    snprintf( string, sizeof string, "S%d:%d:%d:IC%d:AR%d:FF%d",
-            sizes_[0], sizes_[1], sizes_[2],
+    snprintf( string, sizeof string, "S%d:%d:IC%d:AR%d:FF%d",
+            sizes_[0], sizes_[1],
             ignore_case_, auto_refresh_, follow_file_ );
 
     return { string };

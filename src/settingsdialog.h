@@ -55,6 +55,8 @@
 #include <QDialog>
 #include <QSerialPort>
 
+#include "serialportsettings.h"
+
 QT_BEGIN_NAMESPACE
 
 namespace Ui {
@@ -70,28 +72,14 @@ class SettingsDialog : public QDialog
     Q_OBJECT
 
 public:
-    struct Settings {
-        QString name;
-        qint32 baudRate;
-        QString stringBaudRate;
-        QSerialPort::DataBits dataBits;
-        QString stringDataBits;
-        QSerialPort::Parity parity;
-        QString stringParity;
-        QSerialPort::StopBits stopBits;
-        QString stringStopBits;
-        QSerialPort::FlowControl flowControl;
-        QString stringFlowControl;
-        bool localEchoEnabled;
-    };
 
     explicit SettingsDialog(QWidget *parent = nullptr);
     ~SettingsDialog();
 
-    Settings settings() const;
+    SerialPortSettings settings() const;
 
 signals:
-    void optionChanged(Settings settings);
+    void optionChanged(SerialPortSettings settings);
 
 private slots:
     void showPortInfo(int idx);
@@ -106,7 +94,7 @@ private:
 
 private:
     Ui::SettingsDialog *m_ui = nullptr;
-    Settings m_currentSettings;
+    SerialPortSettings m_currentSettings;
     QIntValidator *m_intValidator = nullptr;
 };
 

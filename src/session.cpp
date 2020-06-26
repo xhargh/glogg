@@ -66,7 +66,7 @@ ViewInterface* Session::getViewIfOpen( const std::string& file_name ) const
         return nullptr;
 }
 
-ViewInterface* Session::open( const std::string& file_name, SettingsDialog::Settings* p_portSettings,
+ViewInterface* Session::open( const std::string& file_name, SerialPortSettings* p_portSettings,
         std::function<ViewInterface*()> view_factory )
 {
     ViewInterface* view = nullptr;
@@ -182,7 +182,7 @@ void Session::getFileInfo( const ViewInterface* view, uint64_t* fileSize,
  * Private methods
  */
 
-ViewInterface* Session::openAlways( const std::string& file_name, SettingsDialog::Settings* p_portSettings,
+ViewInterface* Session::openAlways( const std::string& file_name, SerialPortSettings* p_portSettings,
         std::function<ViewInterface*()> view_factory,
         const char* view_context )
 {

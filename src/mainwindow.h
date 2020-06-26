@@ -88,7 +88,7 @@ class MainWindow : public QMainWindow
     void aboutQt();
     void encodingChanged( QAction* action );
     void openSerialPortDialog();
-    void openSerialPort(SettingsDialog::Settings settings);
+    void openSerialPort(SerialPortSettings settings);
 
     // Change the view settings
     void toggleOverviewVisibility( bool isVisible );
@@ -150,7 +150,7 @@ class MainWindow : public QMainWindow
     void createRecentFileToolTipTimer();
     void readSettings();
     void writeSettings();
-    bool loadFile( const QString& fileName, SettingsDialog::Settings* p_portSettings = nullptr);
+    bool loadFile( const QString& fileName, SerialPortSettings* p_portSettings = nullptr);
     void updateTitleBar( const QString& file_name );
     void updateRecentFileActions();
     QString strippedName( const QString& fullFileName ) const;

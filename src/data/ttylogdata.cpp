@@ -1,9 +1,9 @@
 #include <QDebug>
 
 #include "ttylogdata.h"
-#include "settingsdialog.h"
+#include "serialportsettings.h"
 
-TtyLogData::TtyLogData(const SettingsDialog::Settings* settings) : ILogData(), m_maxLineLength(0)
+TtyLogData::TtyLogData(const SerialPortSettings* settings) : ILogData(), m_maxLineLength(0)
 {
     m_serialPort.setPortName(settings->name);
     m_serialPort.setBaudRate(settings->baudRate);

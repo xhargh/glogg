@@ -17,7 +17,7 @@ private:
   int m_maxLineLength;
 public:
   // Creates an empty LogData
-  TtyLogData(const SettingsDialog::Settings* settings);
+  TtyLogData(const SerialPortSettings* settings);
   // Destroy an object
   ~TtyLogData();
 

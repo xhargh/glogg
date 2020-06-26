@@ -548,7 +548,7 @@ void MainWindow::openSerialPortDialog()
     disconnect(&dialog, &SettingsDialog::optionChanged, this, &MainWindow::openSerialPort);
 }
 
-void MainWindow::openSerialPort(SettingsDialog::Settings settings) {
+void MainWindow::openSerialPort(SerialPortSettings settings) {
     qInfo() << __func__;
     loadFile(settings.name, &settings);
 }
@@ -841,7 +841,7 @@ void MainWindow::keyPressEvent( QKeyEvent* keyEvent )
 // Create a CrawlerWidget for the passed file, start its loading
 // and update the title bar.
 // The loading is done asynchronously.
-bool MainWindow::loadFile( const QString& fileName, SettingsDialog::Settings* p_portSettings )
+bool MainWindow::loadFile( const QString& fileName, SerialPortSettings* p_portSettings )
 {
     bool isTTY = (p_portSettings != nullptr);
     LOG(logDEBUG) << "loadFile ( " << fileName.toStdString() << ", " << (isTTY?"TTY":"") <<" )";

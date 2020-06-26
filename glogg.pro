@@ -77,6 +77,7 @@ HEADERS += \
     src/mainwindow.h \
     src/savedcommands.h \
     src/savedstrings.h \
+  src/serialportsettings.h \
     src/session.h \
     src/viewinterface.h \
     src/crawlerwidget.h \

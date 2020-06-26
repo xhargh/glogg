@@ -53,8 +53,12 @@ public:
         return EncodingSpeculator::Encoding();
     }
 
-    virtual void write(QString str) {
+    virtual void write(QString) {
         qInfo() << __func__;
+    }
+
+    virtual bool isWritable() const {
+        return false;
     }
 
 };

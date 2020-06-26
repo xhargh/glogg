@@ -33,6 +33,11 @@ void TtyLogData::write(QString str)
     m_serialPort.write(str.toLatin1() + "\n");
 }
 
+bool TtyLogData::isWritable() const
+{
+    return true;
+}
+
 QString TtyLogData::doGetLineString(qint64 line) const
 {
     return m_lines[line].second;

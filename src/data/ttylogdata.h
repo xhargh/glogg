@@ -23,6 +23,7 @@ public:
 
   virtual void attachFile( const QString& fileName );
   virtual void write(QString str) override;
+  virtual bool isWritable() const override;
 
   // AbstractLogData interface
 protected:

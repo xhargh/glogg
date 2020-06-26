@@ -236,6 +236,7 @@ class CrawlerWidget : public QSplitter,
     static const QPalette errorPalette;
 
     LogMainView*    logMainView;
+    QWidget*        cmdView;
     QWidget*        bottomWindow;
     QLabel*         searchLabel;
     QComboBox*      searchLineEdit;

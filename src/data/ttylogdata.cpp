@@ -79,6 +79,15 @@ void TtyLogData::doSetMultibyteEncodingOffsets(int before_cr, int after_cr)
 
 }
 
+QDateTime TtyLogData::getLastModifiedDate() const
+{
+    if (m_lines.size() == 0) {
+        return QDateTime::currentDateTime();
+    } else {
+        return m_lines.back().first;
+    }
+}
+
 void TtyLogData::readDataSlot()
 {
     while (m_serialPort.canReadLine()) {

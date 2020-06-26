@@ -36,6 +36,8 @@ protected:
   void doSetDisplayEncoding(Encoding encoding) override;
   void doSetMultibyteEncodingOffsets(int before_cr, int after_cr) override;
 
+  virtual QDateTime getLastModifiedDate() const;
+
 signals:
   // Sent during the 'attach' process to signal progress
   // percent being the percentage of completion.

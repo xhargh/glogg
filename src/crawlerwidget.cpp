@@ -18,7 +18,7 @@
  */
 
 // This file implements the CrawlerWidget class.
-// It is responsible for creating and managing the two views and all
+// It is responsible for creating and managing the two or more views and all
 // the UI elements.  It implements the connection between the UI elements.
 // It also interacts with the sets of data (full and filtered).
 
@@ -717,7 +717,7 @@ void CrawlerWidget::setup()
     searchLineEdit = new QComboBox;
     searchLineEdit->setEditable( true );
     searchLineEdit->setCompleter( 0 );
-    searchLineEdit->addItems( savedSearches_->recentSearches() );
+    searchLineEdit->addItems( savedSearches_->recentStrings() );
     searchLineEdit->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Minimum );
     searchLineEdit->setSizeAdjustPolicy( QComboBox::AdjustToMinimumContentsLengthWithIcon );
 
@@ -949,7 +949,7 @@ void CrawlerWidget::updateSearchCombo()
 {
     const QString text = searchLineEdit->lineEdit()->text();
     searchLineEdit->clear();
-    searchLineEdit->addItems( savedSearches_->recentSearches() );
+    searchLineEdit->addItems( savedSearches_->recentStrings() );
     // In case we had something that wasn't added to the list (blank...):
     searchLineEdit->lineEdit()->setText( text );
 }

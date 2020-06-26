@@ -24,36 +24,24 @@
 #include <QStringList>
 #include <QMetaType>
 
-#include "persistable.h"
+#include "savedstrings.h"
 
 // Keeps track of the previously used searches and allows the application
 // to retrieve them.
-class SavedSearches : public Persistable
+class SavedSearches : public SavedStrings
 {
   public:
     // Creates an empty set of saved searches
-    SavedSearches();
+    SavedSearches() : SavedStrings()
+    {
+        qRegisterMetaTypeStreamOperators<SavedSearches>( "SavedSearches" );
+    }
 
-    // Adds the passed search to the list of recently used searches
-    void addRecent( const QString& text );
+private:
+    QString getClassName() const override {
+        return "SavedSearches";
+    }
 
-    // Returns a list of recent searches (newer first)
-    QStringList recentSearches() const;
-
-    // Operators for serialization
-    // (only for migrating pre 0.8.2 settings, will be removed)
-    friend QDataStream& operator<<( QDataStream& out, const SavedSearches& object );
-    friend QDataStream& operator>>( QDataStream& in, SavedSearches& object );
-
-    // Reads/writes the current config in the QSettings object passed
-    void saveToStorage( QSettings& settings ) const;
-    void retrieveFromStorage( QSettings& settings );
-
-  private:
-    static const int SAVEDSEARCHES_VERSION;
-    static const int maxNumberOfRecentSearches;
-
-    QStringList savedSearches_;
 };
 
 Q_DECLARE_METATYPE(SavedSearches)

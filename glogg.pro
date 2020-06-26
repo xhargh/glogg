@@ -22,6 +22,7 @@ SOURCES += \
     src/data/filelogdata.cpp \
     src/data/ttylogdata.cpp \
     src/main.cpp \
+    src/savedstrings.cpp \
     src/session.cpp \
     src/data/abstractlogdata.cpp \
     src/data/logdata.cpp \
@@ -39,7 +40,6 @@ SOURCES += \
     src/configuration.cpp \
     src/filtersdialog.cpp \
     src/filterset.cpp \
-    src/savedsearches.cpp \
     src/infoline.cpp \
     src/menuactiontooltipbehavior.cpp \
     src/selection.cpp \
@@ -73,6 +73,7 @@ HEADERS += \
     src/data/linepositionarray.h \
     src/data/ttylogdata.h \
     src/mainwindow.h \
+    src/savedstrings.h \
     src/session.h \
     src/viewinterface.h \
     src/crawlerwidget.h \

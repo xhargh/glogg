@@ -188,7 +188,7 @@ class MainWindow : public QMainWindow
     QToolBar *toolBar;
 
     QAction *openAction;
-    QAction *openTTYAction;
+    QAction *openSerialPortAction;
     QAction *closeAction;
     QAction *closeAllAction;
     QAction *exitAction;

@@ -21,7 +21,7 @@ win32:Release:QMAKE_LFLAGS += "-Wl,-subsystem,windows"
 SOURCES += \
   src/cmdbutton.cpp \
     src/data/filelogdata.cpp \
-    src/data/ttylogdata.cpp \
+  src/data/seriallogdata.cpp \
     src/main.cpp \
     src/savedstrings.cpp \
     src/session.cpp \
@@ -72,10 +72,10 @@ HEADERS += \
     src/data/logfiltereddata.h \
     src/data/logfiltereddataworkerthread.h \
     src/data/logdataworkerthread.h \
+  src/data/seriallogdata.h \
     src/data/threadprivatestore.h \
     src/data/compressedlinestorage.h \
     src/data/linepositionarray.h \
-    src/data/ttylogdata.h \
     src/mainwindow.h \
     src/savedcommands.h \
     src/savedstrings.h \

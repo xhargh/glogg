@@ -32,7 +32,7 @@
 #include "savedcommands.h"
 #include "sessioninfo.h"
 #include "data/logdata.h"
-#include "data/ttylogdata.h"
+#include "data/seriallogdata.h"
 #include "data/ilogdata.h"
 #include "data/logfiltereddata.h"
 
@@ -192,7 +192,7 @@ ViewInterface* Session::openAlways( const std::string& file_name, SerialPortSett
     // Create the data objects
     std::shared_ptr<ILogData> log_data;
     if (p_portSettings) {
-        log_data = std::make_shared<TtyLogData>(p_portSettings);
+        log_data = std::make_shared<SerialLogData>(p_portSettings);
     } else {
         log_data = std::make_shared<LogData>();
     }

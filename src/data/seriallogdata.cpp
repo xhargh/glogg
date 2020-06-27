@@ -1,9 +1,9 @@
 #include <QDebug>
 
-#include "ttylogdata.h"
+#include "seriallogdata.h"
 #include "serialportsettings.h"
 
-TtyLogData::TtyLogData(SerialPortSettings* settings) : ILogData(), m_serialPortSettings(*settings), m_maxLineLength(0)
+SerialLogData::SerialLogData(SerialPortSettings* settings) : ILogData(), m_serialPortSettings(*settings), m_maxLineLength(0)
 {
     m_serialPort.setPortName(settings->name);
     m_serialPort.setBaudRate(settings->baudRate);
@@ -13,48 +13,48 @@ TtyLogData::TtyLogData(SerialPortSettings* settings) : ILogData(), m_serialPortS
     m_serialPort.setFlowControl(settings->flowControl);
 }
 
-TtyLogData::~TtyLogData()
+SerialLogData::~SerialLogData()
 {
 
 }
 
-void TtyLogData::attachFile( const QString& fileName ) {
+void SerialLogData::attachFile( const QString& fileName ) {
 
     m_serialPort.setPortName(fileName);
     if (m_serialPort.open(QIODevice::ReadWrite)) {
         qInfo() << __func__ << " " << fileName << " opened successfully";
-        connect(&m_serialPort, &QSerialPort::readyRead, this, &TtyLogData::readDataSlot);
+        connect(&m_serialPort, &QSerialPort::readyRead, this, &SerialLogData::readDataSlot);
     }
 }
 
-void TtyLogData::write(QString str)
+void SerialLogData::write(QString str)
 {
     qInfo() << "write: " + str;
     m_serialPort.write(str.toLatin1() + "\n");
 }
 
-bool TtyLogData::isWritable() const
+bool SerialLogData::isWritable() const
 {
     return true;
 }
 
-SerialPortSettings *TtyLogData::GetIoSettings()
+SerialPortSettings *SerialLogData::GetIoSettings()
 {
     return &m_serialPortSettings;
 }
 
-QString TtyLogData::doGetLineString(qint64 line) const
+QString SerialLogData::doGetLineString(qint64 line) const
 {
     return m_lines[line].second;
 }
 
-QString TtyLogData::doGetExpandedLineString(qint64 line) const
+QString SerialLogData::doGetExpandedLineString(qint64 line) const
 {
     auto l = m_lines[line];
     return l.first.toString(Qt::ISODateWithMs) + " " + l.second;
 }
 
-QStringList TtyLogData::doGetLines(qint64 first_line, int number) const
+QStringList SerialLogData::doGetLines(qint64 first_line, int number) const
 {
     QStringList qs;
     for (int i = 0; i < number; i++) {
@@ -63,7 +63,7 @@ QStringList TtyLogData::doGetLines(qint64 first_line, int number) const
     return qs;
 }
 
-QStringList TtyLogData::doGetExpandedLines(qint64 first_line, int number) const
+QStringList SerialLogData::doGetExpandedLines(qint64 first_line, int number) const
 {
     QStringList qs;
     for (int i = 0; i < number; i++) {
@@ -72,33 +72,33 @@ QStringList TtyLogData::doGetExpandedLines(qint64 first_line, int number) const
     return qs;
 }
 
-qint64 TtyLogData::doGetNbLine() const
+qint64 SerialLogData::doGetNbLine() const
 {
     return m_lines.size();
 }
 
-int TtyLogData::doGetMaxLength() const
+int SerialLogData::doGetMaxLength() const
 {
     return m_maxLineLength;
 }
 
-int TtyLogData::doGetLineLength(qint64 line) const
+int SerialLogData::doGetLineLength(qint64 line) const
 {
     return doGetLineString(line).length();
 }
 
-void TtyLogData::doSetDisplayEncoding(Encoding encoding)
+void SerialLogData::doSetDisplayEncoding(Encoding encoding)
 {
     qInfo() << __func__ << (int)encoding << "\n";
 }
 
-void TtyLogData::doSetMultibyteEncodingOffsets(int before_cr, int after_cr)
+void SerialLogData::doSetMultibyteEncodingOffsets(int before_cr, int after_cr)
 {
     qInfo() << __func__ << before_cr << " - " << after_cr << "\n";
 
 }
 
-QDateTime TtyLogData::getLastModifiedDate() const
+QDateTime SerialLogData::getLastModifiedDate() const
 {
     if (m_lines.size() == 0) {
         return QDateTime::currentDateTime();
@@ -107,7 +107,7 @@ QDateTime TtyLogData::getLastModifiedDate() const
     }
 }
 
-void TtyLogData::readDataSlot()
+void SerialLogData::readDataSlot()
 {
     while (m_serialPort.canReadLine()) {
         const QByteArray data = m_serialPort.readLine();

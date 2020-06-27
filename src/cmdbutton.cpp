@@ -7,11 +7,14 @@
 
 CmdButton::CmdButton(int prefix, QString cmdLine) : m_prefix(prefix), m_cmdLine(cmdLine)
 {
-    setText(QString("&" + QString::number(m_prefix) + ": ") + m_cmdLine);
-    setAutoRaise( true );
-
+    update();
     connect(this, &CmdButton::clicked, this, &CmdButton::runCmd);
     connect(this, &CmdButton::rightClicked, this, &CmdButton::editCmd);
+}
+
+void CmdButton::update() {
+    setText(QString("&" + QString::number(m_prefix) + ": ") + m_cmdLine);
+    setAutoRaise( true );
 }
 
 void CmdButton::runCmd()

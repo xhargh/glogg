@@ -139,7 +139,7 @@ class CrawlerWidget : public QSplitter,
     void dataStatusChanged( DataStatus status );
 
   private slots:
-    // Send a string to TTY / execute a command
+    // Send a string to iodevice / execute a command
     void executeCommand();
     void executeBtnCommand(QString cmd);
     // Instructs the widget to start a search using the current search line.

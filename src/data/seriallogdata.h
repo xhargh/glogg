@@ -1,5 +1,5 @@
-#ifndef TTYLOGDATA_H
-#define TTYLOGDATA_H
+#ifndef SERIALLOGDATA_H
+#define SERIALLOGDATA_H
 
 #include <QObject>
 #include <QSerialPort>
@@ -9,7 +9,7 @@
 
 class QSerialPort;
 
-class TtyLogData : public ILogData {
+class SerialLogData : public ILogData {
   Q_OBJECT
 private:
   std::vector<std::pair<QDateTime, QString>> m_lines;
@@ -18,9 +18,9 @@ private:
   int m_maxLineLength;
 public:
   // Creates an empty LogData
-  TtyLogData(SerialPortSettings* settings);
+  SerialLogData(SerialPortSettings* settings);
   // Destroy an object
-  ~TtyLogData();
+  ~SerialLogData();
 
   virtual void attachFile( const QString& fileName );
   virtual void write(QString str) override;
@@ -57,4 +57,4 @@ private slots:
   void readDataSlot();
 };
 
-#endif // TTYLOGDATA_H
+#endif // SERIALLOGDATA_H

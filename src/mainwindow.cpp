@@ -256,11 +256,11 @@ void MainWindow::createActions()
     openAction->setStatusTip(tr("Open a file"));
     connect(openAction, SIGNAL(triggered()), this, SLOT(open()));
 
-    openTTYAction = new QAction(tr("&Open TTY..."), this);
-    openTTYAction->setShortcut(QKeySequence::Open);
-    openTTYAction->setIcon( QIcon( ":/images/port14.png" ) );
-    openTTYAction->setStatusTip(tr("Open a TTY"));
-    connect(openTTYAction, SIGNAL(triggered()), this, SLOT(openSerialPortDialog()));
+    openSerialPortAction = new QAction(tr("&Open Serial Port..."), this);
+    openSerialPortAction->setShortcut(QKeySequence::Open);
+    openSerialPortAction->setIcon( QIcon( ":/images/port14.png" ) );
+    openSerialPortAction->setStatusTip(tr("Open a Serial Port"));
+    connect(openSerialPortAction, SIGNAL(triggered()), this, SLOT(openSerialPortDialog()));
 
     closeAction = new QAction(tr("&Close"), this);
     closeAction->setShortcut(tr("Ctrl+W"));
@@ -372,7 +372,7 @@ void MainWindow::createMenus()
 {
     fileMenu = menuBar()->addMenu( tr("&File") );
     fileMenu->addAction( openAction );
-    fileMenu->addAction( openTTYAction );
+    fileMenu->addAction( openSerialPortAction );
     fileMenu->addAction( closeAction );
     fileMenu->addAction( closeAllAction );
     fileMenu->addSeparator();
@@ -434,7 +434,7 @@ void MainWindow::createToolBars()
     toolBar->setIconSize( QSize( 14, 14 ) );
     toolBar->setMovable( false );
     toolBar->addAction( openAction );
-    toolBar->addAction( openTTYAction );
+    toolBar->addAction( openSerialPortAction );
     toolBar->addAction( reloadAction );
     toolBar->addWidget( infoLine );
     toolBar->addAction( stopAction );
@@ -844,8 +844,8 @@ void MainWindow::keyPressEvent( QKeyEvent* keyEvent )
 // The loading is done asynchronously.
 bool MainWindow::loadFile( const QString& fileName, SerialPortSettings* p_portSettings )
 {
-    bool isTTY = (p_portSettings != nullptr);
-    LOG(logDEBUG) << "loadFile ( " << fileName.toStdString() << ", " << (isTTY?"TTY":"") <<" )";
+    bool isSerialPort = (p_portSettings != nullptr);
+    LOG(logDEBUG) << "loadFile ( " << fileName.toStdString() << ", " << (isSerialPort?"SerialPort":"") <<" )";
 
     // First check if the file is already open...
     CrawlerWidget* existing_crawler = dynamic_cast<CrawlerWidget*>(

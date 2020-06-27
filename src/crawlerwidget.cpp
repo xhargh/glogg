@@ -34,6 +34,10 @@
 #include <QStandardItemModel>
 #include <QHeaderView>
 #include <QListView>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+
 #include "cmdbutton.h"
 
 #include "crawlerwidget.h"
@@ -59,11 +63,14 @@ class CrawlerWidgetContext : public ViewContextInterface {
     CrawlerWidgetContext( QList<int> sizes,
            bool ignore_case,
            bool auto_refresh,
-           bool follow_file )
+           bool follow_file,
+           QStringList btnCmds)
         : sizes_( sizes ),
           ignore_case_( ignore_case ),
           auto_refresh_( auto_refresh ),
-          follow_file_( follow_file ) {}
+          follow_file_( follow_file ),
+          btnCmds_(btnCmds)
+    {}
 
     // Implementation of the ViewContextInterface function
     std::string toString() const;
@@ -74,6 +81,7 @@ class CrawlerWidgetContext : public ViewContextInterface {
     bool ignoreCase() const { return ignore_case_; }
     bool autoRefresh() const { return auto_refresh_; }
     bool followFile() const { return follow_file_; }
+    QStringList btnCommands() const { return btnCmds_; }
 
   private:
     QList<int> sizes_;
@@ -81,6 +89,7 @@ class CrawlerWidgetContext : public ViewContextInterface {
     bool ignore_case_;
     bool auto_refresh_;
     bool follow_file_;
+    QStringList btnCmds_;
 };
 
 // Constructor only does trivial construction. The real work is done once
@@ -319,16 +328,26 @@ void CrawlerWidget::doSetViewContext(
     searchRefreshChangedHandler( auto_refresh_check_state );
 
     emit followSet( context.followFile() );
+
+    QStringList btnCommands = context.btnCommands();
+    for(int i=0 ; i < btnCommands.length() ; i++) {
+        cmdBtns[i]->setCmdLine(btnCommands.at(i));
+    }
 }
 
 std::shared_ptr<const ViewContextInterface>
 CrawlerWidget::doGetViewContext() const
 {
+    QStringList btnCmds;
+    for (const CmdButton *cb: cmdBtns) {
+        btnCmds.append(cb->getCmdLine());
+    }
     auto context = std::make_shared<const CrawlerWidgetContext>(
             sizes(),
             ( ignoreCaseCheck->checkState() == Qt::Checked ),
             ( searchRefreshCheck->checkState() == Qt::Checked ),
-            logMainView->isFollowEnabled() );
+            logMainView->isFollowEnabled(),
+            btnCmds );
 
     return static_cast<std::shared_ptr<const ViewContextInterface>>( context );
 }
@@ -1264,56 +1283,67 @@ void CrawlerWidget::SearchState::startSearch()
 /*
  * CrawlerWidgetContext
  */
-CrawlerWidgetContext::CrawlerWidgetContext( const char* string )
+CrawlerWidgetContext::CrawlerWidgetContext( const char* saved_string )
 {
-    QRegularExpression regex( "S(\\d+):(\\d+)" );
-    QRegularExpressionMatch match = regex.match( string );
-    if ( match.hasMatch() ) {
-        sizes_ = { match.captured(1).toInt(), match.captured(2).toInt() };
-        LOG(logDEBUG) << "sizes_: " << sizes_[0] << " " << sizes_[1];
-    }
-    else {
-        LOG(logWARNING) << "Unrecognised view size: " << string;
+    QByteArray json_bytes(saved_string);
+    auto json_doc=QJsonDocument::fromJson(json_bytes);
 
-        // Default values;
+    bool fail = false;
+    if(json_doc.isNull()){
+        qDebug()<<"Failed to create JSON doc.";
+        fail = true;
+    }
+    else if(!json_doc.isObject()){
+        qDebug()<<"JSON is not an object.";
+        fail = true;
+    }
+
+    QJsonObject json;
+    if (!fail) {
+        json = json_doc.object();
+
+        if(json.isEmpty()){
+            qDebug()<<"JSON object is empty.";
+            fail = true;
+        }
+    }
+
+    if (fail) {
+        // Default settings
         sizes_ = { 400, 100 };
-    }
 
-    QRegularExpression case_refresh_regex( "IC(\\d+):AR(\\d+)" );
-    match = case_refresh_regex.match( string );
-    if ( match.hasMatch() ) {
-        ignore_case_ = ( match.captured(1).toInt() == 1 );
-        auto_refresh_ = ( match.captured(2).toInt() == 1 );
-
-        LOG(logDEBUG) << "ignore_case_: " << ignore_case_ << " auto_refresh_: "
-            << auto_refresh_;
-    }
-    else {
-        LOG(logWARNING) << "Unrecognised case/refresh: " << string;
         ignore_case_ = false;
         auto_refresh_ = false;
-    }
-
-    QRegularExpression follow_regex( "FF(\\d+)" );
-    match = follow_regex.match( string );
-    if ( match.hasMatch() ) {
-        follow_file_ = ( match.captured(1).toInt() == 1 );
-
-        LOG(logDEBUG) << "follow_file_: " << follow_file_;
-    }
-    else {
-        LOG(logWARNING) << "Unrecognised follow: " << string;
         follow_file_ = false;
+    } else {
+        sizes_ = { json["size0"].toInt(400), json["size1"].toInt(100) };
+        ignore_case_ = json["ignore_case"].toBool(false);
+        auto_refresh_ = json["auto_refresh"].toBool(false);
+        follow_file_ = json["follow_file"].toBool(false);
+        QJsonArray cmdButtons = json["cmd_buttons"].toArray();
+        btnCmds_.clear();
+        foreach (const QJsonValue & cmdButton, cmdButtons) {
+            btnCmds_.append(cmdButton.toString());
+        }
+    }
+    LOG(logDEBUG) << "sizes_: " << sizes_[0] << " " << sizes_[1];
+    LOG(logDEBUG) << "ignore_case_: " << ignore_case_ << " auto_refresh_: " << auto_refresh_;
+    LOG(logDEBUG) << "follow_file_: " << follow_file_;
+    for(int i=0 ; i < btnCmds_.length() ; i++) {
+        LOG(logDEBUG) << "btnCmds_: " << btnCmds_.at(i).toLocal8Bit().constData();
     }
 }
 
 std::string CrawlerWidgetContext::toString() const
 {
-    char string[160];
-
-    snprintf( string, sizeof string, "S%d:%d:IC%d:AR%d:FF%d",
-            sizes_[0], sizes_[1],
-            ignore_case_, auto_refresh_, follow_file_ );
-
-    return { string };
+    QJsonObject json;
+    json["size0"] = sizes_[0];
+    json["size1"] = sizes_[1];
+    json["ignore_case"] = ignore_case_;
+    json["auto_refresh"] = auto_refresh_;
+    json["follow_file"] = follow_file_;
+    QJsonArray cmdButtons = QJsonArray::fromStringList(btnCmds_);
+    json["cmd_buttons"] = cmdButtons;
+    QJsonDocument jdoc(json);
+    return jdoc.toJson().toStdString();
 }

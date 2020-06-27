@@ -23,7 +23,7 @@
 #include "serialportsettings.h"
 #include "log.h"
 
-const int SessionInfo::OPENFILES_VERSION = 1;
+const int SessionInfo::OPENFILES_VERSION = 2;
 
 void SessionInfo::retrieveFromStorage( QSettings& settings )
 {

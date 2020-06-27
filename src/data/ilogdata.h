@@ -10,7 +10,7 @@
 class SerialPortSettings;
 
 class ILogData : public AbstractLogData {
-    Q_OBJECT
+    // Q_OBJECT
 
 public:
     ILogData() : AbstractLogData() {

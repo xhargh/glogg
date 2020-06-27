@@ -37,6 +37,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QFileDialog>
+#include <QStandardPaths>
 
 #include "cmdbutton.h"
 
@@ -359,6 +361,26 @@ CrawlerWidget::doGetViewContext() const
 void CrawlerWidget::executeBtnCommand(QString cmd) {
     qInfo() << __func__ << " " << cmd;
     logData_->write(cmd);
+}
+
+void CrawlerWidget::clearLog()
+{
+    qInfo() << __func__;
+    logData_->clear();
+}
+
+void CrawlerWidget::saveLogAs()
+{
+    qInfo() << __func__;
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"),
+                               QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)
+                                                    + "/"
+                                                    + logData_->getLastModifiedDate().toString(Qt::ISODate).replace(":", "").replace("-","")
+                                                    + "_"
+                                                    + "log"
+                                                    + ".txt",
+                               tr("Log Files (*.log *.txt)"));
+    logData_->saveLogAs(fileName);
 }
 
 void CrawlerWidget::executeCommand()
@@ -819,6 +841,25 @@ void CrawlerWidget::setup()
     auto* btnLayout = new QHBoxLayout(cmdView);
     btnLayout->setContentsMargins(6, 0, 3, 3);
     btnLayout->setAlignment(Qt::AlignLeft);
+
+    auto* saveAsButton = new QToolButton;
+    saveAsButton->setText( tr("Save &As") );
+    saveAsButton->setAutoRaise( true );
+    if (logData_->isWritable()) {
+        connect(saveAsButton, &CmdButton::clicked, this, &CrawlerWidget::saveLogAs);
+    }
+    btnLayout->addWidget(saveAsButton);
+
+    auto* clearButton = new QToolButton;
+    clearButton->setText( tr("&Clear") );
+    clearButton->setAutoRaise( true );
+    if (logData_->isWritable()) {
+        connect(clearButton, &CmdButton::clicked, this, &CrawlerWidget::clearLog);
+    }
+    btnLayout->addWidget(clearButton);
+
+    btnLayout->addWidget(new QLabel("Commands:"));
+
 
     for (auto i : { 1, 2, 3, 4 ,5 ,6 ,7 ,8, 9, 0}) {
         auto* btn = new CmdButton(i, "");

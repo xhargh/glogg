@@ -142,6 +142,10 @@ class CrawlerWidget : public QSplitter,
     // Send a string to iodevice / execute a command
     void executeCommand();
     void executeBtnCommand(QString cmd);
+    // Clear Log
+    void clearLog();
+    // Save Log As
+    void saveLogAs();
     // Instructs the widget to start a search using the current search line.
     void startNewSearch();
     // Stop the currently ongoing search (if one exists)

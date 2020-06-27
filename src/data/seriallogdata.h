@@ -26,6 +26,8 @@ public:
   virtual void write(QString str) override;
   virtual bool isWritable() const override;
   virtual SerialPortSettings * GetIoSettings() override;
+  virtual void saveLogAs(QString filename) override;
+  virtual void clear() override;
 
   // AbstractLogData interface
 protected:

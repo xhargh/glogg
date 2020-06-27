@@ -4,11 +4,11 @@ os: Visual Studio 2015
 
 environment:
   matrix:
-  - QT5: C:\Qt\5.10.1\mingw53_32
+  - QT5: C:\Qt\5.13.2\mingw73_64
     BOOST_ROOT: C:\Libraries\boost_1_67_0
-    MINGW: C:\Qt\Tools\mingw530_32
+    MINGW: C:\Qt\Tools\mingw730_64
     MAKE_CMD: mingw32-make
-
+    
 matrix:
   fast_finish: true
 
@@ -19,3 +19,9 @@ build_script:
 - qmake -v
 - qmake -r BOOST_PATH=%BOOST_ROOT%
 - call %MAKE_CMD%
+- windeployqt --dir %APPVEYOR_BUILD_FOLDER%\release %APPVEYOR_BUILD_FOLDER%\release/glogg.exe
+- 7z a glogg-io.zip -r %APPVEYOR_BUILD_FOLDER%\release\*.*
+
+artifacts:
+  - path: glogg-io.zip
+    name: glogg-io

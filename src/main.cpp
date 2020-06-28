@@ -280,10 +280,11 @@ int main(int argc, char *argv[])
 
 static void print_version()
 {
-    cout << "glogg " GLOGG_VERSION "\n";
+    cout << "glogg-io " GLOGG_VERSION "\n";
 #ifdef GLOGG_COMMIT
     cout << "Built " GLOGG_DATE " from " GLOGG_COMMIT "\n";
 #endif
+    cout << "Copyright (C) 2020 Gustav Andersson\n";
     cout << "Copyright (C) 2009, 2010, 2011, 2012, 2013, 2014, 2015 Nicolas Bonnefon and other contributors\n";
     cout << "This is free software.  You may redistribute copies of it under the terms of\n";
     cout << "the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.\n";

@@ -19,7 +19,7 @@ build_script:
 - qmake -v
 - qmake -r BOOST_PATH=%BOOST_ROOT%
 - call %MAKE_CMD%
-- windeployqt --dir %APPVEYOR_BUILD_FOLDER%\release %APPVEYOR_BUILD_FOLDER%\release/glogg.exe
+- windeployqt --dir %APPVEYOR_BUILD_FOLDER%\release %APPVEYOR_BUILD_FOLDER%\release/glogg-io.exe
 - 7z a glogg-io.zip -r %APPVEYOR_BUILD_FOLDER%\release\*.*
 
 artifacts:

@@ -27,7 +27,7 @@
 #include <QRegularExpression>
 #include <QList>
 
-class LogData;
+class ILogData;
 
 // Line number are unsigned 32 bits for now.
 typedef uint32_t LineNumber;
@@ -88,7 +88,7 @@ class SearchOperation : public QObject
 {
   Q_OBJECT
   public:
-    SearchOperation(const LogData* sourceLogData,
+    SearchOperation(const ILogData* sourceLogData,
             const QRegularExpression &regExp, bool* interruptRequest );
 
     virtual ~SearchOperation() { }
@@ -109,13 +109,13 @@ class SearchOperation : public QObject
 
     bool* interruptRequested_;
     const QRegularExpression regexp_;
-    const LogData* sourceLogData_;
+    const ILogData* sourceLogData_;
 };
 
 class FullSearchOperation : public SearchOperation
 {
   public:
-    FullSearchOperation( const LogData* sourceLogData, const QRegularExpression& regExp,
+    FullSearchOperation( const ILogData* sourceLogData, const QRegularExpression& regExp,
             bool* interruptRequest )
         : SearchOperation( sourceLogData, regExp, interruptRequest ) {}
     virtual void start( SearchData& result );
@@ -124,7 +124,7 @@ class FullSearchOperation : public SearchOperation
 class UpdateSearchOperation : public SearchOperation
 {
   public:
-    UpdateSearchOperation( const LogData* sourceLogData, const QRegularExpression& regExp,
+    UpdateSearchOperation( const ILogData* sourceLogData, const QRegularExpression& regExp,
             bool* interruptRequest, qint64 position )
         : SearchOperation( sourceLogData, regExp, interruptRequest ),
         initialPosition_( position ) {}
@@ -144,7 +144,7 @@ class LogFilteredDataWorkerThread : public QThread
   Q_OBJECT
 
   public:
-    LogFilteredDataWorkerThread( const LogData* sourceLogData );
+    LogFilteredDataWorkerThread( const ILogData* sourceLogData );
     ~LogFilteredDataWorkerThread();
 
     // Start the search with the passed regexp
@@ -171,7 +171,7 @@ class LogFilteredDataWorkerThread : public QThread
     void run();
 
   private:
-    const LogData* sourceLogData_;
+    const ILogData* sourceLogData_;
 
     // Mutex to protect operationRequested_ and friends
     QMutex mutex_;

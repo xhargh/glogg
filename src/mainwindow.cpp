@@ -50,6 +50,7 @@
 #include "menuactiontooltipbehavior.h"
 #include "tabbedcrawlerwidget.h"
 #include "externalcom.h"
+#include "settingsdialog.h"
 
 // Returns the size in human readable format
 static QString readableSize( qint64 size );
@@ -255,6 +256,18 @@ void MainWindow::createActions()
     openAction->setStatusTip(tr("Open a file"));
     connect(openAction, SIGNAL(triggered()), this, SLOT(open()));
 
+    openSerialPortAction = new QAction(tr("&Open Serial Port..."), this);
+    openSerialPortAction->setShortcut(QKeySequence::Open);
+    openSerialPortAction->setIcon( QIcon( ":/images/port14.png" ) );
+    openSerialPortAction->setStatusTip(tr("Open a Serial Port"));
+    connect(openSerialPortAction, SIGNAL(triggered()), this, SLOT(openSerialPortDialog()));
+
+    exportLogAction = new QAction(tr("&Export Log"), this);
+    exportLogAction->setIcon( QIcon( ":/images/export14.png" ) );
+    exportLogAction->setStatusTip(tr("Export Log to File"));
+    signalMux_.connect( exportLogAction, SIGNAL(triggered()), SLOT(exportLog()) );
+
+
     closeAction = new QAction(tr("&Close"), this);
     closeAction->setShortcut(tr("Ctrl+W"));
     closeAction->setStatusTip(tr("Close document"));
@@ -365,6 +378,8 @@ void MainWindow::createMenus()
 {
     fileMenu = menuBar()->addMenu( tr("&File") );
     fileMenu->addAction( openAction );
+    fileMenu->addAction( openSerialPortAction );
+    fileMenu->addAction( exportLogAction );
     fileMenu->addAction( closeAction );
     fileMenu->addAction( closeAllAction );
     fileMenu->addSeparator();
@@ -426,10 +441,13 @@ void MainWindow::createToolBars()
     toolBar->setIconSize( QSize( 14, 14 ) );
     toolBar->setMovable( false );
     toolBar->addAction( openAction );
+    toolBar->addAction( openSerialPortAction );
     toolBar->addAction( reloadAction );
+    toolBar->addAction ( exportLogAction );
     toolBar->addWidget( infoLine );
     toolBar->addAction( stopAction );
     toolBar->addWidget( lineNbField );
+
 }
 
 //
@@ -531,18 +549,33 @@ void MainWindow::options()
     signalMux_.disconnect(&dialog, SIGNAL( optionsChanged() ), SLOT( applyConfiguration() ));
 }
 
+void MainWindow::openSerialPortDialog()
+{
+    SettingsDialog dialog(this);
+    connect(&dialog, &SettingsDialog::optionChanged, this, &MainWindow::openSerialPort);
+    dialog.exec();
+    disconnect(&dialog, &SettingsDialog::optionChanged, this, &MainWindow::openSerialPort);
+}
+
+void MainWindow::openSerialPort(SerialPortSettings settings) {
+    qInfo() << __func__;
+    loadFile(settings.name, &settings);
+}
+
 // Opens the 'About' dialog box.
 void MainWindow::about()
 {
     QMessageBox::about(this, tr("About glogg"),
-            tr("<h2>glogg " GLOGG_VERSION "</h2>"
-                "<p>A fast, advanced log explorer."
+            tr("<h2>glogg-io " GLOGG_VERSION "</h2>"
+                "<p>A fast, advanced log explorer with serial port support."
 #ifdef GLOGG_COMMIT
                 "<p>Built " GLOGG_DATE " from " GLOGG_COMMIT
 #endif
-                "<p><a href=\"http://glogg.bonnefon.org/\">http://glogg.bonnefon.org/</a></p>"
-                "<p>Copyright &copy; 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016 Nicolas Bonnefon and other contributors"
-                "<p>You may modify and redistribute the program under the terms of the GPL (version 3 or later)." ) );
+               "<p><a href=\"http://github.com/xhargh/glogg-io/\">http://github.com/xhargh/glogg-io/</a></p>"
+               "<p><a href=\"http://glogg.bonnefon.org/\">http://glogg.bonnefon.org/</a></p>"
+               "<p>Copyright &copy; 2020 Gustav Andersson"
+               "<p>Copyright &copy; 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016 Nicolas Bonnefon and other contributors"
+               "<p>You may modify and redistribute the program under the terms of the GPL (version 3 or later)." ) );
 }
 
 // Opens the 'About Qt' dialog box.
@@ -819,9 +852,10 @@ void MainWindow::keyPressEvent( QKeyEvent* keyEvent )
 // Create a CrawlerWidget for the passed file, start its loading
 // and update the title bar.
 // The loading is done asynchronously.
-bool MainWindow::loadFile( const QString& fileName )
+bool MainWindow::loadFile( const QString& fileName, SerialPortSettings* p_portSettings )
 {
-    LOG(logDEBUG) << "loadFile ( " << fileName.toStdString() << " )";
+    bool isSerialPort = (p_portSettings != nullptr);
+    LOG(logDEBUG) << "loadFile ( " << fileName.toStdString() << ", " << (isSerialPort?"SerialPort":"") <<" )";
 
     // First check if the file is already open...
     CrawlerWidget* existing_crawler = dynamic_cast<CrawlerWidget*>(
@@ -837,9 +871,10 @@ bool MainWindow::loadFile( const QString& fileName )
     loadingFileName = fileName;
 
     try {
-        CrawlerWidget* crawler_widget = dynamic_cast<CrawlerWidget*>(
-                session_->open( fileName.toStdString(),
-                    []() { return new CrawlerWidget(); } ) );
+        CrawlerWidget* crawler_widget;
+        crawler_widget = dynamic_cast<CrawlerWidget*>(
+            session_->open( fileName.toStdString(), p_portSettings,
+                            []() { return new CrawlerWidget(); } ) );
         assert( crawler_widget );
 
         // We won't show the widget until the file is fully loaded

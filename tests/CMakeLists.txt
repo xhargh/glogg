@@ -11,6 +11,7 @@ find_program(QT_QMAKE_EXECUTABLE NAMES qmake PATHS $ENV{QT_DIR}/bin)
 find_package(Qt5Core 5.8 REQUIRED)
 find_package(Qt5Widgets 5.8 REQUIRED)
 find_package(Qt5Test 5.8 REQUIRED)
+find_package(Qt5SerialPort 5.8 REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
@@ -72,22 +73,27 @@ set(LIBS gmock gtest)
 enable_testing()
 include_directories(
     $ENV{GMOCK_HOME}/include
-    $ENV{GMOCK_HOME}/gtest/include
+    $ENV{GMOCK_HOME}/googlemock/include
+    $ENV{GMOCK_HOME}/googletest/include
     $ENV{BOOST_ROOT}/
     ../src/
 )
-link_directories($ENV{GMOCK_HOME}/mybuild $ENV{GMOCK_HOME}/mybuild/gtest)
+link_directories($ENV{GMOCK_HOME}/lib)
 
 # Sources
 set(glogg_SOURCES
     ../src/session.cpp
     ../src/data/abstractlogdata.cpp
     ../src/data/logdata.cpp
+    ../src/data/filelogdata.cpp
     ../src/data/logfiltereddata.cpp
     ../src/data/logfiltereddataworkerthread.cpp
     ../src/data/logdataworkerthread.cpp
     ../src/data/compressedlinestorage.cpp
+    ../src/data/seriallogdata.cpp
     ../src/mainwindow.cpp
+    ../src/cmdbutton.cpp
+    ../src/settingsdialog.cpp
     ../src/crawlerwidget.cpp
     ../src/abstractlogview.cpp
     ../src/logmainview.cpp
@@ -97,7 +103,7 @@ set(glogg_SOURCES
     ../src/configuration.cpp
     ../src/filtersdialog.cpp
     ../src/filterset.cpp
-    ../src/savedsearches.cpp
+    ../src/savedstrings.cpp
     ../src/infoline.cpp
     ../src/menuactiontooltipbehavior.cpp
     ../src/selection.cpp
@@ -172,7 +178,7 @@ add_executable(glogg_tests
 )
 
 # Link test executable against gtest & gtest_main
-target_link_libraries(glogg_tests ${LIBS} gtest_main pthread Qt5::Widgets)
+target_link_libraries(glogg_tests ${LIBS} gtest_main pthread Qt5::Widgets Qt5::SerialPort)
 
 add_executable(glogg_itests
     ${glogg_SOURCES}
@@ -181,7 +187,7 @@ add_executable(glogg_itests
     itests.cpp
 )
 
-target_link_libraries(glogg_itests ${LIBS} pthread Qt5::Widgets Qt5::Test)
+target_link_libraries(glogg_itests ${LIBS} pthread Qt5::Widgets Qt5::Test Qt5::SerialPort)
 
 add_executable(glogg_ptests
     ${glogg_SOURCES}
@@ -190,7 +196,7 @@ add_executable(glogg_ptests
     itests.cpp
 )
 
-target_link_libraries(glogg_ptests ${LIBS} pthread Qt5::Widgets Qt5::Test)
+target_link_libraries(glogg_ptests ${LIBS} pthread Qt5::Widgets Qt5::Test Qt5::SerialPort)
 
 add_test(
     NAME glogg_tests

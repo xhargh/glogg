@@ -17,8 +17,8 @@
  * along with glogg.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SAVEDSEARCHES_H
-#define SAVEDSEARCHES_H
+#ifndef SAVEDCOMMANDS_H
+#define SAVEDCOMMANDS_H
 
 #include <QString>
 #include <QStringList>
@@ -28,22 +28,22 @@
 
 // Keeps track of the previously used searches and allows the application
 // to retrieve them.
-class SavedSearches : public SavedStrings
+class SavedCommands : public SavedStrings
 {
   public:
     // Creates an empty set of saved searches
-    SavedSearches() : SavedStrings()
+    SavedCommands() : SavedStrings()
     {
-        qRegisterMetaTypeStreamOperators<SavedSearches>( "SavedSearches" );
+        qRegisterMetaTypeStreamOperators<SavedCommands>( "SavedCommands" );
     }
 
 private:
     QString getClassName() const override {
-        return "SavedSearches";
+        return "SavedCommands";
     }
 
 };
 
-Q_DECLARE_METATYPE(SavedSearches)
+Q_DECLARE_METATYPE(SavedCommands)
 
-#endif
+#endif // SAVEDCOMMANDS_H

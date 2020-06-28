@@ -1311,7 +1311,7 @@ void AbstractLogView::selectWordAtPosition( const QPoint& pos )
     const int x = pos.x();
     const QString line = logData->getExpandedLineString( pos.y() );
 
-    if ( isCharWord( line[x].toLatin1() ) ) {
+    if ( !line.isEmpty() && line.length() >= x && isCharWord( line[x].toLatin1() ) ) {
         // Search backward for the first character in the word
         int currentPos = x;
         for ( ; currentPos > 0; currentPos-- )

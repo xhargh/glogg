@@ -1,14 +1,14 @@
 # -------------------------------------------------
-# glogg
+# glogg-io
 # -------------------------------------------------
 
 # Debug builds: qmake CONFIG+=debug
 # Release builds: qmake
 
-TARGET = glogg
+TARGET = glogg-io
 TEMPLATE = app
 
-QT += network
+QT += serialport network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += core widgets
 
@@ -19,7 +19,11 @@ win32:Release:QMAKE_LFLAGS += "-Wl,-subsystem,windows"
 
 # Input
 SOURCES += \
+  src/cmdbutton.cpp \
+    src/data/filelogdata.cpp \
+  src/data/seriallogdata.cpp \
     src/main.cpp \
+    src/savedstrings.cpp \
     src/session.cpp \
     src/data/abstractlogdata.cpp \
     src/data/logdata.cpp \
@@ -37,7 +41,6 @@ SOURCES += \
     src/configuration.cpp \
     src/filtersdialog.cpp \
     src/filterset.cpp \
-    src/savedsearches.cpp \
     src/infoline.cpp \
     src/menuactiontooltipbehavior.cpp \
     src/selection.cpp \
@@ -55,19 +58,28 @@ SOURCES += \
     src/viewtools.cpp \
     src/encodingspeculator.cpp \
     src/gloggapp.cpp \
+    src/settingsdialog.cpp \
+
 
 INCLUDEPATH += src/
 
 HEADERS += \
+  src/cmdbutton.h \
     src/data/abstractlogdata.h \
+    src/data/filelogdata.h \
+    src/data/ilogdata.h \
     src/data/logdata.h \
     src/data/logfiltereddata.h \
     src/data/logfiltereddataworkerthread.h \
     src/data/logdataworkerthread.h \
+  src/data/seriallogdata.h \
     src/data/threadprivatestore.h \
     src/data/compressedlinestorage.h \
     src/data/linepositionarray.h \
     src/mainwindow.h \
+    src/savedcommands.h \
+    src/savedstrings.h \
+  src/serialportsettings.h \
     src/session.h \
     src/viewinterface.h \
     src/crawlerwidget.h \
@@ -103,6 +115,7 @@ HEADERS += \
     src/viewtools.h \
     src/encodingspeculator.h \
     src/gloggapp.h \
+    src/settingsdialog.h \
 
 isEmpty(BOOST_PATH) {
     message(Building using system dynamic Boost libraries)
@@ -134,6 +147,8 @@ else {
 
 FORMS += src/optionsdialog.ui
 FORMS += src/filtersdialog.ui
+FORMS += src/settingsdialog.ui
+
 
 macx {
     # Icon for Mac
@@ -142,8 +157,8 @@ macx {
 else {
     # For Windows icon
     RC_ICONS = glogg48.ico
-    QMAKE_TARGET_COMPANY = "Nicolas Bonnefon"
-    QMAKE_TARGET_DESCRIPTION = "glogg - the fast, smart log explorer"
+    QMAKE_TARGET_COMPANY = "Xhargh"
+    QMAKE_TARGET_DESCRIPTION = "glogg-io - the fast, smart log explorer with serial port support"
 }
 
 RESOURCES = glogg.qrc

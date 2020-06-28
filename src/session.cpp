@@ -23,22 +23,28 @@
 
 #include <cassert>
 #include <QFileInfo>
+#include <QString>
 #include <algorithm>
 
 #include "viewinterface.h"
 #include "persistentinfo.h"
 #include "savedsearches.h"
+#include "savedcommands.h"
 #include "sessioninfo.h"
 #include "data/logdata.h"
+#include "data/seriallogdata.h"
+#include "data/ilogdata.h"
 #include "data/logfiltereddata.h"
 
 Session::Session()
 {
     GetPersistentInfo().retrieve( QString( "savedSearches" ) );
+    GetPersistentInfo().retrieve( QString( "savedCommands" ) );
 
     // Get the global search history (it remains the property
     // of the Persistent)
     savedSearches_ = Persistent<SavedSearches>( "savedSearches" );
+    savedCommands_ = Persistent<SavedCommands>( "savedCommands" );
 
     quickFindPattern_ = std::make_shared<QuickFindPattern>();
 }
@@ -60,17 +66,22 @@ ViewInterface* Session::getViewIfOpen( const std::string& file_name ) const
         return nullptr;
 }
 
-ViewInterface* Session::open( const std::string& file_name,
+ViewInterface* Session::open( const std::string& file_name, SerialPortSettings* p_portSettings,
         std::function<ViewInterface*()> view_factory )
 {
     ViewInterface* view = nullptr;
 
-    QFileInfo fileInfo( file_name.c_str() );
-    if ( fileInfo.isReadable() ) {
-        return openAlways( file_name, view_factory, nullptr );
+    if (p_portSettings) {
+        return openAlways( file_name, p_portSettings, view_factory, nullptr );
     }
     else {
-        throw FileUnreadableErr();
+        QFileInfo fileInfo( file_name.c_str() );
+        if ( fileInfo.isReadable() ) {
+            return openAlways( file_name, p_portSettings, view_factory, nullptr );
+        }
+        else {
+            throw FileUnreadableErr();
+        }
     }
 
     return view;
@@ -102,7 +113,7 @@ void Session::save( std::vector<
         assert( file );
 
         LOG(logDEBUG) << "Saving " << file->fileName << " in session.";
-        session_files.push_back( { file->fileName, top_line, view_context->toString() } );
+        session_files.push_back( { file->fileName, top_line, view_context->toString(), file->logData->GetIoSettings() } );
     }
 
     std::shared_ptr<SessionInfo> session =
@@ -127,7 +138,7 @@ std::vector<std::pair<std::string, ViewInterface*>> Session::restore(
     for ( auto file: session_files )
     {
         LOG(logDEBUG) << "Create view for " << file.fileName;
-        ViewInterface* view = openAlways( file.fileName, view_factory, file.viewContext.c_str() );
+        ViewInterface* view = openAlways( file.fileName, file.serialPortSettings, view_factory, file.viewContext.c_str() );
         result.push_back( { file.fileName, view } );
     }
 
@@ -171,19 +182,29 @@ void Session::getFileInfo( const ViewInterface* view, uint64_t* fileSize,
  * Private methods
  */
 
-ViewInterface* Session::openAlways( const std::string& file_name,
+ViewInterface* Session::openAlways( const std::string& file_name, SerialPortSettings* p_portSettings,
         std::function<ViewInterface*()> view_factory,
         const char* view_context )
 {
+
+    QString fn(file_name.c_str());
+
     // Create the data objects
-    auto log_data          = std::make_shared<LogData>();
+    std::shared_ptr<ILogData> log_data;
+    if (p_portSettings) {
+        log_data = std::make_shared<SerialLogData>(p_portSettings);
+    } else {
+        log_data = std::make_shared<LogData>();
+    }
     auto log_filtered_data =
         std::shared_ptr<LogFilteredData>( log_data->getNewFilteredData() );
 
     ViewInterface* view = view_factory();
     view->setData( log_data, log_filtered_data );
     view->setQuickFindPattern( quickFindPattern_ );
+    view->setSavedCommands( savedCommands_ );
     view->setSavedSearches( savedSearches_ );
+    view->finishSetup();
 
     if ( view_context )
         view->setViewContext( view_context );

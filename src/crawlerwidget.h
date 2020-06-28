@@ -42,8 +42,10 @@
 class InfoLine;
 class QuickFindPattern;
 class SavedSearches;
+class SavedCommands;
 class QStandardItemModel;
 class OverviewWidget;
+class CmdButton;
 
 // Implements the central widget of the application.
 // It includes both windows, the search line, the info
@@ -90,12 +92,15 @@ class CrawlerWidget : public QSplitter,
   protected:
     // Implementation of the ViewInterface functions
     virtual void doSetData(
-            std::shared_ptr<LogData> log_data,
+            std::shared_ptr<ILogData> log_data,
             std::shared_ptr<LogFilteredData> filtered_data );
     virtual void doSetQuickFindPattern(
             std::shared_ptr<QuickFindPattern> qfp );
     virtual void doSetSavedSearches(
             std::shared_ptr<SavedSearches> saved_searches );
+    virtual void doSetSavedCommands(
+            std::shared_ptr<SavedCommands> saved_Commands );
+    virtual void doFinishSetup();
     virtual void doSetViewContext( const char* view_context );
     virtual std::shared_ptr<const ViewContextInterface>
         doGetViewContext( void ) const;
@@ -134,6 +139,11 @@ class CrawlerWidget : public QSplitter,
     void dataStatusChanged( DataStatus status );
 
   private slots:
+    // Send a string to iodevice / execute a command
+    void executeCommand();
+    void executeBtnCommand(QString cmd);
+    // Save Log As
+    void exportLog();
     // Instructs the widget to start a search using the current search line.
     void startNewSearch();
     // Stop the currently ongoing search (if one exists)
@@ -226,6 +236,7 @@ class CrawlerWidget : public QSplitter,
     void setup();
     void replaceCurrentSearch( const QString& searchText );
     void updateSearchCombo();
+    void updateCommandCombo();
     AbstractLogView* activeView() const;
     void printSearchInfoMessage( int nbMatches = 0 );
     void changeDataStatus( DataStatus status );
@@ -236,6 +247,10 @@ class CrawlerWidget : public QSplitter,
     static const QPalette errorPalette;
 
     LogMainView*    logMainView;
+    QWidget*        cmdView;
+    QComboBox*      cmdEntryBox;
+    QWidget*        mainWindow;
+    std::vector<CmdButton*> cmdBtns;
     QWidget*        bottomWindow;
     QLabel*         searchLabel;
     QComboBox*      searchLineEdit;
@@ -248,6 +263,7 @@ class CrawlerWidget : public QSplitter,
     QCheckBox*      searchRefreshCheck;
     OverviewWidget* overviewWidget_;
 
+    QVBoxLayout*    mainLayout;
     QVBoxLayout*    bottomMainLayout;
     QHBoxLayout*    searchLineLayout;
     QHBoxLayout*    searchInfoLineLayout;
@@ -256,11 +272,12 @@ class CrawlerWidget : public QSplitter,
     QPalette        searchInfoLineDefaultPalette;
 
     std::shared_ptr<SavedSearches> savedSearches_;
+    std::shared_ptr<SavedCommands> savedCommands_;
 
     // Reference to the QuickFind Pattern (not owned)
     std::shared_ptr<QuickFindPattern> quickFindPattern_;
 
-    LogData*        logData_;
+    ILogData*        logData_;
     LogFilteredData* logFilteredData_;
 
     qint64          logFileSize_;

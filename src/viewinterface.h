@@ -22,9 +22,10 @@
 
 #include <memory>
 
-class LogData;
+class ILogData;
 class LogFilteredData;
 class SavedSearches;
+class SavedCommands;
 class QuickFindPattern;
 
 // ViewContextInterface represents the private information
@@ -44,7 +45,7 @@ class ViewInterface {
   public:
     // Set the log data and filtered data to associate to this view
     // Ownership stay with the caller but is shared
-    void setData( std::shared_ptr<LogData> log_data,
+    void setData( std::shared_ptr<ILogData> log_data,
             std::shared_ptr<LogFilteredData> filtered_data )
     { doSetData( log_data, filtered_data ); }
 
@@ -55,6 +56,15 @@ class ViewInterface {
     // Set the (shared) search history object
     void setSavedSearches( std::shared_ptr<SavedSearches> saved_searches )
     { doSetSavedSearches( saved_searches ); }
+
+    // Set the (shared) command history object
+    void setSavedCommands( std::shared_ptr<SavedCommands> saved_commands )
+    { doSetSavedCommands( saved_commands ); }
+
+    // Finish the setup
+    void finishSetup() {
+        doFinishSetup();
+    }
 
     // For save/restore of the context
     void setViewContext( const char* view_context )
@@ -68,12 +78,15 @@ class ViewInterface {
 
   protected:
     // Virtual functions (using NVI)
-    virtual void doSetData( std::shared_ptr<LogData> log_data,
+    virtual void doSetData( std::shared_ptr<ILogData> log_data,
             std::shared_ptr<LogFilteredData> filtered_data ) = 0;
     virtual void doSetQuickFindPattern(
             std::shared_ptr<QuickFindPattern> qfp ) = 0;
     virtual void doSetSavedSearches(
             std::shared_ptr<SavedSearches> saved_searches ) = 0;
+    virtual void doSetSavedCommands(
+            std::shared_ptr<SavedCommands> saved_commands ) = 0;
+    virtual void doFinishSetup() = 0;
     virtual void doSetViewContext(
             const char* view_context ) = 0;
     virtual std::shared_ptr<const ViewContextInterface>

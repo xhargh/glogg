@@ -30,6 +30,8 @@
 #include "tabbedcrawlerwidget.h"
 #include "quickfindwidget.h"
 #include "quickfindmux.h"
+#include "settingsdialog.h"
+
 #ifdef GLOGG_SUPPORTS_VERSION_CHECKING
 #include "versionchecker.h"
 #endif
@@ -85,6 +87,8 @@ class MainWindow : public QMainWindow
     void about();
     void aboutQt();
     void encodingChanged( QAction* action );
+    void openSerialPortDialog();
+    void openSerialPort(SerialPortSettings settings);
 
     // Change the view settings
     void toggleOverviewVisibility( bool isVisible );
@@ -146,7 +150,7 @@ class MainWindow : public QMainWindow
     void createRecentFileToolTipTimer();
     void readSettings();
     void writeSettings();
-    bool loadFile( const QString& fileName );
+    bool loadFile( const QString& fileName, SerialPortSettings* p_portSettings = nullptr);
     void updateTitleBar( const QString& file_name );
     void updateRecentFileActions();
     QString strippedName( const QString& fullFileName ) const;
@@ -184,6 +188,8 @@ class MainWindow : public QMainWindow
     QToolBar *toolBar;
 
     QAction *openAction;
+    QAction *openSerialPortAction;
+    QAction *exportLogAction;
     QAction *closeAction;
     QAction *closeAllAction;
     QAction *exitAction;

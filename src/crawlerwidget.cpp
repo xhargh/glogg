@@ -18,14 +18,14 @@
  */
 
 // This file implements the CrawlerWidget class.
-// It is responsible for creating and managing the two views and all
+// It is responsible for creating and managing the two or more views and all
 // the UI elements.  It implements the connection between the UI elements.
 // It also interacts with the sets of data (full and filtered).
 
 #include "log.h"
 
 #include <cassert>
-
+#include <vector>
 #include <Qt>
 #include <QApplication>
 #include <QFile>
@@ -34,12 +34,20 @@
 #include <QStandardItemModel>
 #include <QHeaderView>
 #include <QListView>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QFileDialog>
+#include <QStandardPaths>
+
+#include "cmdbutton.h"
 
 #include "crawlerwidget.h"
 
 #include "quickfindpattern.h"
 #include "overview.h"
 #include "infoline.h"
+#include "savedcommands.h"
 #include "savedsearches.h"
 #include "quickfindwidget.h"
 #include "persistentinfo.h"
@@ -57,11 +65,14 @@ class CrawlerWidgetContext : public ViewContextInterface {
     CrawlerWidgetContext( QList<int> sizes,
            bool ignore_case,
            bool auto_refresh,
-           bool follow_file )
+           bool follow_file,
+           QStringList btnCmds)
         : sizes_( sizes ),
           ignore_case_( ignore_case ),
           auto_refresh_( auto_refresh ),
-          follow_file_( follow_file ) {}
+          follow_file_( follow_file ),
+          btnCmds_(btnCmds)
+    {}
 
     // Implementation of the ViewContextInterface function
     std::string toString() const;
@@ -72,6 +83,7 @@ class CrawlerWidgetContext : public ViewContextInterface {
     bool ignoreCase() const { return ignore_case_; }
     bool autoRefresh() const { return auto_refresh_; }
     bool followFile() const { return follow_file_; }
+    QStringList btnCommands() const { return btnCmds_; }
 
   private:
     QList<int> sizes_;
@@ -79,6 +91,7 @@ class CrawlerWidgetContext : public ViewContextInterface {
     bool ignore_case_;
     bool auto_refresh_;
     bool follow_file_;
+    QStringList btnCmds_;
 };
 
 // Constructor only does trivial construction. The real work is done once
@@ -165,9 +178,63 @@ void CrawlerWidget::keyPressEvent( QKeyEvent* keyEvent )
 {
     bool noModifier = keyEvent->modifiers() == Qt::NoModifier;
 
+#if defined(Q_OS_MACOS)
+    const Qt::KeyboardModifier controlModifier = Qt::MetaModifier;
+#else
+    const Qt::KeyboardModifier controlModifier = Qt::ControlModifier;
+#endif
+
     if ( keyEvent->key() == Qt::Key_V && noModifier )
         visibilityBox->setCurrentIndex(
                 ( visibilityBox->currentIndex() + 1 ) % visibilityBox->count() );
+    else if (keyEvent->modifiers() == controlModifier) {
+
+        if (logData_->isWritable()) {
+            switch (keyEvent->key()) {
+
+            case Qt::Key_1:
+                qInfo() << "Key 1";
+                emit cmdBtns[0]->clicked();
+                break;
+            case Qt::Key_2:
+                qInfo() << "Key 2";
+                emit cmdBtns[1]->clicked();
+                break;
+            case Qt::Key_3:
+                qInfo() << "Key 3";
+                emit cmdBtns[2]->clicked();
+                break;
+            case Qt::Key_4:
+                qInfo() << "Key 4";
+                emit cmdBtns[3]->clicked();
+                break;
+            case Qt::Key_5:
+                qInfo() << "Key 5";
+                emit cmdBtns[4]->clicked();
+                break;
+            case Qt::Key_6:
+                qInfo() << "Key 6";
+                emit cmdBtns[5]->clicked();
+                break;
+            case Qt::Key_7:
+                qInfo() << "Key 7";
+                emit cmdBtns[6]->clicked();
+                break;
+            case Qt::Key_8:
+                qInfo() << "Key 8";
+                emit cmdBtns[7]->clicked();
+                break;
+            case Qt::Key_9:
+                qInfo() << "Key 9";
+                emit cmdBtns[8]->clicked();
+                break;
+            case Qt::Key_0:
+                qInfo() << "Key 0";
+                emit cmdBtns[9]->clicked();
+                break;
+            }
+        }
+    }
     else {
         const char character = (keyEvent->text())[0].toLatin1();
 
@@ -217,7 +284,7 @@ void CrawlerWidget::setEncoding( Encoding encoding )
 // Protected functions
 //
 void CrawlerWidget::doSetData(
-        std::shared_ptr<LogData> log_data,
+        std::shared_ptr<ILogData> log_data,
         std::shared_ptr<LogFilteredData> filtered_data )
 {
     logData_         = log_data.get();
@@ -230,15 +297,22 @@ void CrawlerWidget::doSetQuickFindPattern(
     quickFindPattern_ = qfp;
 }
 
+void CrawlerWidget::doSetSavedCommands(
+        std::shared_ptr<SavedCommands> saved_commands )
+{
+    savedCommands_ = saved_commands;
+}
+
 void CrawlerWidget::doSetSavedSearches(
         std::shared_ptr<SavedSearches> saved_searches )
 {
     savedSearches_ = saved_searches;
+}
 
-    // We do setup now, assuming doSetData has been called before
-    // us, that's not great really...
+void CrawlerWidget::doFinishSetup() {
     setup();
 }
+
 
 void CrawlerWidget::doSetViewContext(
         const char* view_context )
@@ -256,16 +330,26 @@ void CrawlerWidget::doSetViewContext(
     searchRefreshChangedHandler( auto_refresh_check_state );
 
     emit followSet( context.followFile() );
+
+    QStringList btnCommands = context.btnCommands();
+    for(int i=0 ; i < btnCommands.length() ; i++) {
+        cmdBtns[i]->setCmdLine(btnCommands.at(i));
+    }
 }
 
 std::shared_ptr<const ViewContextInterface>
 CrawlerWidget::doGetViewContext() const
 {
+    QStringList btnCmds;
+    for (const CmdButton *cb: cmdBtns) {
+        btnCmds.append(cb->getCmdLine());
+    }
     auto context = std::make_shared<const CrawlerWidgetContext>(
             sizes(),
             ( ignoreCaseCheck->checkState() == Qt::Checked ),
             ( searchRefreshCheck->checkState() == Qt::Checked ),
-            logMainView->isFollowEnabled() );
+            logMainView->isFollowEnabled(),
+            btnCmds );
 
     return static_cast<std::shared_ptr<const ViewContextInterface>>( context );
 }
@@ -273,6 +357,52 @@ CrawlerWidget::doGetViewContext() const
 //
 // Slots
 //
+
+void CrawlerWidget::executeBtnCommand(QString cmd) {
+    qInfo() << __func__ << " " << cmd;
+    logData_->write(cmd);
+}
+
+void CrawlerWidget::exportLog()
+{
+    qInfo() << __func__;
+    QString filename = QFileDialog::getSaveFileName(this, tr("Export File"),
+                               QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)
+                                                    + "/"
+                                                    + logData_->getLastModifiedDate().toString(Qt::ISODate).replace(":", "").replace("-","")
+                                                    + "_"
+                                                    + "log"
+                                                    + ".txt",
+                               tr("Log Files (*.log *.txt)"));
+
+    if (!filename.isEmpty()) {
+        QFile fOut(filename);
+        if (fOut.open(QFile::WriteOnly | QFile::Text)) {
+            QTextStream s(&fOut);
+            qint64 numLines = logData_->getNbLine();
+            for (qint64 i = 0; i < numLines; i++) {
+                s << logData_->getLineString(i) << endl;
+            }
+        } else {
+            qWarning() << __func__ << " unable to save to file " << filename;
+        }
+        fOut.close();
+    }
+}
+
+void CrawlerWidget::executeCommand()
+{
+    GetPersistentInfo().retrieve( "savedCommands" );
+    auto cmd = cmdEntryBox->currentText();
+    savedCommands_->addRecent( cmd );
+    GetPersistentInfo().save( "savedCommands" );
+
+    // Update the EntryBox (history)
+    updateCommandCombo();
+    // Call the private function to do the search
+    qInfo() << "execute command: " << cmd;
+    logData_->write(cmd);
+}
 
 void CrawlerWidget::startNewSearch()
 {
@@ -438,6 +568,7 @@ void CrawlerWidget::applyConfiguration()
 
     // Update the SearchLine (history)
     updateSearchCombo();
+    updateCommandCombo();
 }
 
 void CrawlerWidget::enteringQuickFind()
@@ -619,6 +750,7 @@ void CrawlerWidget::setup()
     assert( logFilteredData_ );
 
     // The views
+    mainWindow = new QWidget;
     bottomWindow = new QWidget;
     overviewWidget_ = new OverviewWidget();
     logMainView     = new LogMainView(
@@ -696,12 +828,47 @@ void CrawlerWidget::setup()
     ignoreCaseCheck = new QCheckBox( "Ignore &case" );
     searchRefreshCheck = new QCheckBox( "Auto-&refresh" );
 
+    cmdView = new QWidget();
+    auto* cmdLayout = new QHBoxLayout(cmdView);
+    cmdLayout->setContentsMargins(6, 0, 6, 0);
+
+    auto* cmdLbl = new QLabel(tr("Cmd:"));
+    cmdEntryBox = new QComboBox();
+
+    cmdEntryBox->setEditable(true);
+    cmdEntryBox->setCompleter(0);
+    cmdEntryBox->addItems( savedCommands_->recentStrings() );
+    cmdEntryBox->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Minimum );
+    cmdEntryBox->setSizeAdjustPolicy( QComboBox::AdjustToMinimumContentsLengthWithIcon );
+    cmdLayout->addWidget(cmdLbl);
+    cmdLayout->addWidget(cmdEntryBox);
+    cmdView->setLayout(cmdLayout);
+
+    auto* btnRow = new QWidget;
+    auto* btnLayout = new QHBoxLayout(cmdView);
+    btnLayout->setContentsMargins(6, 0, 3, 3);
+    btnLayout->setAlignment(Qt::AlignLeft);
+
+    btnLayout->addWidget(new QLabel("Commands:"));
+
+
+    for (auto i : { 1, 2, 3, 4 ,5 ,6 ,7 ,8, 9, 0}) {
+        auto* btn = new CmdButton(i, "");
+        if (logData_->isWritable()) {
+            connect(btn, &CmdButton::execute, this, &CrawlerWidget::executeBtnCommand);
+        }
+        btnLayout->addWidget(btn);
+        cmdBtns.push_back(btn);
+    }
+
+    btnRow->setLayout(btnLayout);
+
     // Construct the Search line
     searchLabel = new QLabel(tr("&Text: "));
     searchLineEdit = new QComboBox;
     searchLineEdit->setEditable( true );
     searchLineEdit->setCompleter( 0 );
-    searchLineEdit->addItems( savedSearches_->recentSearches() );
+    searchLineEdit->addItems( savedSearches_->recentStrings() );
     searchLineEdit->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Minimum );
     searchLineEdit->setSizeAdjustPolicy( QComboBox::AdjustToMinimumContentsLengthWithIcon );
 
@@ -731,15 +898,27 @@ void CrawlerWidget::setup()
     searchInfoLineLayout->addWidget( ignoreCaseCheck );
     searchInfoLineLayout->addWidget( searchRefreshCheck );
 
+    // Construct the main window
+    mainLayout = new QVBoxLayout;
+    mainLayout->addWidget(logMainView);
+    if (logData_->isWritable()) {
+        mainLayout->addWidget(cmdView);
+        mainLayout->addWidget(btnRow);
+    }
+    mainLayout->setContentsMargins(2,1,2,1);
+    mainLayout->setSpacing(0);
+    mainWindow->setLayout(mainLayout);
+
     // Construct the bottom window
-    QVBoxLayout* bottomMainLayout = new QVBoxLayout;
+    bottomMainLayout = new QVBoxLayout;
     bottomMainLayout->addLayout(searchLineLayout);
     bottomMainLayout->addLayout(searchInfoLineLayout);
     bottomMainLayout->addWidget(filteredView);
     bottomMainLayout->setContentsMargins(2, 1, 2, 1);
+    // bottomMainLayout->setSpacing(0);
     bottomWindow->setLayout(bottomMainLayout);
 
-    addWidget( logMainView );
+    addWidget( mainWindow );
     addWidget( bottomWindow );
 
     // Default splitter position (usually overridden by the config file)
@@ -766,6 +945,9 @@ void CrawlerWidget::setup()
             this, SLOT( startNewSearch() ) );
     connect(stopButton, SIGNAL( clicked() ),
             this, SLOT( stopSearch() ) );
+
+    connect(cmdEntryBox->lineEdit(), SIGNAL( returnPressed() ),
+            this, SLOT( executeCommand() ) );
 
     connect(visibilityBox, SIGNAL( currentIndexChanged( int ) ),
             this, SLOT( changeFilteredViewVisibility( int ) ) );
@@ -929,9 +1111,20 @@ void CrawlerWidget::updateSearchCombo()
 {
     const QString text = searchLineEdit->lineEdit()->text();
     searchLineEdit->clear();
-    searchLineEdit->addItems( savedSearches_->recentSearches() );
+    searchLineEdit->addItems( savedSearches_->recentStrings() );
     // In case we had something that wasn't added to the list (blank...):
     searchLineEdit->lineEdit()->setText( text );
+}
+
+// Updates the content of the drop down list for the saved commands,
+// called when the SavedCommand has been changed.
+void CrawlerWidget::updateCommandCombo()
+{
+    const QString text = cmdEntryBox->lineEdit()->text();
+    cmdEntryBox->clear();
+    cmdEntryBox->addItems( savedCommands_->recentStrings() );
+
+    cmdEntryBox->lineEdit()->setText( "" );
 }
 
 // Print the search info message.
@@ -1122,56 +1315,67 @@ void CrawlerWidget::SearchState::startSearch()
 /*
  * CrawlerWidgetContext
  */
-CrawlerWidgetContext::CrawlerWidgetContext( const char* string )
+CrawlerWidgetContext::CrawlerWidgetContext( const char* saved_string )
 {
-    QRegularExpression regex( "S(\\d+):(\\d+)" );
-    QRegularExpressionMatch match = regex.match( string );
-    if ( match.hasMatch() ) {
-        sizes_ = { match.captured(1).toInt(), match.captured(2).toInt() };
-        LOG(logDEBUG) << "sizes_: " << sizes_[0] << " " << sizes_[1];
-    }
-    else {
-        LOG(logWARNING) << "Unrecognised view size: " << string;
+    QByteArray json_bytes(saved_string);
+    auto json_doc=QJsonDocument::fromJson(json_bytes);
 
-        // Default values;
-        sizes_ = { 100, 400 };
+    bool fail = false;
+    if(json_doc.isNull()){
+        qDebug()<<"Failed to create JSON doc.";
+        fail = true;
+    }
+    else if(!json_doc.isObject()){
+        qDebug()<<"JSON is not an object.";
+        fail = true;
     }
 
-    QRegularExpression case_refresh_regex( "IC(\\d+):AR(\\d+)" );
-    match = case_refresh_regex.match( string );
-    if ( match.hasMatch() ) {
-        ignore_case_ = ( match.captured(1).toInt() == 1 );
-        auto_refresh_ = ( match.captured(2).toInt() == 1 );
+    QJsonObject json;
+    if (!fail) {
+        json = json_doc.object();
 
-        LOG(logDEBUG) << "ignore_case_: " << ignore_case_ << " auto_refresh_: "
-            << auto_refresh_;
+        if(json.isEmpty()){
+            qDebug()<<"JSON object is empty.";
+            fail = true;
+        }
     }
-    else {
-        LOG(logWARNING) << "Unrecognised case/refresh: " << string;
+
+    if (fail) {
+        // Default settings
+        sizes_ = { 400, 100 };
+
         ignore_case_ = false;
         auto_refresh_ = false;
-    }
-
-    QRegularExpression follow_regex( "FF(\\d+)" );
-    match = follow_regex.match( string );
-    if ( match.hasMatch() ) {
-        follow_file_ = ( match.captured(1).toInt() == 1 );
-
-        LOG(logDEBUG) << "follow_file_: " << follow_file_;
-    }
-    else {
-        LOG(logWARNING) << "Unrecognised follow: " << string;
         follow_file_ = false;
+    } else {
+        sizes_ = { json["size0"].toInt(400), json["size1"].toInt(100) };
+        ignore_case_ = json["ignore_case"].toBool(false);
+        auto_refresh_ = json["auto_refresh"].toBool(false);
+        follow_file_ = json["follow_file"].toBool(false);
+        QJsonArray cmdButtons = json["cmd_buttons"].toArray();
+        btnCmds_.clear();
+        foreach (const QJsonValue & cmdButton, cmdButtons) {
+            btnCmds_.append(cmdButton.toString());
+        }
+    }
+    LOG(logDEBUG) << "sizes_: " << sizes_[0] << " " << sizes_[1];
+    LOG(logDEBUG) << "ignore_case_: " << ignore_case_ << " auto_refresh_: " << auto_refresh_;
+    LOG(logDEBUG) << "follow_file_: " << follow_file_;
+    for(int i=0 ; i < btnCmds_.length() ; i++) {
+        LOG(logDEBUG) << "btnCmds_: " << btnCmds_.at(i).toLocal8Bit().constData();
     }
 }
 
 std::string CrawlerWidgetContext::toString() const
 {
-    char string[160];
-
-    snprintf( string, sizeof string, "S%d:%d:IC%d:AR%d:FF%d",
-            sizes_[0], sizes_[1],
-            ignore_case_, auto_refresh_, follow_file_ );
-
-    return { string };
+    QJsonObject json;
+    json["size0"] = sizes_[0];
+    json["size1"] = sizes_[1];
+    json["ignore_case"] = ignore_case_;
+    json["auto_refresh"] = auto_refresh_;
+    json["follow_file"] = follow_file_;
+    QJsonArray cmdButtons = QJsonArray::fromStringList(btnCmds_);
+    json["cmd_buttons"] = cmdButtons;
+    QJsonDocument jdoc(json);
+    return jdoc.toJson().toStdString();
 }

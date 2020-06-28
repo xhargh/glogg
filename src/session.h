@@ -30,13 +30,15 @@
 #include <QDateTime>
 #include <QByteArray>
 
+#include "serialportsettings.h"
 #include "quickfindpattern.h"
 
 class ViewInterface;
 class ViewContextInterface;
-class LogData;
+class ILogData;
 class LogFilteredData;
 class SavedSearches;
+class SavedCommands;
 
 // File unreadable error
 class FileUnreadableErr {};
@@ -62,7 +64,7 @@ class Session {
     // view for it (the caller passes a factory to build the concrete view)
     // The ownership of the view is given to the caller
     // Throw exceptions if the file is already open or if it cannot be open.
-    ViewInterface* open( const std::string& file_name,
+    ViewInterface* open( const std::string& file_name, SerialPortSettings* p_portSettings,
             std::function<ViewInterface*()> view_factory );
     // Close the file identified by the view passed
     // Throw an exception if it does not exist.
@@ -101,13 +103,13 @@ class Session {
   private:
     struct OpenFile {
         std::string fileName;
-        std::shared_ptr<LogData> logData;
+        std::shared_ptr<ILogData> logData;
         std::shared_ptr<LogFilteredData> logFilteredData;
         ViewInterface* view;
     };
 
     // Open a file without checking if it is existing/readable
-    ViewInterface* openAlways( const std::string& file_name,
+    ViewInterface* openAlways( const std::string& file_name, SerialPortSettings* p_portSettings,
             std::function<ViewInterface*()> view_factory,
             const char* view_context );
     // Find an open file from its associated view
@@ -120,6 +122,9 @@ class Session {
 
     // Global search history
     std::shared_ptr<SavedSearches> savedSearches_;
+
+    // Global command history
+    std::shared_ptr<SavedCommands> savedCommands_;
 
     // Global quickfind pattern
     std::shared_ptr<QuickFindPattern> quickFindPattern_;

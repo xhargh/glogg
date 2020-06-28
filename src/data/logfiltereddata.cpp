@@ -52,7 +52,7 @@ LogFilteredData::LogFilteredData() : AbstractLogData(),
 }
 
 // Usual constructor: just copy the data, the search is started by runSearch()
-LogFilteredData::LogFilteredData( const LogData* logData )
+LogFilteredData::LogFilteredData( const ILogData* logData )
     : AbstractLogData(),
     matching_lines_( SearchResultArray() ),
     currentRegExp_(),

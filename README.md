@@ -1,8 +1,11 @@
 [![Linux and Mac Build Status](https://travis-ci.org/nickbnf/glogg.svg?branch=master)](https://travis-ci.org/nickbnf/glogg)
- [![Windows Build Status](https://ci.appveyor.com/api/projects/status/github/nickbnf/glogg?svg=true)](https://ci.appveyor.com/project/nickbnf/glogg)
+ [![Windows Build Status](https://ci.appveyor.com/api/projects/status/github/xhargh/glogg-io?svg=true)](https://ci.appveyor.com/project/xhargh/glogg-io)
 
-glogg - the fast, smart log explorer
-=====================================
+glogg-io - the fast, smart log explorer
+=======================================
+
+glogg-io is a fork of glogg with the following additions:
+* Basic serial port i/o support
 
 glogg is a multi-platform GUI application that helps browse and search
 through long and complex log files.  It is designed with programmers and

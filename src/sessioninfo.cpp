@@ -20,10 +20,10 @@
 #include "sessioninfo.h"
 
 #include <QSettings>
-
+#include "serialportsettings.h"
 #include "log.h"
 
-const int SessionInfo::OPENFILES_VERSION = 1;
+const int SessionInfo::OPENFILES_VERSION = 2;
 
 void SessionInfo::retrieveFromStorage( QSettings& settings )
 {
@@ -45,7 +45,9 @@ void SessionInfo::retrieveFromStorage( QSettings& settings )
                 uint64_t top_line = settings.value( "topLine" ).toInt();
                 std::string view_context =
                     settings.value( "viewContext" ).toString().toStdString();
-                openFiles_.push_back( { file_name, top_line, view_context } );
+                SerialPortSettings *sps = SerialPortSettings::Deserialize(settings.value("serialPortSettings").toString());
+
+                openFiles_.push_back( { file_name, top_line, view_context, sps} );
             }
             settings.endArray();
         }
@@ -70,6 +72,9 @@ void SessionInfo::saveToStorage( QSettings& settings ) const
         settings.setValue( "fileName", QString( open_file->fileName.c_str() ) );
         settings.setValue( "topLine", qint64( open_file->topLine ) );
         settings.setValue( "viewContext", QString( open_file->viewContext.c_str() ) );
+        if (open_file->serialPortSettings) {
+            settings.setValue( "serialPortSettings", open_file->serialPortSettings->Serialize().toStdString().c_str());
+        }
     }
     settings.endArray();
     settings.endGroup();

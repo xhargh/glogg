@@ -22,13 +22,13 @@
 #define LOGMAINVIEW_H
 
 #include "abstractlogview.h"
-#include "data/logdata.h"
+#include "data/ilogdata.h"
 
 // Class implementing the main (top) view widget.
 class LogMainView : public AbstractLogView
 {
   public:
-    LogMainView( const LogData* newLogData,
+    LogMainView( const ILogData* newLogData,
             const QuickFindPattern* const quickFindPattern,
             Overview* overview,
             OverviewWidget* overview_widget,

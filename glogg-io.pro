@@ -1,5 +1,5 @@
 # -------------------------------------------------
-# glogg
+# glogg-io
 # -------------------------------------------------
 
 # Debug builds: qmake CONFIG+=debug
@@ -157,8 +157,8 @@ macx {
 else {
     # For Windows icon
     RC_ICONS = glogg48.ico
-    QMAKE_TARGET_COMPANY = "Nicolas Bonnefon"
-    QMAKE_TARGET_DESCRIPTION = "glogg - the fast, smart log explorer"
+    QMAKE_TARGET_COMPANY = "Xhargh"
+    QMAKE_TARGET_DESCRIPTION = "glogg-io - the fast, smart log explorer with serial port support"
 }
 
 RESOURCES = glogg.qrc

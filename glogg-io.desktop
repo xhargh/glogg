@@ -1,7 +1,7 @@
 [Desktop Entry]
-Name=glogg
+Name=glogg-io
 GenericName=Log file browser
-Exec=glogg %F
+Exec=glogg-io %F
 Icon=glogg
 Type=Application
 Comment=A smart interactive log explorer.
@@ -11,9 +11,9 @@ MimeType=text/plain;
 Actions=Session;NewInstance;
 
 [Desktop Action Session]
-Exec=glogg --load-session %F
+Exec=glogg-io --load-session %F
 Name=Open With Previous Session
 
 [Desktop Action NewInstance]
-Exec=glogg --multi %F
-Name=Open In A New glogg Window
+Exec=glogg-io --multi %F
+Name=Open In A New glogg-io Window

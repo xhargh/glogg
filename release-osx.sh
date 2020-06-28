@@ -8,24 +8,27 @@
 #
 # QTDIR is built -static
 
-QTDIR=$HOME/Sandbox/qt-5.8.0-release-static
-BOOSTDIR=$HOME/Sandbox/boost_1_59_0
+QTDIR=$HOME/Qt/5.13.2/clang_64
 
 make clean
-if [ ! -d "$BOOSTDIR" ]; then
-    echo $BOOSTDIR not found.
-    exit 1
-elif [ -z "$VERSION" ]; then
+#if [ ! -d "$BOOSTDIR" ]; then
+#    echo $BOOSTDIR not found.
+#    exit 1
+#elif [ -z "$VERSION" ]; then
+if [ -z "$VERSION" ]; then
     echo Please specify a version to build: VERSION=1.2.3 $0
     exit 1
 else
-    $QTDIR/qtbase/bin/qmake glogg.pro LIBS+="-dead_strip" CONFIG+="release no-dbus version_checker" BOOST_PATH=$BOOSTDIR VERSION="$VERSION"
+    # $QTDIR/bin/qmake glogg-io.pro LIBS+="-dead_strip" CONFIG+="release no-dbus version_checker" VERSION="$VERSION"
+    $QTDIR/bin/qmake glogg-io.pro LIBS+="-dead_strip" CONFIG+="release no-dbus" VERSION="$VERSION"
+
 fi
 make -j8
-dsymutil release/glogg.app/Contents/MacOS/glogg
-mv release/glogg.app/Contents/MacOS/glogg.dSYM release/glogg-$VERSION.dSYM
+$QTDIR/bin/macdeployqt release/glogg-io.app -dmg
+# dsymutil release/glogg-io.app/Contents/MacOS/glogg-io
+mv release/glogg-io.app/Contents/MacOS/glogg-io.dSYM release/glogg-io-$VERSION.dSYM
 
-sed -e "s/\"glogg\"/\"glogg $VERSION\"/" osx_installer.json >osx_${VERSION}_installer.json
-rm glogg_${VERSION}_installer.dmg
-appdmg osx_${VERSION}_installer.json glogg_${VERSION}_installer.dmg
+rm glogg-io_${VERSION}_installer.dmg
+sed -e "s/\"glogg-io\"/\"glogg-io $VERSION\"/" osx_installer.json >osx_${VERSION}_installer.json
+appdmg osx_${VERSION}_installer.json glogg-io_${VERSION}_installer.dmg
 rm osx_${VERSION}_installer.json

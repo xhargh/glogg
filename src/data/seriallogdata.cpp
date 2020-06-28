@@ -69,11 +69,17 @@ void SerialLogData::clear()
 
 QString SerialLogData::doGetLineString(qint64 line) const
 {
+    if (m_lines.empty()) {
+        return QString();
+    }
     return m_lines[line].second;
 }
 
 QString SerialLogData::doGetExpandedLineString(qint64 line) const
 {
+    if (m_lines.empty()) {
+        return QString();
+    }
     auto l = m_lines[line];
     return l.first.toString(Qt::ISODateWithMs) + " " + l.second;
 }

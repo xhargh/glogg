@@ -262,6 +262,12 @@ void MainWindow::createActions()
     openSerialPortAction->setStatusTip(tr("Open a Serial Port"));
     connect(openSerialPortAction, SIGNAL(triggered()), this, SLOT(openSerialPortDialog()));
 
+    exportLogAction = new QAction(tr("&Export Log"), this);
+    exportLogAction->setIcon( QIcon( ":/images/export14.png" ) );
+    exportLogAction->setStatusTip(tr("Export Log to File"));
+    signalMux_.connect( exportLogAction, SIGNAL(triggered()), SLOT(exportLog()) );
+
+
     closeAction = new QAction(tr("&Close"), this);
     closeAction->setShortcut(tr("Ctrl+W"));
     closeAction->setStatusTip(tr("Close document"));
@@ -373,6 +379,7 @@ void MainWindow::createMenus()
     fileMenu = menuBar()->addMenu( tr("&File") );
     fileMenu->addAction( openAction );
     fileMenu->addAction( openSerialPortAction );
+    fileMenu->addAction( exportLogAction );
     fileMenu->addAction( closeAction );
     fileMenu->addAction( closeAllAction );
     fileMenu->addSeparator();
@@ -436,6 +443,7 @@ void MainWindow::createToolBars()
     toolBar->addAction( openAction );
     toolBar->addAction( openSerialPortAction );
     toolBar->addAction( reloadAction );
+    toolBar->addAction ( exportLogAction );
     toolBar->addWidget( infoLine );
     toolBar->addAction( stopAction );
     toolBar->addWidget( lineNbField );

@@ -14,7 +14,6 @@ CmdButton::CmdButton(int prefix, QString cmdLine) : m_prefix(prefix), m_cmdLine(
 
 void CmdButton::update() {
     setText(QString("&" + QString::number(m_prefix) + ": ") + m_cmdLine);
-    setAutoRaise( true );
 }
 
 void CmdButton::runCmd()

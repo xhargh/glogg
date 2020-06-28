@@ -24,5 +24,7 @@
         <file>images/darkclosebutton.png</file>
         <file>images/port14.png</file>
         <file>images/port14@2x.png</file>
+        <file>images/export14.png</file>
+        <file>images/export14@2x.png</file>
     </qresource>
 </RCC>

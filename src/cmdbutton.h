@@ -2,9 +2,9 @@
 #define CMDBUTTON_H
 
 #include <QObject>
-#include <QToolButton>
+#include <QPushButton>
 
-class CmdButton : public QToolButton
+class CmdButton : public QPushButton
 {
     Q_OBJECT
 private:

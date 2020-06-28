@@ -46,14 +46,6 @@ public:
         qInfo() << __func__;
     }
 
-    virtual void clear() {
-        qInfo() << __func__;
-    }
-
-    virtual void saveLogAs(QString filename) {
-        qInfo() << __func__ << " " << filename;
-    }
-
     virtual void setPollingInterval( uint32_t interval_ms ) {
         qInfo() << __func__ << " " << interval_ms;
     }

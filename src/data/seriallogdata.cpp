@@ -43,24 +43,7 @@ SerialPortSettings *SerialLogData::GetIoSettings()
     return &m_serialPortSettings;
 }
 
-void SerialLogData::saveLogAs(QString filename)
-{
-    qInfo() << __func__ << filename;
-    if (!filename.isEmpty()) {
-        QFile fOut(filename);
-        if (fOut.open(QFile::WriteOnly | QFile::Text)) {
-            QTextStream s(&fOut);
-            for (auto& l : m_lines) {
-                s << l.second;
-            }
-        } else {
-            qWarning() << __func__ << " unable to save to file " << filename;
-        }
-        fOut.close();
-    }
-}
-
-void SerialLogData::clear()
+void SerialLogData::reload()
 {
     m_lines.clear();
     emit fileChanged( LogData::MonitoredFileStatus::Truncated );
@@ -142,6 +125,7 @@ void SerialLogData::readDataSlot()
     while (m_serialPort.canReadLine()) {
         const QByteArray data = m_serialPort.readLine();
         QString d = QString(data);
+        d.remove(QRegExp("[\\n\\r]")); // remove new line and carrage return
         if (d.length() > m_maxLineLength) {
             m_maxLineLength = d.length();
         }

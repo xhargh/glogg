@@ -363,16 +363,10 @@ void CrawlerWidget::executeBtnCommand(QString cmd) {
     logData_->write(cmd);
 }
 
-void CrawlerWidget::clearLog()
+void CrawlerWidget::exportLog()
 {
     qInfo() << __func__;
-    logData_->clear();
-}
-
-void CrawlerWidget::saveLogAs()
-{
-    qInfo() << __func__;
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"),
+    QString filename = QFileDialog::getSaveFileName(this, tr("Export File"),
                                QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)
                                                     + "/"
                                                     + logData_->getLastModifiedDate().toString(Qt::ISODate).replace(":", "").replace("-","")
@@ -380,7 +374,20 @@ void CrawlerWidget::saveLogAs()
                                                     + "log"
                                                     + ".txt",
                                tr("Log Files (*.log *.txt)"));
-    logData_->saveLogAs(fileName);
+
+    if (!filename.isEmpty()) {
+        QFile fOut(filename);
+        if (fOut.open(QFile::WriteOnly | QFile::Text)) {
+            QTextStream s(&fOut);
+            qint64 numLines = logData_->getNbLine();
+            for (qint64 i = 0; i < numLines; i++) {
+                s << logData_->getLineString(i) << endl;
+            }
+        } else {
+            qWarning() << __func__ << " unable to save to file " << filename;
+        }
+        fOut.close();
+    }
 }
 
 void CrawlerWidget::executeCommand()
@@ -841,22 +848,6 @@ void CrawlerWidget::setup()
     auto* btnLayout = new QHBoxLayout(cmdView);
     btnLayout->setContentsMargins(6, 0, 3, 3);
     btnLayout->setAlignment(Qt::AlignLeft);
-
-    auto* saveAsButton = new QToolButton;
-    saveAsButton->setText( tr("Save &As") );
-    saveAsButton->setAutoRaise( true );
-    if (logData_->isWritable()) {
-        connect(saveAsButton, &CmdButton::clicked, this, &CrawlerWidget::saveLogAs);
-    }
-    btnLayout->addWidget(saveAsButton);
-
-    auto* clearButton = new QToolButton;
-    clearButton->setText( tr("&Clear") );
-    clearButton->setAutoRaise( true );
-    if (logData_->isWritable()) {
-        connect(clearButton, &CmdButton::clicked, this, &CrawlerWidget::clearLog);
-    }
-    btnLayout->addWidget(clearButton);
 
     btnLayout->addWidget(new QLabel("Commands:"));
 

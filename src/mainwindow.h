@@ -189,6 +189,7 @@ class MainWindow : public QMainWindow
 
     QAction *openAction;
     QAction *openSerialPortAction;
+    QAction *exportLogAction;
     QAction *closeAction;
     QAction *closeAllAction;
     QAction *exitAction;

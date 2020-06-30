@@ -94,7 +94,7 @@ include(StaticAnalyzers)
 
 ucm_print_flags()
 
-find_package(Qt5 COMPONENTS Core Widgets Concurrent Network Xml REQUIRED)
+find_package(Qt5 COMPONENTS Core Widgets Concurrent Network Xml SerialPort REQUIRED)
 set(CMAKE_AUTOMOC OFF)
 set(CMAKE_INCLUDE_CURRENT_DIR OFF)
 

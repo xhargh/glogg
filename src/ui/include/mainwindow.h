@@ -57,6 +57,7 @@
 #include "tabbedcrawlerwidget.h"
 #include "tabbedscratchpad.h"
 #include "iconloader.h"
+#include "serialportsettings.h"
 
 class QAction;
 class QActionGroup;
@@ -109,6 +110,8 @@ class MainWindow : public QMainWindow {
     void openInEditor();
     void openClipboard();
     void openUrl();
+    void openSerialPortDialog();
+    void openSerialPort(SerialPortSettings settings);
     void highlighters();
     void options();
     void about();
@@ -219,6 +222,8 @@ class MainWindow : public QMainWindow {
 
     QAction* newWindowAction;
     QAction* openAction;
+    QAction* openSerialPortAction;
+    QAction* exportLogAction;
     QAction* closeAction;
     QAction* closeAllAction;
     QAction* exitAction;

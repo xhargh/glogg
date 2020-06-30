@@ -56,6 +56,8 @@
 #include <QListView>
 #include <QStandardItemModel>
 #include <QStringListModel>
+#include <QFileDialog>
+#include <QStandardPaths>
 
 #include "crawlerwidget.h"
 
@@ -325,6 +327,33 @@ std::shared_ptr<const ViewContextInterface> CrawlerWidget::doGetViewContext() co
 //
 // Slots
 //
+
+void CrawlerWidget::exportLog()
+{
+    qInfo() << __func__;
+    QString filename = QFileDialog::getSaveFileName(this, tr("Export File"),
+                               QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)
+                                                    + "/"
+                                                    + logData_->getLastModifiedDate().toString(Qt::ISODate).replace(":", "").replace("-","")
+                                                    + "_"
+                                                    + "log"
+                                                    + ".txt",
+                               tr("Log Files (*.log *.txt)"));
+
+    if (!filename.isEmpty()) {
+        QFile fOut(filename);
+        if (fOut.open(QFile::WriteOnly | QFile::Text)) {
+            QTextStream s(&fOut);
+            unsigned int numLines = logData_->getNbLine().get();
+            for (unsigned int i = 0; i < numLines; i++) {
+                s << logData_->getLineString(LineNumber(i)) << endl;
+            }
+        } else {
+            qWarning() << __func__ << " unable to save to file " << filename;
+        }
+        fOut.close();
+    }
+}
 
 void CrawlerWidget::startNewSearch()
 {

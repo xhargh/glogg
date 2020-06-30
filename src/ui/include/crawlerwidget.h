@@ -160,6 +160,8 @@ class CrawlerWidget : public QSplitter,
     void dataStatusChanged( DataStatus status );
 
   private slots:
+    // Save Log As
+    void exportLog();
     // Instructs the widget to start a search using the current search line.
     void startNewSearch();
     // Stop the currently ongoing search (if one exists)

@@ -16,6 +16,7 @@ add_library(logdata STATIC
          ${CMAKE_CURRENT_SOURCE_DIR}/include/data/fileholder.h
          ${CMAKE_CURRENT_SOURCE_DIR}/include/data/filedigest.h
          ${CMAKE_CURRENT_SOURCE_DIR}/include/data/serialportlogdata.h
+         ${CMAKE_CURRENT_SOURCE_DIR}/include/serialportsettings.h
 
 
         ${CMAKE_CURRENT_SOURCE_DIR}/src/abstractlogdata.cpp
@@ -42,6 +43,7 @@ target_include_directories(logdata PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include/
 target_link_libraries(logdata PUBLIC
         Qt5::Core
         Qt5::Concurrent
+        Qt5::SerialPort
         immer
         tbb_static
         named_type

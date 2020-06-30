@@ -69,6 +69,7 @@
 #include <QUrl>
 #include <QUrlQuery>
 #include <QWindow>
+#include <serialsettingsdialog.h>
 
 #include "downloader.h"
 #include "log.h"
@@ -274,6 +275,20 @@ void MainWindow::createActions()
     openAction->setStatusTip( tr( "Open a file" ) );
     connect( openAction, &QAction::triggered, [this]( auto ) { this->open(); } );
 
+    openSerialPortAction = new QAction(tr("&Open Serial Port..."), this);
+    openSerialPortAction->setShortcut(QKeySequence::Open);
+    // openSerialPortAction->setIcon( QIcon( ":/images/port14.png" ) ); // qqq iconLoader
+    openSerialPortAction->setIcon( iconLoader_.load( "icons8-add-file" ) ); // qqq remove
+    openSerialPortAction->setStatusTip(tr("Open a Serial Port"));
+    connect(openSerialPortAction, SIGNAL(triggered()), this, SLOT(openSerialPortDialog()));
+
+    exportLogAction = new QAction(tr("&Export Log"), this);
+    // exportLogAction->setIcon( QIcon( ":/images/export14.png" ) ); // qqq iconLoader
+    exportLogAction->setIcon( iconLoader_.load( "icons8-add-file" ) ); // qqq remove
+    exportLogAction->setStatusTip(tr("Export Log to File"));
+    signalMux_.connect( exportLogAction, SIGNAL(triggered()), SLOT(exportLog()) );
+
+
     closeAction = new QAction( tr( "&Close" ), this );
     closeAction->setShortcuts( QKeySequence::keyBindings( QKeySequence::Close ) );
     closeAction->setStatusTip( tr( "Close document" ) );
@@ -447,6 +462,8 @@ void MainWindow::createMenus()
     fileMenu->addAction( openAction );
     fileMenu->addAction( openClipboardAction );
     fileMenu->addAction( openUrlAction );
+    fileMenu->addAction( openSerialPortAction );
+    fileMenu->addAction( exportLogAction );
     fileMenu->addAction( closeAction );
     fileMenu->addAction( closeAllAction );
     fileMenu->addSeparator();
@@ -531,6 +548,8 @@ void MainWindow::createToolBars()
     toolBar->setMovable( false );
     toolBar->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Minimum );
     toolBar->addAction( openAction );
+    toolBar->addAction( openSerialPortAction );
+    toolBar->addAction( exportLogAction );
     toolBar->addAction( reloadAction );
     toolBar->addAction( followAction );
     toolBar->addAction( addToFavoritesAction );
@@ -717,6 +736,7 @@ void MainWindow::find()
 
 void MainWindow::clearLog()
 {
+    // qqq - sounds dangerous, implement for IoDeviceLogData also
     const auto current_file = session_.getFilename( currentCrawlerWidget() );
     if ( QMessageBox::question( this, "klogg - clear file",
                                 QString( "Clear file %1?" ).arg( current_file ) )
@@ -778,6 +798,20 @@ void MainWindow::openUrl()
         openRemoteFile( url );
     }
 }
+
+void MainWindow::openSerialPortDialog()
+{
+    SerialSettingsDialog dialog(this);
+    connect(&dialog, &SerialSettingsDialog::optionChanged, this, &MainWindow::openSerialPort);
+    dialog.exec();
+    disconnect(&dialog, &SerialSettingsDialog::optionChanged, this, &MainWindow::openSerialPort);
+}
+
+void MainWindow::openSerialPort(SerialPortSettings settings) {
+    qInfo() << __func__;
+    loadFile(settings.name, true /*qqq &settings*/);
+}
+
 
 // Opens the 'Highlighters' dialog box
 void MainWindow::highlighters()

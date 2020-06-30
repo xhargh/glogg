@@ -3,6 +3,7 @@ add_library(logdata STATIC
          ${CMAKE_CURRENT_SOURCE_DIR}/include/data/blockpool.h
          ${CMAKE_CURRENT_SOURCE_DIR}/include/data/compressedlinestorage.h
          ${CMAKE_CURRENT_SOURCE_DIR}/include/data/encodingdetector.h
+         ${CMAKE_CURRENT_SOURCE_DIR}/include/data/iodevicelogdata.h
          ${CMAKE_CURRENT_SOURCE_DIR}/include/data/logdatabase.h
          ${CMAKE_CURRENT_SOURCE_DIR}/include/data/linepositionarray.h
          ${CMAKE_CURRENT_SOURCE_DIR}/include/data/loadingstatus.h
@@ -14,12 +15,14 @@ add_library(logdata STATIC
          ${CMAKE_CURRENT_SOURCE_DIR}/include/data/linetypes.h
          ${CMAKE_CURRENT_SOURCE_DIR}/include/data/fileholder.h
          ${CMAKE_CURRENT_SOURCE_DIR}/include/data/filedigest.h
+         ${CMAKE_CURRENT_SOURCE_DIR}/include/data/serialportlogdata.h
 
 
         ${CMAKE_CURRENT_SOURCE_DIR}/src/abstractlogdata.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/blockpool.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/compressedlinestorage.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/encodingdetector.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/iodevicelogdata.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/logdata.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/logdataworker.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/logfiltereddata.cpp
@@ -27,6 +30,7 @@ add_library(logdata STATIC
         ${CMAKE_CURRENT_SOURCE_DIR}/src/marks.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/fileholder.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/filedigest.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/serialportlogdata.cpp
 
         src/filedigest.cpp)
 

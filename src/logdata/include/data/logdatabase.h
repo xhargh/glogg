@@ -46,7 +46,6 @@ public:
         qInfo() << __func__ << "(" << fileName << ")";
     }
 
-
 signals:
   // Sent during the 'attach' process to signal progress
   // percent being the percentage of completion.

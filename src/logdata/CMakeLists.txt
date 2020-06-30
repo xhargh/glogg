@@ -3,6 +3,7 @@ add_library(logdata STATIC
          ${CMAKE_CURRENT_SOURCE_DIR}/include/data/blockpool.h
          ${CMAKE_CURRENT_SOURCE_DIR}/include/data/compressedlinestorage.h
          ${CMAKE_CURRENT_SOURCE_DIR}/include/data/encodingdetector.h
+         ${CMAKE_CURRENT_SOURCE_DIR}/include/data/logdatabase.h
          ${CMAKE_CURRENT_SOURCE_DIR}/include/data/linepositionarray.h
          ${CMAKE_CURRENT_SOURCE_DIR}/include/data/loadingstatus.h
          ${CMAKE_CURRENT_SOURCE_DIR}/include/data/logdata.h

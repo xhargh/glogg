@@ -82,7 +82,7 @@ void LogData::CheckFileChangesOperation::doStart( LogDataWorker& workerThread ) 
 // Constructs an empty log file.
 // It must be displayed without error.
 LogData::LogData()
-    : AbstractLogData()
+    : LogDataBase()
     , indexing_data_()
     , workerThread_( indexing_data_ )
 {

@@ -35,7 +35,7 @@
 
 class ViewInterface;
 class ViewContextInterface;
-class LogData;
+class LogDataBase;
 class LogFilteredData;
 class SavedSearches;
 
@@ -109,7 +109,7 @@ class Session : public std::enable_shared_from_this<Session> {
   private:
     struct OpenFile {
         QString fileName;
-        std::shared_ptr<LogData> logData;
+        std::shared_ptr<LogDataBase> logData;
         std::shared_ptr<LogFilteredData> logFilteredData;
         ViewInterface* view;
     };

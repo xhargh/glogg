@@ -51,7 +51,7 @@
 #include "logfiltereddataworker.h"
 #include "marks.h"
 
-class LogData;
+class LogDataBase;
 class Marks;
 class QTimer;
 
@@ -65,7 +65,7 @@ class LogFilteredData : public AbstractLogData {
 
   public:
     // Constructor used by LogData
-    explicit LogFilteredData( const LogData* logData );
+    explicit LogFilteredData( const LogDataBase* logData );
 
     // Starts the async search, sending newDataAvailable() when new data found.
     // If a search is already in progress this function will block until
@@ -173,7 +173,7 @@ class LogFilteredData : public AbstractLogData {
     // List of the matching line numbers
     SearchResultArray matching_lines_;
 
-    const LogData* sourceLogData_;
+    const LogDataBase* sourceLogData_;
 
     QRegularExpression currentRegExp_;
     LineLength maxLength_;

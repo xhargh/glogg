@@ -75,33 +75,23 @@ class LogData : public LogDataBase {
     // Attaching to a non existant file works and the file is reported
     // to be empty.
     // Reattaching is forbidden and will throw.
-    void attachFile( const QString& fileName );
+    void attachFile( const QString& fileName ) override;
     // Interrupt the loading and report a null file.
     // Does nothing if no loading in progress.
-    void interruptLoading();
+    void interruptLoading() override;
     // Creates a new filtered data.
     // ownership is passed to the caller
-    std::unique_ptr<LogFilteredData> getNewFilteredData() const;
+    std::unique_ptr<LogFilteredData> getNewFilteredData() const override;
     // Returns the size if the file in bytes
-    qint64 getFileSize() const;
+    qint64 getFileSize() const override;
     // Returns the last modification date for the file.
     // Null if the file is not on disk.
-    QDateTime getLastModifiedDate() const;
+    QDateTime getLastModifiedDate() const override;
     // Throw away all the file data and reload/reindex.
-    void reload(QTextCodec* forcedEncoding = nullptr);
+    void reload(QTextCodec* forcedEncoding = nullptr) override;
 
     // Get the auto-detected encoding for the indexed text.
-    QTextCodec* getDetectedEncoding() const;
-
-  signals:
-    // Sent during the 'attach' process to signal progress
-    // percent being the percentage of completion.
-    void loadingProgressed( int percent );
-    // Signal the client the file is fully loaded and available.
-    void loadingFinished( LoadingStatus status );
-    // Sent when the file on disk has changed, will be followed
-    // by loadingProgressed if needed and then a loadingFinished.
-    void fileChanged( MonitoredFileStatus status );
+    QTextCodec* getDetectedEncoding() const override;
 
   private slots:
     // Consider reloading the file when it changes on disk updated

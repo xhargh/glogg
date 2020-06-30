@@ -270,7 +270,7 @@ void CrawlerWidget::focusSearchEdit()
 //
 // Protected functions
 //
-void CrawlerWidget::doSetData( std::shared_ptr<LogData> log_data,
+void CrawlerWidget::doSetData( std::shared_ptr<LogDataBase> log_data,
                                std::shared_ptr<LogFilteredData> filtered_data )
 {
     logData_ = log_data.get();
@@ -938,9 +938,9 @@ void CrawlerWidget::setup()
              &CrawlerWidget::updateFilteredView, Qt::QueuedConnection );
 
     // Sent load file update to MainWindow (for status update)
-    connect( logData_, &LogData::loadingProgressed, this, &CrawlerWidget::loadingProgressed );
-    connect( logData_, &LogData::loadingFinished, this, &CrawlerWidget::loadingFinishedHandler );
-    connect( logData_, &LogData::fileChanged, this, &CrawlerWidget::fileChangedHandler );
+    connect( logData_, &LogDataBase::loadingProgressed, this, &CrawlerWidget::loadingProgressed );
+    connect( logData_, &LogDataBase::loadingFinished, this, &CrawlerWidget::loadingFinishedHandler );
+    connect( logData_, &LogDataBase::fileChanged, this, &CrawlerWidget::fileChangedHandler );
 
     // Search auto-refresh
     connect( searchRefreshButton, &QPushButton::toggled, this,

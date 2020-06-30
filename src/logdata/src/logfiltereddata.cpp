@@ -72,7 +72,7 @@ static AbstractLogData::LineType operator&( AbstractLogData::LineType type,
 }
 
 // Usual constructor: just copy the data, the search is started by runSearch()
-LogFilteredData::LogFilteredData( const LogData* logData )
+LogFilteredData::LogFilteredData( const LogDataBase* logData )
     : AbstractLogData()
     , matching_lines_( SearchResultArray() )
     , currentRegExp_()

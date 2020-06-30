@@ -41,14 +41,16 @@
 #define LOGMAINVIEW_H
 
 #include "abstractlogview.h"
-#include "data/logdata.h"
+#include "data/logdatabase.h"
+
+class LogFilteredData;
 
 // Class implementing the main (top) view widget.
 class LogMainView : public AbstractLogView
 {
   Q_OBJECT
   public:
-    LogMainView( const LogData* newLogData,
+    LogMainView( const LogDataBase* newLogData,
             const QuickFindPattern* const quickFindPattern,
             Overview* overview,
             OverviewWidget* overview_widget,
@@ -61,7 +63,7 @@ class LogMainView : public AbstractLogView
 
   protected:
     // Implements the virtual function
-    LogData::LineType lineType( LineNumber lineNumber ) const override;
+    LogDataBase::LineType lineType( LineNumber lineNumber ) const override;
 
     void keyPressEvent( QKeyEvent* keyEvent ) override;
 

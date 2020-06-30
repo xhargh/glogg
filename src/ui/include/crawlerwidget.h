@@ -119,7 +119,7 @@ class CrawlerWidget : public QSplitter,
 
   protected:
     // Implementation of the ViewInterface functions
-    void doSetData( std::shared_ptr<LogData> log_data,
+    void doSetData( std::shared_ptr<LogDataBase> log_data,
                     std::shared_ptr<LogFilteredData> filtered_data ) override;
     void doSetQuickFindPattern( std::shared_ptr<QuickFindPattern> qfp ) override;
     void doSetSavedSearches( SavedSearches* saved_searches ) override;
@@ -298,7 +298,7 @@ class CrawlerWidget : public QSplitter,
     // Reference to the QuickFind Pattern (not owned)
     std::shared_ptr<QuickFindPattern> quickFindPattern_;
 
-    LogData* logData_ = nullptr;
+    LogDataBase* logData_ = nullptr;
     LogFilteredData* logFilteredData_ = nullptr;
 
     QWidget* qfSavedFocus_ = nullptr;

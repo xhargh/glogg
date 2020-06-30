@@ -51,7 +51,7 @@
 #include "atomicflag.h"
 #include "linetypes.h"
 
-class LogData;
+class LogDataBase;
 
 // Class encapsulating a single matching line
 // Contains the line number the line was found in and its content.
@@ -129,7 +129,7 @@ class SearchData {
 class SearchOperation : public QObject {
     Q_OBJECT
   public:
-    SearchOperation( const LogData& sourceLogData, AtomicFlag& interruptRequested,
+    SearchOperation( const LogDataBase& sourceLogData, AtomicFlag& interruptRequested,
                      const QRegularExpression& regExp, LineNumber startLine, LineNumber endLine );
 
     // Start the search operation, returns true if it has been done
@@ -146,7 +146,7 @@ class SearchOperation : public QObject {
 
     AtomicFlag& interruptRequested_;
     const QRegularExpression regexp_;
-    const LogData& sourceLogData_;
+    const LogDataBase& sourceLogData_;
     LineNumber startLine_;
     LineNumber endLine_;
 };
@@ -154,7 +154,7 @@ class SearchOperation : public QObject {
 class FullSearchOperation : public SearchOperation {
     Q_OBJECT
   public:
-    FullSearchOperation( const LogData& sourceLogData, AtomicFlag& interruptRequested,
+    FullSearchOperation( const LogDataBase& sourceLogData, AtomicFlag& interruptRequested,
                          const QRegularExpression& regExp, LineNumber startLine,
                          LineNumber endLine )
         : SearchOperation( sourceLogData, interruptRequested, regExp, startLine, endLine )
@@ -167,7 +167,7 @@ class FullSearchOperation : public SearchOperation {
 class UpdateSearchOperation : public SearchOperation {
     Q_OBJECT
   public:
-    UpdateSearchOperation( const LogData& sourceLogData, AtomicFlag& interruptRequested,
+    UpdateSearchOperation( const LogDataBase& sourceLogData, AtomicFlag& interruptRequested,
                            const QRegularExpression& regExp, LineNumber startLine,
                            LineNumber endLine, LineNumber position )
         : SearchOperation( sourceLogData, interruptRequested, regExp, startLine, endLine )
@@ -185,7 +185,7 @@ class LogFilteredDataWorker : public QObject {
     Q_OBJECT
 
   public:
-    explicit LogFilteredDataWorker( const LogData& sourceLogData );
+    explicit LogFilteredDataWorker( const LogDataBase& sourceLogData );
     ~LogFilteredDataWorker() override;
 
     // Start the search with the passed regexp
@@ -213,7 +213,7 @@ class LogFilteredDataWorker : public QObject {
     void connectSignalsAndRun( SearchOperation* operationRequested );
 
   private:
-    const LogData& sourceLogData_;
+    const LogDataBase& sourceLogData_;
     AtomicFlag interruptRequested_;
 
     // Mutex to protect operationRequested_ and friends

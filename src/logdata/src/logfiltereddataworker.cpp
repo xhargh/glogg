@@ -200,7 +200,7 @@ void SearchData::clear()
     newMatches_ = {};
 }
 
-LogFilteredDataWorker::LogFilteredDataWorker( const LogData& sourceLogData )
+LogFilteredDataWorker::LogFilteredDataWorker( const LogDataBase& sourceLogData )
     : sourceLogData_( sourceLogData )
     , mutex_()
     , searchData_()
@@ -278,7 +278,7 @@ SearchResults LogFilteredDataWorker::getSearchResults() const
 // Operations implementation
 //
 
-SearchOperation::SearchOperation( const LogData& sourceLogData, AtomicFlag& interruptRequested,
+SearchOperation::SearchOperation( const LogDataBase& sourceLogData, AtomicFlag& interruptRequested,
                                   const QRegularExpression& regExp, LineNumber startLine,
                                   LineNumber endLine )
 

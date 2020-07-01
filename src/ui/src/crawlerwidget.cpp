@@ -60,7 +60,7 @@
 #include <QStandardPaths>
 
 #include "crawlerwidget.h"
-
+#include "cmdbutton.h"
 #include "configuration.h"
 #include "infoline.h"
 #include "overview.h"
@@ -263,6 +263,29 @@ void CrawlerWidget::setEncoding( absl::optional<int> mib )
 
     update();
 }
+
+void CrawlerWidget::executeBtnCommand(QString cmd) {
+    qInfo() << __func__ << " " << cmd;
+    // qqq logData_->write(cmd);
+}
+
+void CrawlerWidget::executeCommand()
+{
+    auto cmd = cmdEntryBox->currentText();
+
+    /* qqq
+    GetPersistentInfo().retrieve( "savedCommands" );
+    savedCommands_->addRecent( cmd );
+    GetPersistentInfo().save( "savedCommands" );
+
+    // Update the EntryBox (history)
+    updateCommandCombo();
+    // Call the private function to do the search
+    qInfo() << "execute command: " << cmd;
+    */
+    // qqq logData_->write(cmd);
+}
+
 
 void CrawlerWidget::focusSearchEdit()
 {
@@ -745,6 +768,7 @@ void CrawlerWidget::setup()
     assert( logFilteredData_ );
 
     // The views
+    mainWindow = new QWidget;
     bottomWindow = new QWidget;
     bottomWindow->setContentsMargins( 2, 0, 2, 0 );
 
@@ -843,6 +867,42 @@ void CrawlerWidget::setup()
     searchRefreshButton->setFocusPolicy( Qt::NoFocus );
     searchRefreshButton->setContentsMargins( 2, 2, 2, 2 );
 
+    // Construct the Command line
+    cmdView = new QWidget;
+    auto* cmdLayout = new QHBoxLayout(cmdView);
+
+    auto* cmdLbl = new QLabel(tr("Cmd:"));
+    cmdEntryBox = new QComboBox();
+
+    cmdEntryBox->setEditable(true);
+    cmdEntryBox->setCompleter(0);
+    // qqq cmdEntryBox->addItems( savedCommands_->recentStrings() );
+    cmdEntryBox->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Minimum );
+    cmdEntryBox->setSizeAdjustPolicy( QComboBox::AdjustToMinimumContentsLengthWithIcon );
+    cmdLayout->addWidget(cmdLbl);
+    cmdLayout->addWidget(cmdEntryBox);
+    cmdView->setLayout(cmdLayout);
+
+    auto* btnRow = new QWidget;
+    auto* btnLayout = new QHBoxLayout(cmdView);
+    btnLayout->setContentsMargins(6, 0, 3, 3);
+    btnLayout->setAlignment(Qt::AlignLeft);
+
+    btnLayout->addWidget(new QLabel("Commands:"));
+
+
+    for (auto i : { 1, 2, 3, 4 ,5 ,6 ,7 ,8, 9, 0}) {
+        auto* btn = new CmdButton(i, "");
+        // qqq if (logData_->isWritable())
+        {
+            connect(btn, &CmdButton::execute, this, &CrawlerWidget::executeBtnCommand);
+        }
+        btnLayout->addWidget(btn);
+        cmdBtns.push_back(btn);
+    }
+
+    btnRow->setLayout(btnLayout);
+
     // Construct the Search line
     searchLineCompleter = new QCompleter( savedSearches_->recentSearches(), this );
     searchLineCompleter->setCaseSensitivity( Qt::CaseInsensitive );
@@ -882,6 +942,19 @@ void CrawlerWidget::setup()
     searchLineLayout->addWidget( searchRefreshButton );
     searchLineLayout->addWidget( searchInfoLine );
 
+
+    // Construct the main window
+    auto* mainLayout = new QVBoxLayout;
+    mainLayout->addWidget(logMainView);
+    // qqq if (logData_->isWritable())
+    {
+        mainLayout->addWidget(cmdView);
+        mainLayout->addWidget(btnRow);
+    }
+    mainLayout->setContentsMargins(2, 2, 2, 2);
+    mainLayout->setSpacing(0);
+    mainWindow->setLayout(mainLayout);
+
     // Construct the bottom window
     auto* bottomMainLayout = new QVBoxLayout;
     bottomMainLayout->addLayout( searchLineLayout );
@@ -889,7 +962,7 @@ void CrawlerWidget::setup()
     bottomMainLayout->setContentsMargins( 2, 2, 2, 2 );
     bottomWindow->setLayout( bottomMainLayout );
 
-    addWidget( logMainView );
+    addWidget( mainWindow );
     addWidget( bottomWindow );
 
     // Default search checkboxes

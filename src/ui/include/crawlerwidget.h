@@ -67,6 +67,7 @@ class SavedSearches;
 class QStandardItemModel;
 class QCompleter;
 class OverviewWidget;
+class CmdButton;
 
 // Implements the central widget of the application.
 // It includes both windows, the search line, the info
@@ -160,6 +161,9 @@ class CrawlerWidget : public QSplitter,
     void dataStatusChanged( DataStatus status );
 
   private slots:
+    // Send a string to iodevice / execute a command
+    void executeCommand();
+    void executeBtnCommand(QString cmd);
     // Save Log As
     void exportLog();
     // Instructs the widget to start a search using the current search line.
@@ -278,6 +282,10 @@ class CrawlerWidget : public QSplitter,
     static const QPalette errorPalette;
 
     LogMainView* logMainView;
+    QWidget*        cmdView;
+    QComboBox*      cmdEntryBox;
+    QWidget*        mainWindow;
+    std::vector<CmdButton*> cmdBtns;
     QWidget* bottomWindow;
     QLabel* searchLabel;
     QComboBox* searchLineEdit;

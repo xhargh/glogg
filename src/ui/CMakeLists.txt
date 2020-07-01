@@ -35,6 +35,8 @@ add_library(ui STATIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include/iconloader.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/displayfilepath.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/serialsettingsdialog.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/cmdbutton.h
+
 
         ${CMAKE_CURRENT_SOURCE_DIR}/include/highlighteredit.ui
         ${CMAKE_CURRENT_SOURCE_DIR}/include/highlightersdialog.ui
@@ -74,6 +76,7 @@ add_library(ui STATIC
         ${CMAKE_CURRENT_SOURCE_DIR}/src/iconloader.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/displayfilepath.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/serialsettingsdialog.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/cmdbutton.cpp
 
 
 )

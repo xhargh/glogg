@@ -60,6 +60,7 @@
 #include "signalmux.h"
 #include "viewinterface.h"
 #include "iconloader.h"
+#include "savedcommands.h"
 
 class InfoLine;
 class QuickFindPattern;
@@ -123,8 +124,10 @@ class CrawlerWidget : public QSplitter,
     void doSetData( std::shared_ptr<LogDataBase> log_data,
                     std::shared_ptr<LogFilteredData> filtered_data ) override;
     void doSetQuickFindPattern( std::shared_ptr<QuickFindPattern> qfp ) override;
+    void doSetSavedCommands( SavedCommands* saved_commands ) override;
     void doSetSavedSearches( SavedSearches* saved_searches ) override;
     void doSetViewContext( const QString& view_context ) override;
+    void doFinishSetup() override;
     std::shared_ptr<const ViewContextInterface> doGetViewContext( void ) const override;
 
     // Implementation of the mux selector interface
@@ -272,6 +275,7 @@ class CrawlerWidget : public QSplitter,
     void setup();
     void replaceCurrentSearch( const QString& searchText );
     void updateSearchCombo();
+    void updateCommandCombo();
     AbstractLogView* activeView() const;
     void printSearchInfoMessage( LinesCount nbMatches = 0_lcount );
     void changeDataStatus( DataStatus status );
@@ -304,6 +308,7 @@ class CrawlerWidget : public QSplitter,
     QPalette searchInfoLineDefaultPalette;
 
     SavedSearches* savedSearches_ = nullptr;
+    SavedCommands* savedCommands_ = nullptr;
 
     // Reference to the QuickFind Pattern (not owned)
     std::shared_ptr<QuickFindPattern> quickFindPattern_;

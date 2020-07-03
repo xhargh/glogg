@@ -28,6 +28,7 @@
 #include "data/logdata.h"
 #include "data/logfiltereddata.h"
 #include "savedsearches.h"
+#include "savedcommands.h"
 #include "sessioninfo.h"
 #include "viewinterface.h"
 
@@ -36,6 +37,7 @@ Session::Session()
     // Get the global search history (it remains the property
     // of the Persistent)
     savedSearches_ = &SavedSearches::getSynced();
+    savedCommands_ = &SavedCommands::getSynced();
     SessionInfo::getSynced();
 
     quickFindPattern_ = std::make_shared<QuickFindPattern>();
@@ -109,7 +111,8 @@ ViewInterface* Session::openAlways( const QString& file_name,
     view->setData( log_data, log_filtered_data );
     view->setQuickFindPattern( quickFindPattern_ );
     view->setSavedSearches( savedSearches_ );
-
+    view->setSavedCommands( savedCommands_ );
+    view->finishSetup();
     if ( !view_context.isEmpty() )
         view->setViewContext( view_context );
 

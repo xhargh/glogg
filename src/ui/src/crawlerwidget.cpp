@@ -67,6 +67,7 @@
 #include "quickfindpattern.h"
 #include "quickfindwidget.h"
 #include "savedsearches.h"
+#include "savedcommands.h"
 
 // Palette for error signaling (yellow background)
 const QPalette CrawlerWidget::errorPalette( QColor( "yellow" ) );
@@ -78,12 +79,14 @@ class CrawlerWidgetContext : public ViewContextInterface {
     explicit CrawlerWidgetContext( const QString& string );
     // Construct from the value passsed
     CrawlerWidgetContext( QList<int> sizes, bool ignore_case, bool auto_refresh, bool follow_file,
-                          bool use_regexp, QList<LineNumber> markedLines )
+                          bool use_regexp, QList<LineNumber> markedLines,
+                          std::vector<QString> btnCmds )
         : sizes_( sizes )
         , ignore_case_( ignore_case )
         , auto_refresh_( auto_refresh )
         , follow_file_( follow_file )
         , use_regexp_( use_regexp )
+        , btnCmds_(btnCmds)
     {
         std::transform( markedLines.begin(), markedLines.end(), std::back_inserter( marks_ ),
                         []( const auto& m ) { return m.get(); } );
@@ -120,6 +123,11 @@ class CrawlerWidgetContext : public ViewContextInterface {
         return marks_;
     }
 
+    std::vector<QString> btnCommands() const
+    {
+        return btnCmds_;
+    }
+
   private:
     void loadFromString( const QString& string );
     void loadFromJson( const QString& json );
@@ -133,6 +141,7 @@ class CrawlerWidgetContext : public ViewContextInterface {
     bool use_regexp_;
 
     QList<LineNumber::UnderlyingType> marks_;
+    std::vector<QString> btnCmds_;
 };
 
 // Constructor only does trivial construction. The real work is done once
@@ -211,9 +220,63 @@ void CrawlerWidget::keyPressEvent( QKeyEvent* keyEvent )
     keyEvent->accept();
     const auto noModifier = keyEvent->modifiers() == Qt::NoModifier;
 
+#if defined(Q_OS_MACOS)
+    const Qt::KeyboardModifier controlModifier = Qt::MetaModifier;
+#else
+    const Qt::KeyboardModifier controlModifier = Qt::ControlModifier;
+#endif
+
     if ( keyEvent->key() == Qt::Key_V && noModifier ) {
         visibilityBox->setCurrentIndex( ( visibilityBox->currentIndex() + 1 )
                                         % visibilityBox->count() );
+    }
+    else if (keyEvent->modifiers() == controlModifier) {
+        // qqq if (logData_->isWritable())
+        {
+            switch (keyEvent->key()) {
+
+            case Qt::Key_1:
+                qInfo() << "Key 1";
+                emit cmdBtns[0]->clicked();
+                break;
+            case Qt::Key_2:
+                qInfo() << "Key 2";
+                emit cmdBtns[1]->clicked();
+                break;
+            case Qt::Key_3:
+                qInfo() << "Key 3";
+                emit cmdBtns[2]->clicked();
+                break;
+            case Qt::Key_4:
+                qInfo() << "Key 4";
+                emit cmdBtns[3]->clicked();
+                break;
+            case Qt::Key_5:
+                qInfo() << "Key 5";
+                emit cmdBtns[4]->clicked();
+                break;
+            case Qt::Key_6:
+                qInfo() << "Key 6";
+                emit cmdBtns[5]->clicked();
+                break;
+            case Qt::Key_7:
+                qInfo() << "Key 7";
+                emit cmdBtns[6]->clicked();
+                break;
+            case Qt::Key_8:
+                qInfo() << "Key 8";
+                emit cmdBtns[7]->clicked();
+                break;
+            case Qt::Key_9:
+                qInfo() << "Key 9";
+                emit cmdBtns[8]->clicked();
+                break;
+            case Qt::Key_0:
+                qInfo() << "Key 0";
+                emit cmdBtns[9]->clicked();
+                break;
+            }
+        }
     }
     else {
         switch ( keyEvent->key() ) {
@@ -264,29 +327,6 @@ void CrawlerWidget::setEncoding( absl::optional<int> mib )
     update();
 }
 
-void CrawlerWidget::executeBtnCommand(QString cmd) {
-    qInfo() << __func__ << " " << cmd;
-    // qqq logData_->write(cmd);
-}
-
-void CrawlerWidget::executeCommand()
-{
-    auto cmd = cmdEntryBox->currentText();
-
-    /* qqq
-    GetPersistentInfo().retrieve( "savedCommands" );
-    savedCommands_->addRecent( cmd );
-    GetPersistentInfo().save( "savedCommands" );
-
-    // Update the EntryBox (history)
-    updateCommandCombo();
-    // Call the private function to do the search
-    qInfo() << "execute command: " << cmd;
-    */
-    // qqq logData_->write(cmd);
-}
-
-
 void CrawlerWidget::focusSearchEdit()
 {
     searchLineEdit->setFocus( Qt::ShortcutFocusReason );
@@ -310,9 +350,14 @@ void CrawlerWidget::doSetQuickFindPattern( std::shared_ptr<QuickFindPattern> qfp
 void CrawlerWidget::doSetSavedSearches( SavedSearches* saved_searches )
 {
     savedSearches_ = saved_searches;
+}
 
-    // We do setup now, assuming doSetData has been called before
-    // us, that's not great really...
+void CrawlerWidget::doSetSavedCommands( SavedCommands* saved_commands )
+{
+    savedCommands_ = saved_commands;
+}
+
+void CrawlerWidget::doFinishSetup() {
     setup();
 }
 
@@ -321,9 +366,13 @@ void CrawlerWidget::doSetViewContext( const QString& view_context )
     LOG( logDEBUG ) << "CrawlerWidget::doSetViewContext: " << view_context.toLocal8Bit().data();
 
     const auto context = CrawlerWidgetContext{ view_context };
+    LOG( logDEBUG ) << "CrawlerWidget::doSetViewContext" << __LINE__;
 
     setSizes( context.sizes() );
+    LOG( logDEBUG ) << "CrawlerWidget::doSetViewContext" << __LINE__ << " " << (uint32_t)(uintptr_t)matchCaseButton << " " << context.ignoreCase();
+
     matchCaseButton->setChecked( !context.ignoreCase() );
+    LOG( logDEBUG ) << "CrawlerWidget::doSetViewContext" << __LINE__ << " " << (uint32_t)(uintptr_t)useRegexpButton << context.useRegexp();
     useRegexpButton->setChecked( context.useRegexp() );
 
     searchRefreshButton->setChecked( context.autoRefresh() );
@@ -332,6 +381,11 @@ void CrawlerWidget::doSetViewContext( const QString& view_context )
 
     logMainView->followSet( context.followFile() );
 
+    std::vector<QString> btnCommands = context.btnCommands();
+    for(size_t i=0 ; i < btnCommands.size() ; i++) {
+        cmdBtns[i]->setCmdLine(btnCommands.at(i));
+    }
+
     const auto savedMarks = context.marks();
     std::transform( savedMarks.begin(), savedMarks.end(), std::back_inserter( savedMarkedLines_ ),
                     []( const auto& l ) { return LineNumber( l ); } );
@@ -339,10 +393,15 @@ void CrawlerWidget::doSetViewContext( const QString& view_context )
 
 std::shared_ptr<const ViewContextInterface> CrawlerWidget::doGetViewContext() const
 {
+    std::vector<QString> btnCmds;
+    for (const CmdButton *cb: cmdBtns) {
+        btnCmds.emplace_back(cb->getCmdLine());
+    }
     auto context = std::make_shared<const CrawlerWidgetContext>(
         sizes(), ( !matchCaseButton->isChecked() ), searchRefreshButton->isChecked(),
         logMainView->isFollowEnabled(), useRegexpButton->isChecked(),
-        logFilteredData_->getMarks() );
+        logFilteredData_->getMarks(),
+        btnCmds );
 
     return static_cast<std::shared_ptr<const ViewContextInterface>>( context );
 }
@@ -351,17 +410,45 @@ std::shared_ptr<const ViewContextInterface> CrawlerWidget::doGetViewContext() co
 // Slots
 //
 
+
+void CrawlerWidget::executeBtnCommand(QString cmd) {
+    qInfo() << __func__ << " " << cmd;
+    // qqq logData_->write(cmd);
+}
+
+void CrawlerWidget::executeCommand()
+{
+    auto cmd = cmdEntryBox->currentText();
+
+    auto& commands = SavedCommands::getSynced();
+    savedCommands_->addRecent( cmd );
+    commands.save();
+
+    // Update the EntryBox (history)
+    updateCommandCombo();
+    // Call the private function to do the search
+    qInfo() << "execute command: " << cmd;
+    // qqq logData_->write(cmd);
+}
+
+
 void CrawlerWidget::exportLog()
 {
     qInfo() << __func__;
-    QString filename = QFileDialog::getSaveFileName(this, tr("Export File"),
-                               QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)
-                                                    + "/"
-                                                    + logData_->getLastModifiedDate().toString(Qt::ISODate).replace(":", "").replace("-","")
-                                                    + "_"
-                                                    + "log"
-                                                    + ".txt",
-                               tr("Log Files (*.log *.txt)"));
+    QString filename =
+            QFileDialog::getSaveFileName(
+                this,
+                tr("Export File"),
+                QStandardPaths::writableLocation(
+                    QStandardPaths::DocumentsLocation)
+                    + "/"
+                    + logData_->getLastModifiedDate().toString(Qt::ISODate).replace(":", "").replace("-","")
+                    + "_"
+                    + "log"
+                    + ".txt",
+                    tr("Log Files (*.log *.txt)"
+                )
+            );
 
     if (!filename.isEmpty()) {
         QFile fOut(filename);
@@ -558,6 +645,7 @@ void CrawlerWidget::applyConfiguration()
 
     // Update the SearchLine (history)
     updateSearchCombo();
+    updateCommandCombo();
 
     FileWatcher::getFileWatcher().updateConfiguration();
 
@@ -846,6 +934,7 @@ void CrawlerWidget::setup()
     searchInfoLineDefaultPalette = searchInfoLine->palette();
     searchInfoLine->setContentsMargins( 2, 2, 2, 2 );
 
+    qInfo() << "doSet... yada, creating matchCaseButton";
     matchCaseButton = new QToolButton();
     matchCaseButton->setToolTip( "Match case" );
     matchCaseButton->setIcon( iconLoader_.load( "icons8-font-size" ) );
@@ -876,7 +965,7 @@ void CrawlerWidget::setup()
 
     cmdEntryBox->setEditable(true);
     cmdEntryBox->setCompleter(0);
-    // qqq cmdEntryBox->addItems( savedCommands_->recentStrings() );
+    cmdEntryBox->addItems( savedCommands_->recentCommands() );
     cmdEntryBox->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Minimum );
     cmdEntryBox->setSizeAdjustPolicy( QComboBox::AdjustToMinimumContentsLengthWithIcon );
     cmdLayout->addWidget(cmdLbl);
@@ -890,7 +979,6 @@ void CrawlerWidget::setup()
 
     btnLayout->addWidget(new QLabel("Commands:"));
 
-
     for (auto i : { 1, 2, 3, 4 ,5 ,6 ,7 ,8, 9, 0}) {
         auto* btn = new CmdButton(i, "");
         // qqq if (logData_->isWritable())
@@ -900,7 +988,6 @@ void CrawlerWidget::setup()
         btnLayout->addWidget(btn);
         cmdBtns.push_back(btn);
     }
-
     btnRow->setLayout(btnLayout);
 
     // Construct the Search line
@@ -984,6 +1071,9 @@ void CrawlerWidget::setup()
              &CrawlerWidget::searchTextChangeHandler );
     connect( searchButton, &QToolButton::clicked, this, &CrawlerWidget::startNewSearch );
     connect( stopButton, &QToolButton::clicked, this, &CrawlerWidget::stopSearch );
+
+    connect(cmdEntryBox->lineEdit(), SIGNAL( returnPressed() ),
+            this, SLOT( executeCommand() ) );
 
     connect( visibilityBox, QOverload<int>::of( &QComboBox::currentIndexChanged ), this,
              &CrawlerWidget::changeFilteredViewVisibility );
@@ -1159,6 +1249,20 @@ void CrawlerWidget::updateSearchCombo()
 
     searchLineCompleter->setModel( new QStringListModel( search_history, searchLineCompleter ) );
 }
+
+// Updates the content of the drop down list for the saved commands,
+// called when the SavedCommand has been changed.
+void CrawlerWidget::updateCommandCombo()
+{
+    const QString text = cmdEntryBox->lineEdit()->text();
+    cmdEntryBox->clear();
+    cmdEntryBox->addItems( savedCommands_->recentCommands() );
+
+    cmdEntryBox->lineEdit()->setText( "" );
+
+    // qqq something like the searchLineCompleter???
+}
+
 
 // Print the search info message.
 void CrawlerWidget::printSearchInfoMessage( LinesCount nbMatches )
@@ -1374,6 +1478,14 @@ void CrawlerWidgetContext::loadFromJson( const QString& json )
             marks_.append( m.toUInt() );
         }
     }
+
+    if ( properties.contains( "CB" ) ) {
+        const auto cmdButtons = properties.value( "CB" ).toList();
+        btnCmds_.clear();
+        foreach (const auto & cmdButton, cmdButtons) {
+            btnCmds_.push_back(cmdButton.toString());
+        }
+    }
 }
 
 QString CrawlerWidgetContext::toString() const
@@ -1394,6 +1506,6 @@ QString CrawlerWidgetContext::toString() const
     properies[ "FF" ] = follow_file_;
     properies[ "RE" ] = use_regexp_;
     properies[ "M" ] = toVariantList( marks_ );
-
+    properies[ "CB" ] = toVariantList(btnCmds_);
     return QJsonDocument::fromVariant( properies ).toJson( QJsonDocument::Compact );
 }

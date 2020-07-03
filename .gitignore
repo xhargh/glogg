@@ -51,3 +51,4 @@ cmake-build-release/
 #website
 website/hugo
 website/resources/
+.DS_Store

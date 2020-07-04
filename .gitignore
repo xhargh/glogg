@@ -51,4 +51,6 @@ cmake-build-release/
 #website
 website/hugo
 website/resources/
+
+# Macos
 .DS_Store

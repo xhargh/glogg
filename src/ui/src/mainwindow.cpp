@@ -839,16 +839,16 @@ void MainWindow::options()
 void MainWindow::about()
 {
     QMessageBox::about(
-        this, tr( "About klogg" ),
+        this, tr( "About klogg-io" ),
         QString(
-            "<h2>klogg %1</h2>"
+            "<h2>klogg-io %1</h2>"
             "<p>A fast, advanced log explorer.</p>"
             "<p>Built %2 from %3</p>"
             "<p><a href=\"https://github.com/variar/klogg\">https://github.com/variar/klogg</a></p>"
             "<p>This is fork of glogg</p>"
             "<p><a href=\"http://glogg.bonnefon.org/\">http://glogg.bonnefon.org/</a></p>"
             "<p>Using icons from <a href=\"https://icons8.com\">icons8.com</a> project</p>"
-            "<p>Copyright &copy; 2019 Nicolas Bonnefon, Anton Filimonov and other contributors</p>"
+            "<p>Copyright &copy; 2019 Nicolas Bonnefon, Anton Filimonov, Gustav Andersson and other contributors</p>"
             "<p>You may modify and redistribute the program under the terms of the GPL (version 3 "
             "or later).</p>" )
             .arg( kloggVersion(), kloggBuildDate(), kloggCommit() ) );
@@ -1317,7 +1317,7 @@ bool MainWindow::loadFile( const QString& fileName, bool followFile )
 
         try {
             CrawlerWidget* crawler_widget = static_cast<CrawlerWidget*>(
-                session_.open( fileName, []() { return new CrawlerWidget(); } ) );
+                session_.open( fileName, /*qqqiodevicesettings, */[]() { return new CrawlerWidget(); } ) );
 
             if ( !crawler_widget ) {
                 LOG( logERROR ) << "Can't create crawler for " << fileName.toStdString();

@@ -61,6 +61,7 @@ static const char blankString[] = QT_TRANSLATE_NOOP("SerialSettingsDialog", "N/A
 SerialSettingsDialog::SerialSettingsDialog(QWidget *parent) :
     QDialog(parent),
     m_ui(new Ui::SerialSettingsDialog),
+    m_currentSettings(SerialPortSettings_id),
     m_intValidator(new QIntValidator(0, 4000000, this))
 {
     m_ui->setupUi(this);
@@ -110,7 +111,7 @@ void SerialSettingsDialog::apply()
 {
     updateSettings();
     hide();
-    emit optionChanged(m_currentSettings);
+    emit optionChanged(&m_currentSettings);
 }
 
 void SerialSettingsDialog::checkCustomBaudRatePolicy(int idx)
@@ -193,7 +194,7 @@ void SerialSettingsDialog::fillPortsInfo()
 
 void SerialSettingsDialog::updateSettings()
 {
-    m_currentSettings.name = m_ui->serialPortInfoListBox->currentText();
+    m_currentSettings.setName(m_ui->serialPortInfoListBox->currentText());
 
     if (m_ui->baudRateBox->currentIndex() == 4) {
         m_currentSettings.baudRate = m_ui->baudRateBox->currentText().toInt();

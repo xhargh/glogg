@@ -231,7 +231,7 @@ void CrawlerWidget::keyPressEvent( QKeyEvent* keyEvent )
                                         % visibilityBox->count() );
     }
     else if (keyEvent->modifiers() == controlModifier) {
-        // qqq if (logData_->isWritable())
+        if (logData_->isWritable())
         {
             switch (keyEvent->key()) {
 
@@ -413,7 +413,7 @@ std::shared_ptr<const ViewContextInterface> CrawlerWidget::doGetViewContext() co
 
 void CrawlerWidget::executeBtnCommand(QString cmd) {
     qInfo() << __func__ << " " << cmd;
-    // qqq logData_->write(cmd);
+    logData_->write(cmd);
 }
 
 void CrawlerWidget::executeCommand()
@@ -428,7 +428,7 @@ void CrawlerWidget::executeCommand()
     updateCommandCombo();
     // Call the private function to do the search
     qInfo() << "execute command: " << cmd;
-    // qqq logData_->write(cmd);
+    logData_->write(cmd);
 }
 
 
@@ -934,7 +934,6 @@ void CrawlerWidget::setup()
     searchInfoLineDefaultPalette = searchInfoLine->palette();
     searchInfoLine->setContentsMargins( 2, 2, 2, 2 );
 
-    qInfo() << "doSet... yada, creating matchCaseButton";
     matchCaseButton = new QToolButton();
     matchCaseButton->setToolTip( "Match case" );
     matchCaseButton->setIcon( iconLoader_.load( "icons8-font-size" ) );
@@ -981,7 +980,7 @@ void CrawlerWidget::setup()
 
     for (auto i : { 1, 2, 3, 4 ,5 ,6 ,7 ,8, 9, 0}) {
         auto* btn = new CmdButton(i, "");
-        // qqq if (logData_->isWritable())
+        if (logData_->isWritable())
         {
             connect(btn, &CmdButton::execute, this, &CrawlerWidget::executeBtnCommand);
         }
@@ -1033,7 +1032,7 @@ void CrawlerWidget::setup()
     // Construct the main window
     auto* mainLayout = new QVBoxLayout;
     mainLayout->addWidget(logMainView);
-    // qqq if (logData_->isWritable())
+    if (logData_->isWritable())
     {
         mainLayout->addWidget(cmdView);
         mainLayout->addWidget(btnRow);

@@ -70,6 +70,7 @@
 #include <QUrlQuery>
 #include <QWindow>
 #include <serialsettingsdialog.h>
+#include "iodevicesettings.h"
 
 #include "downloader.h"
 #include "log.h"
@@ -254,7 +255,7 @@ void MainWindow::loadInitialFile( QString fileName, bool followFile )
 
     // Is there a file passed as argument?
     if ( !fileName.isEmpty() ) {
-        loadFile( fileName, followFile );
+        loadFile( fileName, nullptr, followFile );
     }
 }
 
@@ -802,14 +803,16 @@ void MainWindow::openUrl()
 void MainWindow::openSerialPortDialog()
 {
     SerialSettingsDialog dialog(this);
-    connect(&dialog, &SerialSettingsDialog::optionChanged, this, &MainWindow::openSerialPort);
+    connect(&dialog, &SerialSettingsDialog::optionChanged, this, &MainWindow::openIoDevice);
     dialog.exec();
-    disconnect(&dialog, &SerialSettingsDialog::optionChanged, this, &MainWindow::openSerialPort);
+    disconnect(&dialog, &SerialSettingsDialog::optionChanged, this, &MainWindow::openIoDevice);
 }
 
-void MainWindow::openSerialPort(SerialPortSettings settings) {
+void MainWindow::openIoDevice(IoDeviceSettings* settings) {
     qInfo() << __func__;
-    loadFile(settings.name, true /*qqq &settings*/);
+    if (settings) {
+        loadFile(settings->getName(), settings, true);
+    }
 }
 
 
@@ -1295,7 +1298,7 @@ bool MainWindow::extractAndLoadFile( const QString& fileName )
 // Create a CrawlerWidget for the passed file, start its loading
 // and update the title bar.
 // The loading is done asynchronously.
-bool MainWindow::loadFile( const QString& fileName, bool followFile )
+bool MainWindow::loadFile( const QString& fileName, IoDeviceSettings* settings, bool followFile )
 {
     LOG( logDEBUG ) << "loadFile ( " << fileName.toStdString() << " )";
 
@@ -1311,13 +1314,13 @@ bool MainWindow::loadFile( const QString& fileName, bool followFile )
 
     const auto decompressAction = Decompressor::action( fileName );
 
-    if ( decompressAction == DecompressAction::None || !Configuration::get().extractArchives() ) {
+    if ( settings || decompressAction == DecompressAction::None || !Configuration::get().extractArchives() ) {
         // Load the file
         loadingFileName = fileName;
 
         try {
             CrawlerWidget* crawler_widget = static_cast<CrawlerWidget*>(
-                session_.open( fileName, /*qqqiodevicesettings, */[]() { return new CrawlerWidget(); } ) );
+                session_.open( fileName, settings, []() { return new CrawlerWidget(); } ) );
 
             if ( !crawler_widget ) {
                 LOG( logERROR ) << "Can't create crawler for " << fileName.toStdString();

@@ -31,6 +31,9 @@
 #include "savedcommands.h"
 #include "sessioninfo.h"
 #include "viewinterface.h"
+#include "iodevicesettings.h"
+#include "serialportsettings.h"
+#include "data/serialportlogdata.h"
 
 Session::Session()
 {
@@ -62,11 +65,12 @@ ViewInterface* Session::getViewIfOpen( const QString& file_name ) const
 }
 
 ViewInterface* Session::open( const QString& file_name,
+                              const IoDeviceSettings* settings,
                               const std::function<ViewInterface*()>& view_factory )
 {
     QFileInfo fileInfo( file_name );
-    if ( fileInfo.isReadable() ) {
-        return openAlways( file_name, view_factory, nullptr );
+    if ( settings || fileInfo.isReadable() ) {
+        return openAlways( file_name, settings, view_factory, nullptr );
     }
     else {
         throw FileUnreadableErr();
@@ -100,11 +104,25 @@ void Session::getFileInfo( const ViewInterface* view, uint64_t* fileSize, uint32
 }
 
 ViewInterface* Session::openAlways( const QString& file_name,
+                                    const IoDeviceSettings* settings,
                                     const std::function<ViewInterface*()>& view_factory,
                                     const QString& view_context )
 {
     // Create the data objects
-    auto log_data = std::make_shared<LogData>(); // QQQ
+    std::shared_ptr<LogDataBase> log_data;
+    if (settings) {
+        qInfo() << "qqq " << settings->Serialize();
+        const QString type = settings->getType();
+        if (SerialPortSettings_id == type) {
+            auto* spsp = reinterpret_cast<const SerialPortSettings*>(settings);
+            if (spsp) {
+                log_data = std::make_shared<SerialPortLogData>(spsp);
+            }
+        }
+
+    } else {
+        log_data = std::make_shared<LogData>();
+    }
     auto log_filtered_data = std::shared_ptr<LogFilteredData>( log_data->getNewFilteredData() );
 
     ViewInterface* view = view_factory();
@@ -203,7 +221,7 @@ WindowSession::restore( const std::function<ViewInterface*()>& view_factory,
     for ( auto file : session_files ) {
         LOG( logDEBUG ) << "Create view for " << file.fileName;
         ViewInterface* view
-            = appSession_->openAlways( file.fileName, view_factory, file.viewContext );
+            = appSession_->openAlways( file.fileName, nullptr /*qqq*/, view_factory, file.viewContext );
         result.emplace_back( file.fileName, view );
         openedFiles_.emplace_back( file.fileName );
     }

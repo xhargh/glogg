@@ -1,9 +1,11 @@
 #include "serialportlogdata.h"
 
 
-SerialPortLogData::SerialPortLogData(SerialPortSettings *settings) : IoDeviceLogData()
+SerialPortLogData::SerialPortLogData(const SerialPortSettings *settings) :
+    IoDeviceLogData(),
+    m_serialPortSettings(SerialPortSettings_id)
 {
-    m_serialPort.setPortName(settings->name);
+    m_serialPort.setPortName(settings->getName());
     m_serialPort.setBaudRate(settings->baudRate);
     m_serialPort.setDataBits(settings->dataBits);
     m_serialPort.setParity(settings->parity);
@@ -25,24 +27,22 @@ void SerialPortLogData::attachFile(const QString &fileName)
     }
 }
 
-/* qqq
-void SerialLogData::write(QString str)
+void SerialPortLogData::write(QString str)
 {
     qInfo() << "write: " + str;
     m_serialPort.write(str.toLatin1() + "\n");
 }
 
-bool SerialLogData::isWritable() const
+bool SerialPortLogData::isWritable() const
 {
     return true;
 }
 
-SerialPortSettings *SerialLogData::GetIoSettings()
+
+IoDeviceSettings *SerialPortLogData::GetIoSettings()
 {
     return &m_serialPortSettings;
 }
-*/
-
 
 void SerialPortLogData::reload(QTextCodec *forcedEncoding)
 {
@@ -128,6 +128,7 @@ void SerialPortLogData::readDataSlot()
         m_lines.push_back(std::make_pair(QDateTime::currentDateTime(), d));
         qDebug() << d;
         emit fileChanged( MonitoredFileStatus::DataAdded );
+        // qqq enqueue a partial
         emit loadingFinished ( LoadingStatus::Successful );
     }
 }

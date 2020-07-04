@@ -46,6 +46,14 @@ public:
         qInfo() << __func__ << "(" << fileName << ")";
     }
 
+    virtual void write(QString str) {
+        qInfo() << __func__ << "(" << str << ") - not implemented";
+    };
+    virtual bool isWritable() const {
+        return false;
+    };
+
+
 signals:
   // Sent during the 'attach' process to signal progress
   // percent being the percentage of completion.

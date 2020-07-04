@@ -79,7 +79,7 @@ public:
     SerialPortSettings settings() const;
 
 signals:
-    void optionChanged(SerialPortSettings settings);
+    void optionChanged(IoDeviceSettings *settings);
 
 private slots:
     void showPortInfo(int idx);

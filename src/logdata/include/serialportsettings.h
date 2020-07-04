@@ -6,10 +6,16 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QDebug>
+#include <QString>
 #include "iodevicesettings.h"
+
+const QString SerialPortSettings_id = "SerialPortSettings";
 
 class SerialPortSettings : public IoDeviceSettings {
 public:
+
+    SerialPortSettings(QString type) : IoDeviceSettings(type) {}
+
     qint32 baudRate;
     QString stringBaudRate;
     QSerialPort::DataBits dataBits;
@@ -23,8 +29,8 @@ public:
 
     QString Serialize() const override {
         QJsonObject json;
-        json["iodevicetype"] = "SerialPortSettings";
-        json["name"] = name;
+        json["iodevicetype"] = SerialPortSettings_id;
+        json["name"] = name_;
         json["baudRate"] = baudRate;
         json["stringBaudRate"] = stringBaudRate;
         json["dataBits"] = dataBits;
@@ -59,9 +65,9 @@ public:
             return nullptr;
         }
 
-        SerialPortSettings *sps = new SerialPortSettings();
-        sps->ioDeviceType = json["iodevicetype"].toString();
-        sps->name = json["name"].toString();
+        SerialPortSettings *sps = new SerialPortSettings(SerialPortSettings_id);
+        sps->ioDeviceType_ = json["iodevicetype"].toString();
+        sps->name_ = json["name"].toString();
         sps->baudRate = json["baudRate"].toInt();
         sps->stringBaudRate = json["stringBaudRate"].toString();
         sps->dataBits = static_cast<QSerialPort::DataBits>(json["dataBits"].toInt());

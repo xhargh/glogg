@@ -138,7 +138,7 @@ SCENARIO( "Crawler widget search", "[ui]" )
 
     CrawlerWidgetVisitor crawlerVisitor;
     crawlerVisitor.crawler.reset( static_cast<CrawlerWidget*>(
-        session.open( file.fileName(), []() { return new CrawlerWidget(); } ) ) );
+        session.open( file.fileName(), nullptr, []() { return new CrawlerWidget(); } ) ) );
 
     int loadWaitCycle = 0;
     while ( crawlerVisitor.getLogNbLines().get() != 2 * SL_NB_LINES && loadWaitCycle++ < 50 )

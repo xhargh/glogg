@@ -50,6 +50,7 @@ class FileUnreadableErr {
 // (SavedSearches, FileHistory, QFPattern...)
 
 class WindowSession;
+class IoDeviceSettings;
 
 class Session : public std::enable_shared_from_this<Session> {
   public:
@@ -70,6 +71,7 @@ class Session : public std::enable_shared_from_this<Session> {
     // The ownership of the view is given to the caller
     // Throw exceptions if the file is already open or if it cannot be open.
     ViewInterface* open( const QString& file_name,
+                         const IoDeviceSettings* ioDeviceSettings,
                          const std::function<ViewInterface*()>& view_factory );
 
     // Close the file identified by the view passed
@@ -117,6 +119,7 @@ class Session : public std::enable_shared_from_this<Session> {
 
     // Open a file without checking if it is existing/readable
     ViewInterface* openAlways( const QString& file_name,
+                               const IoDeviceSettings* settings,
                                const std::function<ViewInterface*()>& view_factory,
                                const QString& view_context );
 
@@ -154,10 +157,11 @@ class WindowSession {
     }
 
     ViewInterface* open( const QString& file_name,
+                         const IoDeviceSettings* settings,
                          const std::function<ViewInterface*()>& view_factory )
     {
         openedFiles_.push_back( file_name );
-        return appSession_->open( file_name, view_factory );
+        return appSession_->open( file_name, settings, view_factory );
     }
 
     void close( const ViewInterface* view )

@@ -27,6 +27,7 @@ matrix:
             - qt59base
             - ninja-build
             - rpm
+            - qt59serialport
 
     - os: osx
       compiler: clang
@@ -77,8 +78,8 @@ script:
 
 after_success:
   - ls -lh packages/*
-  - wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
-  - bash upload.sh packages/*
+  - echo qqq wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
+  - echo qqq bash upload.sh packages/*
 
 branches:
   except:

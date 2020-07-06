@@ -278,14 +278,12 @@ void MainWindow::createActions()
 
     openSerialPortAction = new QAction(tr("&Open Serial Port..."), this);
     openSerialPortAction->setShortcut(QKeySequence::Open);
-    // openSerialPortAction->setIcon( QIcon( ":/images/port14.png" ) ); // qqq iconLoader
-    openSerialPortAction->setIcon( iconLoader_.load( "icons8-add-file" ) ); // qqq remove
+    openSerialPortAction->setIcon( iconLoader_.load( "open-serial" ) );
     openSerialPortAction->setStatusTip(tr("Open a Serial Port"));
     connect(openSerialPortAction, SIGNAL(triggered()), this, SLOT(openSerialPortDialog()));
 
     exportLogAction = new QAction(tr("&Export Log"), this);
-    // exportLogAction->setIcon( QIcon( ":/images/export14.png" ) ); // qqq iconLoader
-    exportLogAction->setIcon( iconLoader_.load( "icons8-add-file" ) ); // qqq remove
+    exportLogAction->setIcon( iconLoader_.load( "export-file" ) );
     exportLogAction->setStatusTip(tr("Export Log to File"));
     signalMux_.connect( exportLogAction, SIGNAL(triggered()), SLOT(exportLog()) );
 

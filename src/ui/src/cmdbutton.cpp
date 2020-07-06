@@ -31,7 +31,7 @@ void CmdButton::editCmd()
                                          tr("Command:"), QLineEdit::Normal,
                                          m_cmdLine, &ok);
 
-    if (ok && !text.isEmpty()) {
+    if (ok) {
         m_cmdLine = text;
         setText(QString("&" + QString::number(m_prefix) + ": ") + m_cmdLine);
     }

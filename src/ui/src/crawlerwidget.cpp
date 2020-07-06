@@ -223,7 +223,7 @@ void CrawlerWidget::keyPressEvent( QKeyEvent* keyEvent )
 #if defined(Q_OS_MACOS)
     const Qt::KeyboardModifier controlModifier = Qt::MetaModifier;
 #else
-    const Qt::KeyboardModifier controlModifier = Qt::ControlModifier;
+    const Qt::KeyboardModifier controlModifier = Qt::ControlModifier; // qqq - not needed since Alt+number works on linux and windows
 #endif
 
     if ( keyEvent->key() == Qt::Key_V && noModifier ) {
@@ -456,7 +456,7 @@ void CrawlerWidget::exportLog()
             QTextStream s(&fOut);
             unsigned int numLines = logData_->getNbLine().get();
             for (unsigned int i = 0; i < numLines; i++) {
-                s << logData_->getLineString(LineNumber(i)) << endl;
+                s << logData_->getLineString(LineNumber(i)) << Qt::endl;
             }
         } else {
             qWarning() << __func__ << " unable to save to file " << filename;

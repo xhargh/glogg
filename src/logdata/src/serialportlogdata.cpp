@@ -1,9 +1,12 @@
 #include "serialportlogdata.h"
 
+class UnableToOpenFileErr {
 
-SerialPortLogData::SerialPortLogData(const SerialPortSettings *settings) :
+};
+
+SerialPortLogData::SerialPortLogData(std::shared_ptr<SerialPortSettings> settings) :
     IoDeviceLogData(),
-    m_serialPortSettings(SerialPortSettings_id)
+    m_serialPortSettings(*settings)
 {
     m_serialPort.setPortName(settings->getName());
     m_serialPort.setBaudRate(settings->baudRate);
@@ -24,6 +27,8 @@ void SerialPortLogData::attachFile(const QString &fileName)
     if (m_serialPort.open(QIODevice::ReadWrite)) {
         qInfo() << __func__ << " " << fileName << " opened successfully";
         connect(&m_serialPort, &QSerialPort::readyRead, this, &SerialPortLogData::readDataSlot);
+    } else {
+        throw UnableToOpenFileErr();
     }
 }
 
@@ -128,7 +133,7 @@ void SerialPortLogData::readDataSlot()
         m_lines.push_back(std::make_pair(QDateTime::currentDateTime(), d));
         qDebug() << d;
         emit fileChanged( MonitoredFileStatus::DataAdded );
-        // qqq enqueue a partial
+        // qqq enqueue a partial reload?
         emit loadingFinished ( LoadingStatus::Successful );
     }
 }

@@ -682,8 +682,10 @@ void MainWindow::openRemoteFile( const QUrl& url )
 // Opens a log file from the recent files list
 void MainWindow::openFileFromAction( QAction* action )
 {
-    if ( action )
-        loadFile( action->data().toString() );
+    if ( action ) {
+        RecentFileT rf = action->data().value<RecentFileT>();
+        loadFile( rf.name_, rf.settings_ );
+    }
 }
 
 // Close current tab
@@ -808,7 +810,7 @@ void MainWindow::openSerialPortDialog()
     disconnect(&dialog, &SerialSettingsDialog::optionChanged, this, &MainWindow::openIoDevice);
 }
 
-void MainWindow::openIoDevice(IoDeviceSettings* settings) {
+void MainWindow::openIoDevice(std::shared_ptr<IoDeviceSettings> settings) {
     qInfo() << __func__;
     if (settings) {
         loadFile(settings->getName(), settings, true);
@@ -1298,7 +1300,7 @@ bool MainWindow::extractAndLoadFile( const QString& fileName )
 // Create a CrawlerWidget for the passed file, start its loading
 // and update the title bar.
 // The loading is done asynchronously.
-bool MainWindow::loadFile( const QString& fileName, IoDeviceSettings* settings, bool followFile )
+bool MainWindow::loadFile( const QString& fileName, std::shared_ptr<IoDeviceSettings> settings, bool followFile )
 {
     LOG( logDEBUG ) << "loadFile ( " << fileName.toStdString() << " )";
 
@@ -1343,7 +1345,7 @@ bool MainWindow::loadFile( const QString& fileName, IoDeviceSettings* settings, 
             // Update the recent files list
             // (reload the list first in case another glogg changed it)
             auto& recentFiles = RecentFiles::getSynced();
-            recentFiles.addRecent( fileName );
+            recentFiles.addRecent( fileName, settings );
             recentFiles.save();
             updateRecentFileActions();
 
@@ -1402,15 +1404,16 @@ void MainWindow::updateTitleBar( const QString& file_name )
 // Must be called after having added a new name to the list.
 void MainWindow::updateRecentFileActions()
 {
-    QStringList recent_files = RecentFiles::get().recentFiles();
+    auto recent_files = RecentFiles::get().recentFiles();
 
     for ( auto j = 0; j < MaxRecentFiles; ++j ) {
         const auto actionIndex = static_cast<size_t>(j);
         if ( j < recent_files.count() ) {
-            QString text = tr( "&%1 %2" ).arg( j + 1 ).arg( strippedName( recent_files[ j ] ) );
+            QString text = tr( "&%1 %2" ).arg( j + 1 ).arg( strippedName( recent_files[ j ].name_ ) );
             recentFileActions[ actionIndex ]->setText( text );
-            recentFileActions[ actionIndex ]->setToolTip( recent_files[ j ] );
-            recentFileActions[ actionIndex ]->setData( recent_files[ j ] );
+            recentFileActions[ actionIndex ]->setToolTip( recent_files[ j ].name_ );
+            QVariant tmp = QVariant::fromValue(recent_files[j]); // TODO: verify if this is correct
+            recentFileActions[ actionIndex ]->setData( tmp );
             recentFileActions[ actionIndex ]->setVisible( true );
         }
         else {

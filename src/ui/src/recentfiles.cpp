@@ -22,28 +22,40 @@
 
 #include "log.h"
 #include "recentfiles.h"
+#include "iodevicesettings.h"
+#include "iodevicesettings_deserialize.h"
 
-void RecentFiles::addRecent( const QString& text )
+// operator== for comparing string with RecentFileT, don't care about settings
+bool operator==(const RecentFileT& lhs, const RecentFileT& rhs)
+{
+    return lhs.name_ == rhs.name_;
+}
+
+void RecentFiles::addRecent( const QString& text, std::shared_ptr<IoDeviceSettings> settings)
 {
     // First prune non existent files
-    QMutableStringListIterator i(recentFiles_);
+    QMutableListIterator<RecentFileT> i(recentFiles_);
     while ( i.hasNext() ) {
-        if ( !QFile::exists(i.next()) )
+        auto n = i.next();
+        auto fn = n.name_;
+        auto s = n.settings_;
+        if ( !s && !QFile::exists(fn)) {
             i.remove();
+        }
     }
 
     // Remove any copy of the about to be added filename
-    recentFiles_.removeAll( text );
+    recentFiles_.removeAll( RecentFileT{text, settings} );
 
     // Add at the front
-    recentFiles_.push_front( text );
+    recentFiles_.push_front( RecentFileT{text, settings} );
 
     // Trim the list if it's too long
     while ( recentFiles_.size() > MAX_NUMBER_OF_FILES )
         recentFiles_.pop_back();
 }
 
-QStringList RecentFiles::recentFiles() const
+RecentFilesT RecentFiles::recentFiles() const
 {
     return recentFiles_;
 }
@@ -62,7 +74,11 @@ void RecentFiles::saveToStorage( QSettings& settings ) const
     settings.beginWriteArray( "filesHistory" );
     for (int i = 0; i < recentFiles_.size(); ++i) {
         settings.setArrayIndex( i );
-        settings.setValue( "name", recentFiles_.at( i ) );
+        settings.setValue( "name", recentFiles_.at( i ).name_ );
+        if (recentFiles_.at( i ).settings_) {
+            settings.setValue( "ioDeviceSettingsType", recentFiles_.at( i ).settings_->getType());
+            settings.setValue( "ioDeviceSettings", recentFiles_.at( i ).settings_->Serialize());
+        }
     }
     settings.endArray();
     settings.endGroup();
@@ -81,7 +97,8 @@ void RecentFiles::retrieveFromStorage( QSettings& settings )
             for (int i = 0; i < size; ++i) {
                 settings.setArrayIndex(i);
                 QString file = settings.value( "name" ).toString();
-                recentFiles_.append( file );
+                auto s = IoDeviceSettingsHelper::Deserialize(settings.value("ioDeviceSettings").toString());
+                recentFiles_.append( RecentFileT{file, s} );
             }
             settings.endArray();
         }
@@ -90,4 +107,13 @@ void RecentFiles::retrieveFromStorage( QSettings& settings )
         }
         settings.endGroup();
     }
+}
+
+std::shared_ptr<IoDeviceSettings> RecentFiles::lookupIoDeviceSettings(const QString name) const {
+    for (auto& r : recentFiles_) {
+        if (name == r.name_) {
+            return r.settings_;
+        }
+    }
+    return nullptr;
 }

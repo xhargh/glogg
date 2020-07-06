@@ -25,6 +25,20 @@
 
 #include "persistable.h"
 
+
+class IoDeviceSettings;
+
+Q_DECLARE_SMART_POINTER_METATYPE(std::shared_ptr)
+struct RecentFileT {
+    QString name_;
+    std::shared_ptr<IoDeviceSettings> settings_;
+};
+
+Q_DECLARE_METATYPE(RecentFileT)
+
+// using RecentFileT = std::pair<QString, std::shared_ptr<IoDeviceSettings>>;
+using RecentFilesT = QList<RecentFileT>;
+
 // Manage the list of recently opened files
 class RecentFiles final : public Persistable<RecentFiles, session_settings> {
   public:
@@ -34,20 +48,23 @@ class RecentFiles final : public Persistable<RecentFiles, session_settings> {
     }
 
     // Adds the passed filename to the list of recently used searches
-    void addRecent( const QString& text );
+    void addRecent( const QString& text, std::shared_ptr<IoDeviceSettings> settings );
 
     // Returns a list of recent files (latest loaded first)
-    QStringList recentFiles() const;
+    RecentFilesT recentFiles() const;
 
     // Reads/writes the current config in the QSettings object passed
     void saveToStorage( QSettings& settings ) const;
     void retrieveFromStorage( QSettings& settings );
 
+    // Lookup IoDeviceSettings from name
+    std::shared_ptr<IoDeviceSettings> lookupIoDeviceSettings(const QString name) const;
+
   private:
-    static constexpr int RECENTFILES_VERSION = 1;
+    static constexpr int RECENTFILES_VERSION = 2;
     static constexpr int MAX_NUMBER_OF_FILES = 10;
 
-    QStringList recentFiles_;
+    RecentFilesT recentFiles_;
 };
 
 #endif

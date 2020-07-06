@@ -111,7 +111,7 @@ class MainWindow : public QMainWindow {
     void openClipboard();
     void openUrl();
     void openSerialPortDialog();
-    void openIoDevice(IoDeviceSettings* settings);
+    void openIoDevice(std::shared_ptr<IoDeviceSettings> settings);
     void highlighters();
     void options();
     void about();
@@ -181,7 +181,7 @@ class MainWindow : public QMainWindow {
     void createTrayIcon();
     void readSettings();
     void writeSettings();
-    bool loadFile( const QString& fileName, IoDeviceSettings* settings = nullptr, bool followFile = false );
+    bool loadFile( const QString& fileName, std::shared_ptr<IoDeviceSettings> settings = nullptr, bool followFile = false );
     bool extractAndLoadFile( const QString& fileName );
     void openRemoteFile( const QUrl& url );
     void updateTitleBar( const QString& file_name );

@@ -61,7 +61,7 @@ static const char blankString[] = QT_TRANSLATE_NOOP("SerialSettingsDialog", "N/A
 SerialSettingsDialog::SerialSettingsDialog(QWidget *parent) :
     QDialog(parent),
     m_ui(new Ui::SerialSettingsDialog),
-    m_currentSettings(SerialPortSettings_id),
+    m_currentSettings(std::make_shared<SerialPortSettings>(SerialPortSettings_id)),
     m_intValidator(new QIntValidator(0, 4000000, this))
 {
     m_ui->setupUi(this);
@@ -88,7 +88,7 @@ SerialSettingsDialog::~SerialSettingsDialog()
     delete m_ui;
 }
 
-SerialPortSettings SerialSettingsDialog::settings() const
+std::shared_ptr<SerialPortSettings> SerialSettingsDialog::settings() const
 {
     return m_currentSettings;
 }
@@ -111,7 +111,7 @@ void SerialSettingsDialog::apply()
 {
     updateSettings();
     hide();
-    emit optionChanged(&m_currentSettings);
+    emit optionChanged(m_currentSettings);
 }
 
 void SerialSettingsDialog::checkCustomBaudRatePolicy(int idx)
@@ -194,29 +194,29 @@ void SerialSettingsDialog::fillPortsInfo()
 
 void SerialSettingsDialog::updateSettings()
 {
-    m_currentSettings.setName(m_ui->serialPortInfoListBox->currentText());
+    m_currentSettings->setName(m_ui->serialPortInfoListBox->currentText());
 
     if (m_ui->baudRateBox->currentIndex() == 4) {
-        m_currentSettings.baudRate = m_ui->baudRateBox->currentText().toInt();
+        m_currentSettings->baudRate = m_ui->baudRateBox->currentText().toInt();
     } else {
-        m_currentSettings.baudRate = static_cast<QSerialPort::BaudRate>(
+        m_currentSettings->baudRate = static_cast<QSerialPort::BaudRate>(
                     m_ui->baudRateBox->itemData(m_ui->baudRateBox->currentIndex()).toInt());
     }
-    m_currentSettings.stringBaudRate = QString::number(m_currentSettings.baudRate);
+    m_currentSettings->stringBaudRate = QString::number(m_currentSettings->baudRate);
 
-    m_currentSettings.dataBits = static_cast<QSerialPort::DataBits>(
+    m_currentSettings->dataBits = static_cast<QSerialPort::DataBits>(
                 m_ui->dataBitsBox->itemData(m_ui->dataBitsBox->currentIndex()).toInt());
-    m_currentSettings.stringDataBits = m_ui->dataBitsBox->currentText();
+    m_currentSettings->stringDataBits = m_ui->dataBitsBox->currentText();
 
-    m_currentSettings.parity = static_cast<QSerialPort::Parity>(
+    m_currentSettings->parity = static_cast<QSerialPort::Parity>(
                 m_ui->parityBox->itemData(m_ui->parityBox->currentIndex()).toInt());
-    m_currentSettings.stringParity = m_ui->parityBox->currentText();
+    m_currentSettings->stringParity = m_ui->parityBox->currentText();
 
-    m_currentSettings.stopBits = static_cast<QSerialPort::StopBits>(
+    m_currentSettings->stopBits = static_cast<QSerialPort::StopBits>(
                 m_ui->stopBitsBox->itemData(m_ui->stopBitsBox->currentIndex()).toInt());
-    m_currentSettings.stringStopBits = m_ui->stopBitsBox->currentText();
+    m_currentSettings->stringStopBits = m_ui->stopBitsBox->currentText();
 
-    m_currentSettings.flowControl = static_cast<QSerialPort::FlowControl>(
+    m_currentSettings->flowControl = static_cast<QSerialPort::FlowControl>(
                 m_ui->flowControlBox->itemData(m_ui->flowControlBox->currentIndex()).toInt());
-    m_currentSettings.stringFlowControl = m_ui->flowControlBox->currentText();
+    m_currentSettings->stringFlowControl = m_ui->flowControlBox->currentText();
 }

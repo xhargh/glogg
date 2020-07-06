@@ -45,28 +45,9 @@ public:
         return jdoc.toJson();
     }
 
-    static SerialPortSettings* Deserialize(QString json_string) {
-        QByteArray json_bytes = json_string.toLocal8Bit();
-        auto json_doc=QJsonDocument::fromJson(json_bytes);
-
-        if(json_doc.isNull()){
-            qDebug()<<"Failed to create JSON doc.";
-            return nullptr;
-        }
-        if(!json_doc.isObject()){
-            qDebug()<<"JSON is not an object.";
-            return nullptr;
-        }
-
-        QJsonObject json=json_doc.object();
-
-        if(json.isEmpty()){
-            qDebug()<<"JSON object is empty.";
-            return nullptr;
-        }
-
-        SerialPortSettings *sps = new SerialPortSettings(SerialPortSettings_id);
-        sps->ioDeviceType_ = json["iodevicetype"].toString();
+    static std::shared_ptr<SerialPortSettings> Create(QJsonObject& json) {
+        auto sps = std::make_shared<SerialPortSettings>(SerialPortSettings_id);
+        assert(sps->ioDeviceType_ == json["iodevicetype"].toString());
         sps->name_ = json["name"].toString();
         sps->baudRate = json["baudRate"].toInt();
         sps->stringBaudRate = json["stringBaudRate"].toString();

@@ -19,7 +19,7 @@ class SerialPortLogData : public IoDeviceLogData {
     int m_maxLineLength;
   public:
     // Creates an empty LogData
-    SerialPortLogData(const SerialPortSettings* settings);
+    SerialPortLogData(std::shared_ptr<SerialPortSettings> settings);
     // Destroy an object
     ~SerialPortLogData();
 

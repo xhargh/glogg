@@ -76,10 +76,10 @@ public:
     explicit SerialSettingsDialog(QWidget *parent = nullptr);
     ~SerialSettingsDialog();
 
-    SerialPortSettings settings() const;
+    std::shared_ptr<SerialPortSettings> settings() const;
 
 signals:
-    void optionChanged(IoDeviceSettings *settings);
+    void optionChanged(std::shared_ptr<IoDeviceSettings> settings);
 
 private slots:
     void showPortInfo(int idx);
@@ -94,7 +94,7 @@ private:
 
 private:
     Ui::SerialSettingsDialog *m_ui = nullptr;
-    SerialPortSettings m_currentSettings;
+    std::shared_ptr<SerialPortSettings> m_currentSettings;
     QIntValidator *m_intValidator = nullptr;
 };
 

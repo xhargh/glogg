@@ -18,6 +18,7 @@ add_library(logdata STATIC
          ${CMAKE_CURRENT_SOURCE_DIR}/include/data/serialportlogdata.h
          ${CMAKE_CURRENT_SOURCE_DIR}/include/serialportsettings.h
          ${CMAKE_CURRENT_SOURCE_DIR}/include/iodevicesettings.h
+         ${CMAKE_CURRENT_SOURCE_DIR}/include/iodevicesettings_deserialize.h
 
 
         ${CMAKE_CURRENT_SOURCE_DIR}/src/abstractlogdata.cpp

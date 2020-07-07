@@ -63,14 +63,8 @@ void SerialPortLogData::readDataSlot()
     while (m_serialPort.canReadLine()) {
         const QByteArray data = m_serialPort.readLine();
         QString d = QString(data);
-        d.remove(QRegExp("[\\n\\r]")); // remove new line and carrage return
-        if (d.length() > m_maxLineLength) {
-            m_maxLineLength = d.length();
-        }
-        m_lines.push_back(std::make_pair(QDateTime::currentDateTime(), d));
-        qDebug() << d;
-        emit fileChanged( MonitoredFileStatus::DataAdded );
-        // qqq enqueue a partial reload?
-        emit loadingFinished ( LoadingStatus::Successful );
+        addLine(d);
     }
+    emit fileChanged( MonitoredFileStatus::DataAdded );
+    emit loadingFinished ( LoadingStatus::Successful );
 }

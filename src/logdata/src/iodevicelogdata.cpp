@@ -1,18 +1,53 @@
 #include "iodevicelogdata.h"
 
-IoDeviceLogData::IoDeviceLogData() : LogDataBase()
+IoDeviceLogData::IoDeviceLogData()
+    : LogDataBase()
+    , m_timeRefType(TimeReferenceType::UTC)
+    , m_showTimestamp(true)
+    , m_includeTimestamp(true)
 {
     qInfo() << __func__;
 }
 
+QString IoDeviceLogData::timestampPrefix(QDateTime t) const {
+    if (m_lines.empty()) {
+        return QString();
+    }
+
+    QString separator = " ";
+
+    switch (m_timeRefType) {
+    case TimeReferenceType::UTC:
+        return t.toUTC().toString(Qt::ISODateWithMs) + separator;
+    case TimeReferenceType::Local:
+        return t.toLocalTime().toString(Qt::ISODateWithMs) + separator;
+    case TimeReferenceType::RelativeS: {
+        auto deltaT = m_lines[0].first.msecsTo(t);
+        return QString::number(deltaT / 1000) + "." + QString("%1").arg(deltaT % 1000, 3, 10, QChar('0')) + separator;
+    }
+    case TimeReferenceType::RelativeMS: {
+        auto deltaT = m_lines[0].first.msecsTo(t);
+        return QString::number(deltaT) + separator;
+    }
+    default:
+        ;
+    }
+
+    return "";
+}
 
 QString IoDeviceLogData::doGetLineString(LineNumber line) const
 {
     if (m_lines.empty()) {
         return QString();
     }
-    return m_lines[line.get()].second;
+    auto l = m_lines[line.get()];
+    if (m_includeTimestamp) {
+        return timestampPrefix(l.first) + l.second;
+    }
+    return l.second;
 }
+
 
 QString IoDeviceLogData::doGetExpandedLineString(LineNumber line) const
 {
@@ -20,7 +55,10 @@ QString IoDeviceLogData::doGetExpandedLineString(LineNumber line) const
         return QString();
     }
     auto l = m_lines[line.get()];
-    return l.first.toString(Qt::ISODateWithMs) + " " + l.second;
+    if (m_showTimestamp) {
+        return timestampPrefix(l.first) + l.second;
+    }
+    return l.second;
 }
 
 std::vector<QString> IoDeviceLogData::doGetLines(LineNumber first_line, LinesCount number) const
@@ -68,4 +106,15 @@ QDateTime IoDeviceLogData::getLastModifiedDate() const
     } else {
         return m_lines.back().first;
     }
+}
+
+void IoDeviceLogData::addLine(QString d)
+{
+    auto ts = QDateTime::currentDateTime();
+    d.remove(QRegExp("[\\n\\r]")); // remove new line and carrage return
+    if (d.length() > m_maxLineLength) {
+        m_maxLineLength = (timestampPrefix(ts) + d).length();
+    }
+    m_lines.push_back(std::make_pair(ts, d));
+    qDebug() << d;
 }

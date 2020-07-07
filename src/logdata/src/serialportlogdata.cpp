@@ -57,69 +57,6 @@ void SerialPortLogData::reload(QTextCodec *forcedEncoding)
     emit loadingFinished ( LoadingStatus::Successful );
 }
 
-QString SerialPortLogData::doGetLineString(LineNumber line) const
-{
-    if (m_lines.empty()) {
-        return QString();
-    }
-    return m_lines[line.get()].second;
-}
-
-QString SerialPortLogData::doGetExpandedLineString(LineNumber line) const
-{
-    if (m_lines.empty()) {
-        return QString();
-    }
-    auto l = m_lines[line.get()];
-    return l.first.toString(Qt::ISODateWithMs) + " " + l.second;
-}
-
-std::vector<QString> SerialPortLogData::doGetLines(LineNumber first_line, LinesCount number) const
-{
-    std::vector<QString> qs;
-    for (unsigned int i = 0; i < number.get(); i++) {
-        qs.push_back(doGetLineString(LineNumber(i + first_line.get())));
-    }
-    return qs;
-}
-
-std::vector<QString> SerialPortLogData::doGetExpandedLines(LineNumber first_line, LinesCount number) const
-{
-    std::vector<QString> qs;
-    for (unsigned int i = 0; i < number.get(); i++) {
-        qs.push_back(doGetExpandedLineString(LineNumber(i + first_line.get())));
-    }
-    return qs;
-}
-
-LinesCount SerialPortLogData::doGetNbLine() const
-{
-    return LinesCount(static_cast<unsigned int>(m_lines.size()));
-}
-
-LineLength SerialPortLogData::doGetMaxLength() const
-{
-    return LineLength(m_maxLineLength);
-}
-
-LineLength SerialPortLogData::doGetLineLength(LineNumber line) const
-{
-    return LineLength(doGetLineString(line).length());
-}
-
-void SerialPortLogData::doSetDisplayEncoding(const char *encoding)
-{
-    qInfo() << __func__ << encoding << "\n";
-}
-
-QDateTime SerialPortLogData::getLastModifiedDate() const
-{
-    if (m_lines.size() == 0) {
-        return QDateTime::currentDateTime();
-    } else {
-        return m_lines.back().first;
-    }
-}
 
 void SerialPortLogData::readDataSlot()
 {

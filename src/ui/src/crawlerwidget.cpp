@@ -19,7 +19,7 @@
 
 /*
  * Copyright (C) 2016 -- 2019 Anton Filimonov and other contributors
- *
+ *truncateFile
  * This file is part of klogg.
  *
  * klogg is free software: you can redistribute it and/or modify
@@ -636,6 +636,8 @@ void CrawlerWidget::applyConfiguration()
 
     logMainView->setFont( font );
     filteredView->setFont( font );
+    cmdEntryBox->setFont( font );
+    promptLbl->setFont( font );
 
     logMainView->setLineNumbersVisible( config.mainLineNumbersVisible() );
     filteredView->setLineNumbersVisible( config.filteredLineNumbersVisible() );
@@ -960,6 +962,14 @@ void CrawlerWidget::setup()
     searchRefreshButton->setFocusPolicy( Qt::NoFocus );
     searchRefreshButton->setContentsMargins( 2, 2, 2, 2 );
 
+    // Construct the Prompt line
+    promptView = new QWidget;
+    auto* promptLayout = new QHBoxLayout(promptView);
+
+    promptLbl = new QLabel("");
+    promptLayout->addWidget(promptLbl);
+    promptView->setLayout(promptLayout);
+
     // Construct the Command line
     cmdView = new QWidget;
     auto* cmdLayout = new QHBoxLayout(cmdView);
@@ -977,7 +987,7 @@ void CrawlerWidget::setup()
     cmdView->setLayout(cmdLayout);
 
     auto* btnRow = new QWidget;
-    auto* btnLayout = new QHBoxLayout(cmdView);
+    auto* btnLayout = new QHBoxLayout(btnRow);
     btnLayout->setContentsMargins(6, 0, 3, 3);
     btnLayout->setAlignment(Qt::AlignLeft);
 
@@ -1039,6 +1049,7 @@ void CrawlerWidget::setup()
     mainLayout->addWidget(logMainView);
     if (logData_->isWritable())
     {
+        mainLayout->addWidget(promptView);
         mainLayout->addWidget(cmdView);
         mainLayout->addWidget(btnRow);
     }
@@ -1137,6 +1148,7 @@ void CrawlerWidget::setup()
     connect( logData_, &LogDataBase::loadingProgressed, this, &CrawlerWidget::loadingProgressed );
     connect( logData_, &LogDataBase::loadingFinished, this, &CrawlerWidget::loadingFinishedHandler );
     connect( logData_, &LogDataBase::fileChanged, this, &CrawlerWidget::fileChangedHandler );
+    connect (logData_, &LogDataBase::promptUpdated, this, &CrawlerWidget::updatePrompt );
 
     // Search auto-refresh
     connect( searchRefreshButton, &QPushButton::toggled, this,

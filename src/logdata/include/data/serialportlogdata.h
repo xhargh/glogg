@@ -5,6 +5,7 @@
 
 #include <QObject>
 #include <QSerialPort>
+#include <QTimer>
 
 #include "serialportsettings.h"
 
@@ -16,6 +17,9 @@ class SerialPortLogData : public IoDeviceLogData {
 
     QSerialPort m_serialPort;
     SerialPortSettings m_serialPortSettings;
+
+    QTimer m_checkPort;
+    QString m_partialLine;
   public:
     // Creates an empty LogData
     SerialPortLogData(std::shared_ptr<SerialPortSettings> settings);
@@ -35,6 +39,8 @@ class SerialPortLogData : public IoDeviceLogData {
   protected:
 
   private slots:
+    void onCheckPortTimer();
+
     // QSerialPort
     void onBaudRateChanged(qint32 baudRate, QSerialPort::Directions directions);
     void onDataBitsChanged(QSerialPort::DataBits dataBits);

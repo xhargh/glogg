@@ -64,6 +64,8 @@ signals:
   // Sent when the file on disk has changed, will be followed
   // by loadingProgressed if needed and then a loadingFinished.
   void fileChanged( MonitoredFileStatus status );
+  // Prompt updated for subclasses with support for prompts
+  void promptUpdated( QString prompt );
 
     // AbstractLogData interface
 protected:

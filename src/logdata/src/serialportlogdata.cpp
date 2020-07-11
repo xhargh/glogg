@@ -32,6 +32,11 @@ void SerialPortLogData::attachFile(const QString &fileName)
 {
     m_serialPort.setPortName(fileName);
     if (m_serialPort.open(QIODevice::ReadWrite)) {
+
+        connect(&m_checkPort, &QTimer::timeout, this, &SerialPortLogData::onCheckPortTimer);
+        m_checkPort.start(500);
+        m_partialLine = "";
+
         qInfo() << logIdString << __func__ << " " << fileName << " opened successfully";
         connect(&m_serialPort, &QSerialPort::readyRead, this, &SerialPortLogData::onReadyRead);
 
@@ -108,6 +113,10 @@ void SerialPortLogData::disconnectPort(bool silent)
     disconnect(&m_serialPort, &QSerialPort::dataBitsChanged, this, &SerialPortLogData::onDataBitsChanged);
     disconnect(&m_serialPort, &QSerialPort::dataTerminalReadyChanged, this, &SerialPortLogData::onDataTerminalReadyChanged);
     disconnect(&m_serialPort, &QSerialPort::breakEnabledChanged, this, &SerialPortLogData::onBreakEnabledChanged);
+
+    m_checkPort.stop();
+    disconnect(&m_checkPort, &QTimer::timeout, this, &SerialPortLogData::onCheckPortTimer);
+
 }
 
 void SerialPortLogData::clearLog()
@@ -115,6 +124,16 @@ void SerialPortLogData::clearLog()
     m_lines.clear();
     emit fileChanged( MonitoredFileStatus::Truncated );
     emit loadingFinished ( LoadingStatus::Successful );
+}
+
+void SerialPortLogData::onCheckPortTimer()
+{
+    const QByteArray data = m_serialPort.readAll();
+    if (!data.isEmpty()) {
+        QString d = QString(data);
+        m_partialLine = m_partialLine + d;
+        emit promptUpdated(m_partialLine);
+    }
 }
 
 void SerialPortLogData::addLineInternal(QString str)
@@ -129,7 +148,8 @@ void SerialPortLogData::onReadyRead()
     while (m_serialPort.canReadLine()) {
         const QByteArray data = m_serialPort.readLine();
         QString d = QString(data);
-        addLine(d);
+        addLine(m_partialLine + d);
+        m_partialLine = "";
     }
     emit fileChanged( MonitoredFileStatus::DataAdded );
     emit loadingFinished ( LoadingStatus::Successful );

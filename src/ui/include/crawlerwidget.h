@@ -221,6 +221,10 @@ class CrawlerWidget : public QSplitter,
     void setSearchLimits( LineNumber startLine, LineNumber endLine );
     void clearSearchLimits();
 
+    void updatePrompt(QString prompt) {
+        promptLbl->setText(prompt);
+    }
+
   private:
     // State machine holding the state of the search, used to allow/disallow
     // auto-refresh and inform the user via the info line.
@@ -288,6 +292,8 @@ class CrawlerWidget : public QSplitter,
     static const QPalette errorPalette;
 
     LogMainView* logMainView;
+    QWidget*        promptView;
+    QLabel*         promptLbl;
     QWidget*        cmdView;
     QComboBox*      cmdEntryBox;
     QWidget*        mainWindow;

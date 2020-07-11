@@ -738,7 +738,6 @@ void MainWindow::find()
 
 void MainWindow::clearLog()
 {
-    // qqq - sounds dangerous, implement for IoDeviceLogData also
     const auto current_file = session_.getFilename( currentCrawlerWidget() );
     if ( QMessageBox::question( this, "klogg - clear file",
                                 QString( "Clear file %1?" ).arg( current_file ) )

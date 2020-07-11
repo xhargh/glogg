@@ -319,6 +319,11 @@ void CrawlerWidget::reload()
     firstLoadDone_ = false;
 }
 
+void CrawlerWidget::clearLog()
+{
+    logData_->clearLog();
+}
+
 void CrawlerWidget::setEncoding( absl::optional<int> mib )
 {
     encodingMib_ = std::move( mib );

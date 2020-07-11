@@ -111,6 +111,8 @@ class CrawlerWidget : public QSplitter,
     void stopLoading();
     // Reload the displayed file
     void reload();
+    // Clear the current log
+    void clearLog();
     // Set the encoding
     void setEncoding( absl::optional<int> mib );
 

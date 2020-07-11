@@ -168,6 +168,8 @@ class MainWindow : public QMainWindow {
     void enteringQuickFind();
     // Emitted when the quickfind bar is closed.
     void exitingQuickFind();
+    // signal to clear log
+    void clearLogSignal();
 
     void newWindow();
     void windowActivated();

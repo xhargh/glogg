@@ -93,6 +93,8 @@ class LogData : public LogDataBase {
     // Get the auto-detected encoding for the indexed text.
     QTextCodec* getDetectedEncoding() const override;
 
+    virtual void clearLog() override;
+
   private slots:
     // Consider reloading the file when it changes on disk updated
     void fileChangedOnDisk(const QString &filename);

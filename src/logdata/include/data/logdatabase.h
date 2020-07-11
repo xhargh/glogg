@@ -53,6 +53,7 @@ public:
         return false;
     };
 
+    virtual void clearLog() = 0;
 
 signals:
   // Sent during the 'attach' process to signal progress

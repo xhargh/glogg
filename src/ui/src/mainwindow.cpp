@@ -329,6 +329,7 @@ void MainWindow::createActions()
     clearLogAction->setStatusTip( tr( "Clear current file" ) );
     clearLogAction->setShortcuts( QKeySequence::Cut );
     connect( clearLogAction, &QAction::triggered, [this]( auto ) { this->clearLog(); } );
+    signalMux_.connect( this, SIGNAL( clearLogSignal() ), SLOT( clearLog() ) );
 
     openContainingFolderAction = new QAction( tr( "Open containing folder" ), this );
     openContainingFolderAction->setStatusTip( tr( "Open folder containing current file" ) );
@@ -742,7 +743,7 @@ void MainWindow::clearLog()
     if ( QMessageBox::question( this, "klogg - clear file",
                                 QString( "Clear file %1?" ).arg( current_file ) )
          == QMessageBox::Yes ) {
-        QFile::resize( current_file, 0 );
+        emit clearLogSignal();
     }
 }
 

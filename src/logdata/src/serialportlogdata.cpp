@@ -110,6 +110,12 @@ void SerialPortLogData::disconnectPort(bool silent)
     disconnect(&m_serialPort, &QSerialPort::breakEnabledChanged, this, &SerialPortLogData::onBreakEnabledChanged);
 }
 
+void SerialPortLogData::clearLog()
+{
+    m_lines.clear();
+    emit fileChanged( MonitoredFileStatus::Truncated );
+    emit loadingFinished ( LoadingStatus::Successful );
+}
 
 void SerialPortLogData::addLineInternal(QString str)
 {

@@ -510,6 +510,12 @@ QTextCodec* LogData::getDetectedEncoding() const
     return indexing_data_.getEncodingGuess();
 }
 
+void LogData::clearLog()
+{
+    const auto current_file = indexingFileName_;
+    QFile::resize( indexingFileName_, 0 );
+}
+
 void LogData::doAttachReader() const
 {
     attached_file_->attachReader();

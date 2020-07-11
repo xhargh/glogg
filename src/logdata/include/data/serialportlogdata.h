@@ -30,6 +30,8 @@ class SerialPortLogData : public IoDeviceLogData {
     virtual void addLineInternal(QString string);
 
     virtual void disconnectPort(bool silent = false);
+
+    virtual void clearLog() override;
   protected:
 
   private slots:

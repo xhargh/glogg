@@ -27,11 +27,30 @@ class SerialPortLogData : public IoDeviceLogData {
     virtual bool isWritable() const override;
     virtual IoDeviceSettings * GetIoSettings() override;
     virtual void reload(QTextCodec* forcedEncoding = nullptr) override;
+    virtual void addLineInternal(QString string);
 
+    virtual void disconnectPort(bool silent = false);
   protected:
 
   private slots:
-    void readDataSlot();
+    // QSerialPort
+    void onBaudRateChanged(qint32 baudRate, QSerialPort::Directions directions);
+    void onDataBitsChanged(QSerialPort::DataBits dataBits);
+    void onDataTerminalReadyChanged(bool set);
+    void onBreakEnabledChanged(bool set);
+    void onErrorOccurred(QSerialPort::SerialPortError error);
+    void onFlowControlChanged(QSerialPort::FlowControl flow);
+    void onParityChanged(QSerialPort::Parity parity);
+    void onRequestToSendChanged(bool set);
+    void onStopBitsChanged(QSerialPort::StopBits stopBits);
+
+    // QIoDevice
+    void onReadyRead();
+    void onAboutToClose();
+    void onBytesWritten(qint64 bytes);
+    void onChannelBytesWritten(int channel, qint64 bytes);
+    void onChannelReadyRead(int channel);
+    void onReadChannelFinished();
 };
 
 #endif // SERIALPORTLOGDATA_H

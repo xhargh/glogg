@@ -1,4 +1,6 @@
-# Klogg
+# Klogg-io
+
+Klogg-io is a fork of Klogg that adds serial port support.
 
 ## Overview
 

@@ -53,9 +53,9 @@ class MessageReceiver final : public QObject {
     {
       
 #if QT_VERSION >= QT_VERSION_CHECK( 5, 12, 0 )
-        QVariantMap data = QCborValue::fromCbor( message ).toVariant().toMap();
+        const auto data = QCborValue::fromCbor( message ).toVariant().toMap();
 #else
-        auto data = QJsonDocument::fromBinaryData( message ).toVariant().toMap();
+        const auto data = QJsonDocument::fromBinaryData( message ).toVariant().toMap();
 #endif
 
         LOG( logINFO ) << "Message from  " << instanceId << QJsonDocument::fromVariant(data).toJson();

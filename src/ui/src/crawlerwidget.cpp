@@ -386,9 +386,11 @@ void CrawlerWidget::doSetViewContext( const QString& view_context )
 
     logMainView->followSet( context.followFile() );
 
-    std::vector<QString> btnCommands = context.btnCommands();
-    for(size_t i=0 ; i < btnCommands.size() ; i++) {
-        cmdBtns[i]->setCmdLine(btnCommands.at(i));
+    if (logData_->isWritable()) {
+        std::vector<QString> btnCommands = context.btnCommands();
+        for(size_t i=0 ; i < btnCommands.size() ; i++) {
+            cmdBtns[i]->setCmdLine(btnCommands.at(i));
+        }
     }
 
     const auto savedMarks = context.marks();
@@ -986,23 +988,24 @@ void CrawlerWidget::setup()
     cmdLayout->addWidget(cmdEntryBox);
     cmdView->setLayout(cmdLayout);
 
-    auto* btnRow = new QWidget;
-    auto* btnLayout = new QHBoxLayout(btnRow);
-    btnLayout->setContentsMargins(6, 0, 3, 3);
-    btnLayout->setAlignment(Qt::AlignLeft);
+    QWidget* btnRow = nullptr;
+    if (logData_->isWritable()) {
+        btnRow = new QWidget;
+        auto* btnLayout = new QHBoxLayout(btnRow);
+        btnLayout->setContentsMargins(6, 0, 3, 3);
+        btnLayout->setAlignment(Qt::AlignLeft);
 
-    btnLayout->addWidget(new QLabel("Commands:"));
+        btnLayout->addWidget(new QLabel("Commands:"));
 
-    for (auto i : { 1, 2, 3, 4 ,5 ,6 ,7 ,8, 9, 0}) {
-        auto* btn = new CmdButton(i, "");
-        if (logData_->isWritable())
-        {
+        for (auto i : { 1, 2, 3, 4 ,5 ,6 ,7 ,8, 9, 0}) {
+            auto* btn = new CmdButton(i, "");
             connect(btn, &CmdButton::execute, this, &CrawlerWidget::executeBtnCommand);
+            btnLayout->addWidget(btn);
+            cmdBtns.push_back(btn);
         }
-        btnLayout->addWidget(btn);
-        cmdBtns.push_back(btn);
+
+        btnRow->setLayout(btnLayout);
     }
-    btnRow->setLayout(btnLayout);
 
     // Construct the Search line
     searchLineCompleter = new QCompleter( savedSearches_->recentSearches(), this );

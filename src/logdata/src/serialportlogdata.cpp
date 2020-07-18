@@ -150,6 +150,7 @@ void SerialPortLogData::onReadyRead()
         QString d = QString(data);
         addLine(m_partialLine + d);
         m_partialLine = "";
+        emit promptUpdated(m_partialLine);
     }
     emit fileChanged( MonitoredFileStatus::DataAdded );
     emit loadingFinished ( LoadingStatus::Successful );

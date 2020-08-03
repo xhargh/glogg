@@ -19,6 +19,7 @@ xcopy "%VCToolsRedistDir%%platform%\Microsoft.VC142.CRT\vcruntime140_1.dll" %APP
 xcopy %QTDIR%\bin\Qt5Core.dll %APPVEYOR_BUILD_FOLDER%\release\ /y
 xcopy %QTDIR%\bin\Qt5Gui.dll %APPVEYOR_BUILD_FOLDER%\release\ /y
 xcopy %QTDIR%\bin\Qt5Network.dll %APPVEYOR_BUILD_FOLDER%\release\ /y
+xcopy %QTDIR%\bin\Qt5SerialPort.dll %APPVEYOR_BUILD_FOLDER%\release\ /y
 xcopy %QTDIR%\bin\Qt5Widgets.dll %APPVEYOR_BUILD_FOLDER%\release\ /y
 xcopy %QTDIR%\bin\Qt5Concurrent.dll %APPVEYOR_BUILD_FOLDER%\release\ /y
 xcopy %QTDIR%\bin\Qt5Xml.dll %APPVEYOR_BUILD_FOLDER%\release\ /y

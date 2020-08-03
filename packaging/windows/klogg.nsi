@@ -108,6 +108,7 @@ Section "Qt5 Runtime libraries" qtlibs
     File release\Qt5Core.dll
     File release\Qt5Gui.dll
     File release\Qt5Network.dll
+    File release\Qt5SerialPort.dll
     File release\Qt5Widgets.dll
     File release\Qt5Concurrent.dll
     File release\Qt5Xml.dll
@@ -174,6 +175,7 @@ Section "Uninstall"
     Delete "$INSTDIR\Qt5Core.dll"
     Delete "$INSTDIR\Qt5Gui.dll"
     Delete "$INSTDIR\Qt5Network.dll"
+    Delete "$INSTDIR\Qt5SerialPort.dll"
     Delete "$INSTDIR\Qt5Concurrent.dll"
     Delete "$INSTDIR\Qt5Xml.dll"
     Delete "$INSTDIR\platforms\qwindows.dll"

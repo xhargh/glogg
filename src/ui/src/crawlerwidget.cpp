@@ -463,7 +463,7 @@ void CrawlerWidget::exportLog()
             QTextStream s(&fOut);
             unsigned int numLines = logData_->getNbLine().get();
             for (unsigned int i = 0; i < numLines; i++) {
-                s << logData_->getLineString(LineNumber(i)) << Qt::endl;
+                s << logData_->getLineString(LineNumber(i)) << "\n";
             }
         } else {
             qWarning() << __func__ << " unable to save to file " << filename;

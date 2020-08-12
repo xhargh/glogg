@@ -83,8 +83,8 @@ jobs:
     - name: cmake build tests
       run: |
         cmake --build build -t file_write_helper
-        cmake --build build -t klogg_io_tests
-        cmake --build build -t klogg_io_itests
+        cmake --build build -t klogg_tests
+        cmake --build build -t klogg_itests
 
     - name: cmake test
       run: |

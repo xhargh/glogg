@@ -25,6 +25,7 @@ matrix:
             - g++-8
             - mesa-common-dev
             - qt59base
+            - qt59serialport
             - ninja-build
             - rpm
 

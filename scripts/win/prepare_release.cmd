@@ -1,7 +1,7 @@
 md %APPVEYOR_BUILD_FOLDER%\release
 
 xcopy %APPVEYOR_BUILD_FOLDER%\build\output\klogg_io_portable.exe %APPVEYOR_BUILD_FOLDER%\release\ /y
-xcopy %APPVEYOR_BUILD_FOLDER%\build\output\klogg_io.exe %APPVEYOR_BUILD_FOLDER%\release\ /y
+xcopy %APPVEYOR_BUILD_FOLDER%\build\output\klogg-io.exe %APPVEYOR_BUILD_FOLDER%\release\ /y
 xcopy %APPVEYOR_BUILD_FOLDER%\build\generated\documentation.html %APPVEYOR_BUILD_FOLDER%\release\ /y
 
 xcopy %APPVEYOR_BUILD_FOLDER%\build\output\klogg_tbbmalloc.dll %APPVEYOR_BUILD_FOLDER%\release\ /y

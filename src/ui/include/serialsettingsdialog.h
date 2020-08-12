@@ -54,6 +54,7 @@
 
 #include <QDialog>
 #include <QSerialPort>
+#include <memory>
 
 #include "serialportsettings.h"
 

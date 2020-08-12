@@ -1,4 +1,4 @@
-# NSIS script creating the Windows installer for klogg
+# NSIS script creating the Windows installer for klogg-io
 
 # Is passed to the script using -DVERSION=$(git describe) on the command line
 !ifndef VERSION
@@ -14,7 +14,7 @@
 !include "FileAssociation.nsh"
 
 # General
-OutFile "klogg-${VERSION}-${PLATFORM}-setup.exe"
+OutFile "klogg-io-${VERSION}-${PLATFORM}-setup.exe"
 
 XpStyle on
 
@@ -22,25 +22,25 @@ SetCompressor /SOLID lzma
 
 ; Registry key to keep track of the directory we are installed in
 !ifdef ARCH32
-  InstallDir "$PROGRAMFILES\klogg"
+  InstallDir "$PROGRAMFILES\klogg-io"
 !else
-  InstallDir "$PROGRAMFILES64\klogg"
+  InstallDir "$PROGRAMFILES64\klogg-io"
 !endif
-InstallDirRegKey HKLM Software\klogg ""
+InstallDirRegKey HKLM Software\klogg-io ""
 
 ; klogg icon
 ; !define MUI_ICON klogg.ico
 
 RequestExecutionLevel admin
 
-Name "klogg"
-Caption "klogg ${VERSION} Setup"
+Name "klogg-io"
+Caption "klogg-io ${VERSION} Setup"
 
 # Pages
-!define MUI_WELCOMEPAGE_TITLE "Welcome to the klogg ${VERSION} Setup Wizard"
-!define MUI_WELCOMEPAGE_TEXT "This wizard will guide you through the installation of klogg\
-, a fast, advanced log explorer.$\r$\n$\r$\n\
-klogg and the Qt libraries are released under the GPL, see \
+!define MUI_WELCOMEPAGE_TITLE "Welcome to the klogg-io ${VERSION} Setup Wizard"
+!define MUI_WELCOMEPAGE_TEXT "This wizard will guide you through the installation of klogg-io\
+, a fast, advanced log explorer with serial support.$\r$\n$\r$\n\
+klogg-io and the Qt libraries are released under the GPL, see \
 the COPYING and NOTICE files.$\r$\n$\r$\n$_CLICK"
 ; MUI_FINISHPAGE_LINK_LOCATION "http://nsis.sf.net/"
 
@@ -61,12 +61,12 @@ the COPYING and NOTICE files.$\r$\n$\r$\n$_CLICK"
 !insertmacro MUI_LANGUAGE "English"
 
 # Installer sections
-Section "klogg" klogg
+Section "klogg-io" klogg-io
     ; Prevent this section from being unselected
     SectionIn RO
 
     SetOutPath $INSTDIR
-    File release\klogg.exe
+    File release\klogg-io.exe
     File release\klogg_tbbmalloc.dll
     File release\klogg_tbbmalloc_proxy.dll
 
@@ -77,27 +77,27 @@ Section "klogg" klogg
     File release\documentation.html
 
     ; Create the 'sendto' link
-    CreateShortCut "$SENDTO\klogg.lnk" "$INSTDIR\klogg,exe" "" "$INSTDIR\klogg.exe" 0
+    CreateShortCut "$SENDTO\klogg-io.lnk" "$INSTDIR\klogg-io,exe" "" "$INSTDIR\klogg-io.exe" 0
 
     ; Register as an otion (but not main handler) for some files (.txt, .Log, .cap)
-    WriteRegStr HKCR "Applications\klogg.exe" "" ""
-    WriteRegStr HKCR "Applications\klogg.exe\shell" "" "open"
-    WriteRegStr HKCR "Applications\klogg.exe\shell\open" "Klogg log viewer" "klogg"
-    WriteRegStr HKCR "Applications\klogg.exe\shell\open\command" "" '"$INSTDIR\klogg.exe" "%1"'
-    WriteRegStr HKCR "*\OpenWithList\klogg.exe" "" ""
-    WriteRegStr HKCR ".txt\OpenWithList\klogg.exe" "" ""
-    WriteRegStr HKCR ".Log\OpenWithList\klogg.exe" "" ""
-    WriteRegStr HKCR ".cap\OpenWithList\klogg.exe" "" ""
+    WriteRegStr HKCR "Applications\klogg-io.exe" "" ""
+    WriteRegStr HKCR "Applications\klogg-io.exe\shell" "" "open"
+    WriteRegStr HKCR "Applications\klogg-io.exe\shell\open" "Klogg-io log viewer" "klogg"
+    WriteRegStr HKCR "Applications\klogg-io.exe\shell\open\command" "" '"$INSTDIR\klogg-io.exe" "%1"'
+    WriteRegStr HKCR "*\OpenWithList\klogg-io.exe" "" ""
+    WriteRegStr HKCR ".txt\OpenWithList\klogg-io.exe" "" ""
+    WriteRegStr HKCR ".Log\OpenWithList\klogg-io.exe" "" ""
+    WriteRegStr HKCR ".cap\OpenWithList\klogg-io.exe" "" ""
 
     ; Register uninstaller
-    WriteRegExpandStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\klogg"\
+    WriteRegExpandStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\klogg-io"\
 "UninstallString" '"$INSTDIR\Uninstall.exe"'
-    WriteRegExpandStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\klogg"\
+    WriteRegExpandStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\klogg-io"\
 "InstallLocation" "$INSTDIR"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\klogg" "DisplayName" "klogg"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\klogg" "DisplayVersion" "${VERSION}"
-    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\klogg" "NoModify" "1"
-    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\klogg" "NoRepair" "1"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\klogg-io" "DisplayName" "klogg-io"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\klogg-io" "DisplayVersion" "${VERSION}"
+    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\klogg-io" "NoModify" "1"
+    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\klogg-io" "NoRepair" "1"
 
     ; Create uninstaller
     WriteUninstaller "$INSTDIR\Uninstall.exe"
@@ -139,29 +139,29 @@ SectionEnd
 
 Section "Create Start menu shortcut" shortcut
     SetShellVarContext all
-    CreateShortCut "$SMPROGRAMS\klogg.lnk" "$INSTDIR\klogg.exe" "" "$INSTDIR\klogg.exe" 0
+    CreateShortCut "$SMPROGRAMS\klogg-io.lnk" "$INSTDIR\klogg-io.exe" "" "$INSTDIR\klogg-io.exe" 0
 SectionEnd
 
 Section /o "Associate with .log files" associate
-    ${registerExtension} "$INSTDIR\klogg.exe" ".log" "Log file"
+    ${registerExtension} "$INSTDIR\klogg-io.exe" ".log" "Log file"
 SectionEnd
 
 # Descriptions
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-    !insertmacro MUI_DESCRIPTION_TEXT ${klogg} "The core files required to use klogg."
-    !insertmacro MUI_DESCRIPTION_TEXT ${qtlibs} "Needed by klogg, you have to install these unless \
+    !insertmacro MUI_DESCRIPTION_TEXT ${klogg-io} "The core files required to use klogg-io."
+    !insertmacro MUI_DESCRIPTION_TEXT ${qtlibs} "Needed by klogg-io, you have to install these unless \
 you already have the Qt5 development kit installed."
-    !insertmacro MUI_DESCRIPTION_TEXT ${vcruntime} "Needed by klogg, you have to install these unless \
+    !insertmacro MUI_DESCRIPTION_TEXT ${vcruntime} "Needed by klogg-io, you have to install these unless \
 you already have the Microsoft Visual C++ 2017 Redistributable installed."
-    !insertmacro MUI_DESCRIPTION_TEXT ${shortcut} "Create a shortcut in the Start menu for klogg."
-    !insertmacro MUI_DESCRIPTION_TEXT ${associate} "Make klogg the default viewer for .log files."
+    !insertmacro MUI_DESCRIPTION_TEXT ${shortcut} "Create a shortcut in the Start menu for klogg-io."
+    !insertmacro MUI_DESCRIPTION_TEXT ${associate} "Make klogg-io the default viewer for .log files."
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 # Uninstaller
 Section "Uninstall"
     Delete "$INSTDIR\Uninstall.exe"
 
-    Delete "$INSTDIR\klogg.exe"
+    Delete "$INSTDIR\klogg-io.exe"
     Delete "$INSTDIR\README.md"
     Delete "$INSTDIR\COPYING"
     Delete "$INSTDIR\NOTICE"
@@ -195,24 +195,24 @@ Section "Uninstall"
     RMDir "$INSTDIR"
 
     ; Remove settings in %appdata%
-    Delete "$APPDATA\klogg\klogg.ini"
-    RMDir "$APPDATA\klogg"
+    Delete "$APPDATA\klogg-io\klogg-io.ini"
+    RMDir "$APPDATA\klogg-io"
 
-    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\klogg"
+    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\klogg-io"
 
     ; Remove the file associations
     ${unregisterExtension} ".log" "Log file"
 
-    DeleteRegKey HKCR "*\OpenWithList\klogg.exe"
-    DeleteRegKey HKCR ".txt\OpenWithList\klogg.exe"
-    DeleteRegKey HKCR ".Log\OpenWithList\klogg.exe"
-    DeleteRegKey HKCR ".cap\OpenWithList\klogg.exe"
-    DeleteRegKey HKCR "Applications\klogg.exe\shell\open\command"
-    DeleteRegKey HKCR "Applications\klogg.exe\shell\open"
-    DeleteRegKey HKCR "Applications\klogg.exe\shell"
-    DeleteRegKey HKCR "Applications\klogg.exe"
+    DeleteRegKey HKCR "*\OpenWithList\klogg-io.exe"
+    DeleteRegKey HKCR ".txt\OpenWithList\klogg-io.exe"
+    DeleteRegKey HKCR ".Log\OpenWithList\klogg-io.exe"
+    DeleteRegKey HKCR ".cap\OpenWithList\klogg-io.exe"
+    DeleteRegKey HKCR "Applications\klogg-io.exe\shell\open\command"
+    DeleteRegKey HKCR "Applications\klogg-io.exe\shell\open"
+    DeleteRegKey HKCR "Applications\klogg-io.exe\shell"
+    DeleteRegKey HKCR "Applications\klogg-io.exe"
 
     ; Remove the shortcut, if any
     SetShellVarContext all
-    Delete "$SMPROGRAMS\klogg.lnk"
+    Delete "$SMPROGRAMS\klogg-io.lnk"
 SectionEnd

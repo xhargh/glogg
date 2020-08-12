@@ -15,18 +15,20 @@ page for how to use Klogg.
 
 ### Current release
 
+<!-->
 [ ![Release](https://img.shields.io/github/v/release/variar/klogg?style=flat)](https://github.com/variar/klogg/releases/tag/v19.9)
 [ ![Bintray](https://img.shields.io/bintray/v/variar/generic/klogg?style=flat)](https://bintray.com/variar/generic/klogg/_latestVersion)
 [ ![Chocolatey](https://img.shields.io/chocolatey/v/klogg?style=flat)](https://chocolatey.org/packages/klogg)
-
+-->
 
 | CI | Windows | Linux  | Mac | Smoke build |
 | ------------- |------------- | ------------- | ------------- | ------------- |
-| Build status | [![Win32 Build Status](https://ci.appveyor.com/api/projects/status/github/variar/klogg?svg=true)](https://ci.appveyor.com/project/variar/klogg) | [![Build Status](https://travis-ci.org/variar/klogg.svg?branch=master)](https://travis-ci.org/variar/klogg) | [![Build Status](https://travis-ci.org/variar/klogg.svg?branch=master)](https://travis-ci.org/variar/klogg) | ![GH Smoke](https://github.com/variar/klogg/workflows/CI:%20Build%20Test/badge.svg?branch=master)
-| Artifacts | [continuous-win](https://github.com/variar/klogg/releases/tag/continuous-win) | [continuous-linux](https://github.com/variar/klogg/releases/tag/continuous-linux) | [continuous-osx](https://github.com/variar/klogg/releases/tag/continuous-osx) | n/a |
+| Build status | [![Win32 Build Status](https://ci.appveyor.com/api/projects/status/github/xhargh/klogg-io?svg=true)](https://ci.appveyor.com/project/xhargh/klogg-io) | [![Build Status](https://travis-ci.org/xhargh/klogg-io.svg?branch=master)](https://travis-ci.org/xhargh/klogg-io) | [![Build Status](https://travis-ci.org/xhargh/klogg-io.svg?branch=master)](https://travis-ci.org/xhargh/klogg-io) | ![GH Smoke](https://github.com/xhargh/klogg-io/workflows/CI:%20Build%20Test/badge.svg?branch=master)
+| Artifacts | [continuous-win](https://github.com/xhargh/klogg-io/releases/tag/continuous-win) | [continuous-linux](https://github.com/xhargh/klogg-io/releases/tag/continuous-linux) | [continuous-osx](https://github.com/xhargh/klogg-io/releases/tag/continuous-osx) | n/a |
 
+<!--
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/f6db6ef0be3a4a5abff94111a5291c45)](https://www.codacy.com/manual/variar/klogg?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=variar/klogg&amp;utm_campaign=Badge_Grade)
-
+-->
 
 ## Table of Contents
 
@@ -39,6 +41,8 @@ page for how to use Klogg.
 1. [Authors](#authors)
 
 ## About the Project
+
+klogg-io started as a fork of [klogg](https://github.com/variar/klogg).
 
 Klogg started as a fork of [glogg](https://github.com/nickbnf/glogg) - the fast, smart log explorer in 2016.
 
@@ -69,7 +73,12 @@ Latest news about klogg development can be found at https://klogg.filimonov.dev.
 * Support for many common text encodings
 * And lots of small features that make life easier (closing tabs, copying file paths, favorite files menu, etc.)
 
+### Features of klogg-io
+* Serial port support
+
 **[Back to top](#table-of-contents)**
+
+<!--
 
 ## Project Status
 
@@ -94,6 +103,8 @@ Windows installer is also available from Chocolatey:
 | Artifacts | [continuous-win](https://github.com/variar/klogg/releases/tag/continuous-win) | [continuous-linux](https://github.com/variar/klogg/releases/tag/continuous-linux) | [continuous-osx](https://github.com/variar/klogg/releases/tag/continuous-osx) |
 
 **[Back to top](#table-of-contents)**
+
+-->
 
 ## Building
 
@@ -120,6 +131,7 @@ This project is licensed under the GPLv3 or later - see [COPYING](COPYING) file 
 
 ## Authors
 
+* **[Gustav Andersson](https://github.com/xhargh)**
 * **[Anton Filimonov](https://github.com/variar)**
 * *Initial work* - **[Nicolas Bonnefon](https://github.com/nickbnf)**
 

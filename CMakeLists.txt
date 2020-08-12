@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(klogg
+project(klogg-io
         VERSION 20.7.0
         DESCRIPTION "klogg log viewer"
         LANGUAGES C CXX)
@@ -8,9 +8,9 @@ project(klogg
 set(PROJECT_HOMEPAGE_URL "https://github.com/variar/klogg")
 
 string(TIMESTAMP PRODUCT_CURRENT_YEAR "%Y")
-set(COMPANY "Anton Filimonov")
-set(COPYRIGHT "Copyright (c) ${PRODUCT_CURRENT_YEAR} Nicolas Bonnefon, Anton Filimonov and other contributors.")
-set(IDENTIFIER "com.github.variar.klogg")
+set(COMPANY "Xhargh")
+set(COPYRIGHT "Copyright (c) ${PRODUCT_CURRENT_YEAR} Nicolas Bonnefon, Anton Filimonov, Gustav Andersson and other contributors.")
+set(IDENTIFIER "com.github.xhargh.klogg-io")
 set(PROJECT_DESCRIPTION "${PROJECT_NAME} log viewer")
 
 option(BUILD_TESTS "Build tests" ON)
@@ -106,8 +106,8 @@ add_subdirectory(website)
 
 enable_testing()
 add_test(
-    NAME klogg_smoke
-    COMMAND klogg -platform offscreen -v
+    NAME klogg_io_smoke
+    COMMAND klogg-io -platform offscreen -v
 )
 
 if (${BUILD_TESTS})
@@ -125,7 +125,7 @@ if(UNIX)
     SET(CPACK_PACKAGE_DESCRIPTION_FILE "${README_FILE}")
     SET(CPACK_RESOURCE_FILE_LICENSE "${COPYING_FILE}")
     SET(CPACK_PACKAGE_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}-r${PROJECT_VERSION_TWEAK}")
-    SET(CPACK_STRIP_FILES "bin/klogg")
+    SET(CPACK_STRIP_FILES "bin/klogg-io")
 
     if (APPLE)
         set(CPACK_GENERATOR "DragNDrop")
@@ -154,19 +154,19 @@ if(UNIX)
 
         install(FILES
             ${COPYING_FILE} ${NOTICE_FILE}
-            DESTINATION share/doc/klogg)
+            DESTINATION share/doc/klogg-io)
 
         install(FILES
                 ${README_FILE}
-                DESTINATION share/doc/klogg)
+                DESTINATION share/doc/klogg-io)
 
         install(FILES
             ${DOCUMENTATION_HTML}
             ${DOCUMENTATION_FILE}
-            DESTINATION share/doc/klogg)
+            DESTINATION share/doc/klogg-io)
 
         install(FILES
-            ${CMAKE_CURRENT_SOURCE_DIR}/packaging/linux/klogg.desktop
+            ${CMAKE_CURRENT_SOURCE_DIR}/packaging/linux/klogg-io.desktop
             DESTINATION share/applications
         )
 
@@ -175,17 +175,17 @@ if(UNIX)
         #deb
         set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
         set(CPACK_DEBIAN_PACKAGE_SECTION "utils")
-        set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "http://github.com/variar/klogg")
+        set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "http://github.com/xhargh/klogg-io")
         set(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS}
-                                            "libqt5widgets5 (>=5.9.5), libqt5concurrent5 (>=5.9.5), libqt5xml5 (>=5.9.5)")
+                                            "libqt5widgets5 (>=5.9.5), libqt5concurrent5 (>=5.9.5), libqt5xml5 (>=5.9.5) libqt5serialport5 (>=5.9.5)")
 
 
         #RPM
         set(CPACK_RPM_PACKAGE_ARCHITECTURE "x86_64")
         set(CPACK_RPM_PACKAGE_LICENSE "GPLv3")
-        set(CPACK_RPM_PACKAGE_REQUIRES "qt5-qtbase >= 5.9.5")
-        set(CPACK_RPM_PACKAGE_URL "http://github.com/variar/klogg")
-        set(CPACK_RPM_PACKAGE_URL "http://github.com/variar/klogg")
+        set(CPACK_RPM_PACKAGE_REQUIRES "qt5-qtbase >= 5.9.5, qt5-qtserialport >= 5.9.5")
+        set(CPACK_RPM_PACKAGE_URL "http://github.com/xhargh/klogg-io")
+        set(CPACK_RPM_PACKAGE_URL "http://github.com/xhargh/klogg-io")
         set(CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION 
             /usr/share/applications
             /usr/share/icons
@@ -208,7 +208,7 @@ add_custom_target(ci_config SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/appveyor.yml
     ${CMAKE_CURRENT_SOURCE_DIR}/latest.json
     ${CMAKE_CURRENT_SOURCE_DIR}/scripts/win/prepare_release.cmd
-    ${CMAKE_CURRENT_SOURCE_DIR}/scripts/win/7z_klogg_listfile.txt
+    ${CMAKE_CURRENT_SOURCE_DIR}/scripts/win/7z_klogg_io_listfile.txt
     ${CMAKE_CURRENT_SOURCE_DIR}/scripts/win/7z_dll_listfile.txt
     ${CMAKE_CURRENT_SOURCE_DIR}/scripts/linux/make_appimage.sh
     ${CMAKE_CURRENT_SOURCE_DIR}/scripts/osx/install_deps.sh
@@ -216,8 +216,8 @@ add_custom_target(ci_config SOURCES
 )
 
 add_custom_target(installation SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/packaging/windows/klogg.nsi
-    ${CMAKE_CURRENT_SOURCE_DIR}/packaging/linux/klogg.desktop
+    ${CMAKE_CURRENT_SOURCE_DIR}/packaging/windows/klogg-io.nsi
+    ${CMAKE_CURRENT_SOURCE_DIR}/packaging/linux/klogg-io.desktop
     ${CMAKE_CURRENT_SOURCE_DIR}/cmake/MacOSXBundleInfo.plist.in
 )
 

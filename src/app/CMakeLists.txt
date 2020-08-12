@@ -22,37 +22,37 @@ set(MAIN_SOURCES
     ${DOCUMENTATION_RESOURCE}
     ${ICON_FILE})
 
-add_executable(klogg ${OS_BUNDLE} ${MAIN_SOURCES})
-add_executable(klogg_portable ${OS_BUNDLE} ${MAIN_SOURCES})
+add_executable(klogg-io ${OS_BUNDLE} ${MAIN_SOURCES})
+add_executable(klogg_io_portable ${OS_BUNDLE} ${MAIN_SOURCES})
 
-set_target_properties(klogg PROPERTIES AUTORCC ON)
-set_target_properties(klogg PROPERTIES AUTOMOC ON)
-set_target_properties(klogg_portable PROPERTIES AUTORCC ON)
-set_target_properties(klogg_portable PROPERTIES AUTOMOC ON)
+set_target_properties(klogg-io PROPERTIES AUTORCC ON)
+set_target_properties(klogg-io PROPERTIES AUTOMOC ON)
+set_target_properties(klogg_io_portable PROPERTIES AUTORCC ON)
+set_target_properties(klogg_io_portable PROPERTIES AUTOMOC ON)
 
 if (${USE_LTO})
-set_property(TARGET klogg PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-set_property(TARGET klogg_portable PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+set_property(TARGET klogg-io PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+set_property(TARGET klogg_io_portable PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
 set(MAIN_LIBS ui cli11 singleapp)
 if (NOT APPLE)
     if (TBB_BUILD_TBBMALLOC)
         LIST(APPEND MAIN_LIBS klogg_tbbmalloc_proxy)
-        target_compile_definitions(klogg PUBLIC -DKLOGG_USE_TBB_MALLOC)
-        target_compile_definitions(klogg_portable PUBLIC -DKLOGG_USE_TBB_MALLOC)
+        target_compile_definitions(klogg-io PUBLIC -DKLOGG_USE_TBB_MALLOC)
+        target_compile_definitions(klogg_io_portable PUBLIC -DKLOGG_USE_TBB_MALLOC)
     endif()
 endif()
 
-target_link_libraries(klogg PUBLIC ${MAIN_LIBS})
-target_link_libraries(klogg_portable PUBLIC ${MAIN_LIBS})
+target_link_libraries(klogg-io PUBLIC ${MAIN_LIBS})
+target_link_libraries(klogg_io_portable PUBLIC ${MAIN_LIBS})
 
-target_compile_definitions(klogg_portable PUBLIC -DKLOGG_PORTABLE)
+target_compile_definitions(klogg_io_portable PUBLIC -DKLOGG_PORTABLE)
 
 if (WIN32)
 
-    target_sources(klogg PRIVATE ${ProductVersionResourceFiles})
-    target_sources(klogg_portable PRIVATE ${ProductVersionResourceFiles})
+    target_sources(klogg-io PRIVATE ${ProductVersionResourceFiles})
+    target_sources(klogg_io_portable PRIVATE ${ProductVersionResourceFiles})
 
 elseif (APPLE)
     set_source_files_properties(${ICON_FILE} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
@@ -75,7 +75,7 @@ elseif (APPLE)
 endif()
 
 install(TARGETS
-    klogg
+    klogg-io
     DESTINATION bin
     BUNDLE DESTINATION .
 )

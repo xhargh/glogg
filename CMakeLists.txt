@@ -2,10 +2,10 @@ cmake_minimum_required(VERSION 3.10)
 
 project(klogg-io
         VERSION 20.7.0
-        DESCRIPTION "klogg log viewer"
+        DESCRIPTION "klogg-io log viewer"
         LANGUAGES C CXX)
 
-set(PROJECT_HOMEPAGE_URL "https://github.com/variar/klogg")
+set(PROJECT_HOMEPAGE_URL "https://github.com/xhargh/klogg-io")
 
 string(TIMESTAMP PRODUCT_CURRENT_YEAR "%Y")
 set(COMPANY "Xhargh")

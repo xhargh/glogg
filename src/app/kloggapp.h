@@ -130,7 +130,7 @@ class KloggApp : public SingleApplication {
     void initLogger( plog::Severity log_level, bool log_to_file )
     {
         QString log_file_name
-            = QString( "klogg_%1_%2.log" )
+            = QString( "klogg_io_%1_%2.log" )
                   .arg( QDateTime::currentDateTime().toString( "yyyy-MM-dd_HH-mm-ss" ) )
                   .arg( applicationPid() );
 
@@ -273,7 +273,7 @@ class KloggApp : public SingleApplication {
         LOG( logDEBUG ) << "newVersionNotification( " << new_version << " from " << url << " )";
 
         QMessageBox msgBox;
-        msgBox.setText( QString( "A new version of klogg (%1) is available for download <p>"
+        msgBox.setText( QString( "A new version of klogg-io (%1) is available for download <p>"
                                  "<a href=\"%2\">%2</a>" )
                             .arg( new_version, url ) );
         msgBox.exec();

@@ -47,20 +47,21 @@ public:
 
     static std::shared_ptr<SerialPortSettings> Create(QJsonObject& json) {
         auto sps = std::make_shared<SerialPortSettings>(SerialPortSettings_id);
-        assert(sps->ioDeviceType_ == json["iodevicetype"].toString());
-        sps->name_ = json["name"].toString();
-        sps->baudRate = json["baudRate"].toInt();
-        sps->stringBaudRate = json["stringBaudRate"].toString();
-        sps->dataBits = static_cast<QSerialPort::DataBits>(json["dataBits"].toInt());
-        sps->stringDataBits = json["stringDataBits"].toString();
-        sps->parity = static_cast<QSerialPort::Parity>(json["parity"].toInt());
-        sps->stringParity = json["stringParity"].toString();
-        sps->stopBits = static_cast<QSerialPort::StopBits>(json["stopBits"].toInt());
-        sps->stringStopBits = json["stringStopBits"].toString();
-        sps->flowControl = static_cast<QSerialPort::FlowControl>(json["flowControl"].toInt());
-        sps->stringFlowControl = json["stringFlowControl"].toString();
-
-        return sps;
+        if(sps->ioDeviceType_ == json["iodevicetype"].toString()) {
+            sps->name_ = json["name"].toString();
+            sps->baudRate = json["baudRate"].toInt();
+            sps->stringBaudRate = json["stringBaudRate"].toString();
+            sps->dataBits = static_cast<QSerialPort::DataBits>(json["dataBits"].toInt());
+            sps->stringDataBits = json["stringDataBits"].toString();
+            sps->parity = static_cast<QSerialPort::Parity>(json["parity"].toInt());
+            sps->stringParity = json["stringParity"].toString();
+            sps->stopBits = static_cast<QSerialPort::StopBits>(json["stopBits"].toInt());
+            sps->stringStopBits = json["stringStopBits"].toString();
+            sps->flowControl = static_cast<QSerialPort::FlowControl>(json["flowControl"].toInt());
+            sps->stringFlowControl = json["stringFlowControl"].toString();
+            return sps;
+        }
+        return nullptr;
     }
 
 };

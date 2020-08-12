@@ -75,10 +75,10 @@ jobs:
         cd build
         cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..
 
-    - name: cmake build klogg
+    - name: cmake build klogg-io
       run: |
-        cmake --build build -t klogg
-        cmake --build build -t klogg_portable
+        cmake --build build -t klogg-io
+        cmake --build build -t klogg_io_portable
 
     - name: cmake build tests
       run: |
@@ -89,4 +89,4 @@ jobs:
     - name: cmake test
       run: |
         cd build
-        ctest -R klogg_smoke
+        ctest -R klogg_io_smoke

@@ -1,4 +1,4 @@
-.\release\klogg_portable.exe
+.\release\klogg_io_portable.exe
 .\release\documentation.html
 .\COPYING
 .\NOTICE

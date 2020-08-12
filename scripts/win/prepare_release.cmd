@@ -1,7 +1,7 @@
 md %APPVEYOR_BUILD_FOLDER%\release
 
-xcopy %APPVEYOR_BUILD_FOLDER%\build\output\klogg_portable.exe %APPVEYOR_BUILD_FOLDER%\release\ /y
-xcopy %APPVEYOR_BUILD_FOLDER%\build\output\klogg.exe %APPVEYOR_BUILD_FOLDER%\release\ /y
+xcopy %APPVEYOR_BUILD_FOLDER%\build\output\klogg_io_portable.exe %APPVEYOR_BUILD_FOLDER%\release\ /y
+xcopy %APPVEYOR_BUILD_FOLDER%\build\output\klogg-io.exe %APPVEYOR_BUILD_FOLDER%\release\ /y
 xcopy %APPVEYOR_BUILD_FOLDER%\build\generated\documentation.html %APPVEYOR_BUILD_FOLDER%\release\ /y
 
 xcopy %APPVEYOR_BUILD_FOLDER%\build\output\klogg_tbbmalloc.dll %APPVEYOR_BUILD_FOLDER%\release\ /y
@@ -38,5 +38,5 @@ md %APPVEYOR_BUILD_FOLDER%\chocolately\tools
 xcopy %APPVEYOR_BUILD_FOLDER%\packaging\windows\klogg.nuspec %APPVEYOR_BUILD_FOLDER%\chocolately /y
 xcopy %APPVEYOR_BUILD_FOLDER%\packaging\windows\chocolatelyInstall.ps1 %APPVEYOR_BUILD_FOLDER%\chocolately\tools\ /y
 
-xcopy %APPVEYOR_BUILD_FOLDER%\packaging\windows\klogg.nsi %APPVEYOR_BUILD_FOLDER%\ /y
+xcopy %APPVEYOR_BUILD_FOLDER%\packaging\windows\klogg-io.nsi %APPVEYOR_BUILD_FOLDER%\ /y
 xcopy %APPVEYOR_BUILD_FOLDER%\packaging\windows\FileAssociation.nsh %APPVEYOR_BUILD_FOLDER%\ /y

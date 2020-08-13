@@ -38,7 +38,7 @@ QString IoDeviceLogData::timestampPrefix(QDateTime t) const {
 
 QString IoDeviceLogData::doGetLineString(LineNumber line) const
 {
-    if (m_lines.empty()) {
+    if (m_lines.empty() || line.get() >= m_lines.size()) {
         return QString();
     }
     auto l = m_lines[line.get()];
@@ -51,7 +51,7 @@ QString IoDeviceLogData::doGetLineString(LineNumber line) const
 
 QString IoDeviceLogData::doGetExpandedLineString(LineNumber line) const
 {
-    if (m_lines.empty()) {
+    if (m_lines.empty() || line.get() >= m_lines.size()) {
         return QString();
     }
     auto l = m_lines[line.get()];

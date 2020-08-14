@@ -105,7 +105,8 @@ deploy:
 - provider: GitHub
   tag: $(GITHUB_RELEASE_TAG)
   release: Continuous build (win)
-  description: 'Appveyor build: https://ci.appveyor.com/project/xhargh/klogg-io/builds/$(appveyor_build_id)'
+  description: ''
+  # Appveyor build: https://ci.appveyor.com/project/xhargh/klogg-io/builds/$(appveyor_build_id)'
   auth_token:
     secure: +YCbYxqzyLV57jhslXRatlbk1eMU2wJptb+YmcaxdFXO7B+TaCNpym1AdoOKrTid
   artifact: klogg_io_portable, klogg_io_installer

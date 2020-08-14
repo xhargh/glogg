@@ -809,7 +809,7 @@ void MainWindow::openSerialPortDialog()
 }
 
 void MainWindow::openIoDevice(std::shared_ptr<IoDeviceSettings> settings) {
-    qInfo() << __func__;
+    // qInfo() << __func__;
     if (settings) {
         loadFile(settings->getName(), settings, true);
     }

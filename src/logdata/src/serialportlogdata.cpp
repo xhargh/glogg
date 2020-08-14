@@ -37,7 +37,7 @@ void SerialPortLogData::attachFile(const QString &fileName)
         m_checkPort.start(500);
         m_partialLine = "";
 
-        qInfo() << logIdString << __func__ << " " << fileName << " opened successfully";
+        // qInfo() << logIdString << __func__ << " " << fileName << " opened successfully";
         connect(&m_serialPort, &QSerialPort::readyRead, this, &SerialPortLogData::onReadyRead);
 
         connect(&m_serialPort, &QSerialPort::aboutToClose, this, &SerialPortLogData::onAboutToClose);
@@ -63,7 +63,7 @@ void SerialPortLogData::attachFile(const QString &fileName)
 
 void SerialPortLogData::write(QString str)
 {
-    qInfo() << "write: " + str;
+    // qInfo() << "write: " + str;
     m_serialPort.write(str.toLatin1() + "\n");
 }
 
@@ -158,27 +158,31 @@ void SerialPortLogData::onReadyRead()
 
 void SerialPortLogData::onAboutToClose()
 {
-    qInfo() << (logIdString + __func__ + "()");
+    // qInfo() << (logIdString + __func__ + "()");
 }
 
 void SerialPortLogData::onBytesWritten(qint64 bytes)
 {
-    qInfo() << (logIdString + __func__ + "(" + QString::number(bytes) +")");
+    (void)bytes;
+    // qInfo() << (logIdString + __func__ + "(" + QString::number(bytes) +")");
 }
 
 void SerialPortLogData::onChannelBytesWritten(int channel, qint64 bytes)
 {
-    qInfo() << (logIdString + __func__ + "(" + QString::number(channel) + ", " + QString::number(bytes) +")");
+    (void)channel;
+    (void)bytes;
+    // qInfo() << (logIdString + __func__ + "(" + QString::number(channel) + ", " + QString::number(bytes) +")");
 }
 
 void SerialPortLogData::onChannelReadyRead(int channel)
 {
-    qInfo() << (logIdString + __func__ + "(" + QString::number(channel) + ")");
+    (void)channel;
+    // qInfo() << (logIdString + __func__ + "(" + QString::number(channel) + ")");
 }
 
 void SerialPortLogData::onReadChannelFinished()
 {
-    qInfo() << (logIdString + __func__ + "()");
+    // qInfo() << (logIdString + __func__ + "()");
 }
 
 void SerialPortLogData::onBaudRateChanged(qint32 baudRate, QSerialPort::Directions directions)

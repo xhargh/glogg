@@ -12,13 +12,24 @@ public:
     IoDeviceLogData();
     virtual IoDeviceSettings * GetIoSettings() = 0;
 
-    enum class TimeReferenceType {
-        NoTimestamp,
-        UTC,            // ISO-8601
-        Local,          // ISO-8601
-        RelativeS,      // s.mmm
-        RelativeMS      // mmmmm
+
+    enum class TimeReferenceType : int {
+        NoTimestamp = 0,
+        UTC = 1,            // ISO-8601
+        Local = 2,          // ISO-8601
+        RelativeS = 3,      // s.mmm
+        RelativeMS = 4      // mmmmm
     };
+
+    // Make sure numeric value of TimeReferenceType matches the index in this string list
+    const QStringList TimestampFormats = {
+        "No timestamp",
+        "UTC",
+        "Local",
+        "Relative s",
+        "Relative ms"
+    };
+
 
 protected:
     std::vector<std::pair<QDateTime, QString>> m_lines;
@@ -43,6 +54,9 @@ protected:
     virtual QDateTime getLastModifiedDate() const override;
 
     void addLine(QString d);
+
+    virtual QStringList supportedTimestampFormats() override;
+    virtual void changeTimestampFormat(int index) override;
 
 private:
     // Return timestamp as string including extra space, or empty string

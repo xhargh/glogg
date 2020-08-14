@@ -18,7 +18,7 @@ void CmdButton::update() {
 
 void CmdButton::runCmd()
 {
-    qInfo() << __func__ << " " << m_cmdLine;
+    // qInfo() << __func__ << " " << m_cmdLine;
     if (m_cmdLine != "") {
         if (m_cmdLine == "^C") { // QQQ TODO: create a command dialog which can send Ctrl-C without hi-jacking the string "^C"
             emit execute(QString::fromLatin1("\x03"));

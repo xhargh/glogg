@@ -236,43 +236,43 @@ void CrawlerWidget::keyPressEvent( QKeyEvent* keyEvent )
             switch (keyEvent->key()) {
 
             case Qt::Key_1:
-                qInfo() << "Key 1";
+                // qInfo() << "Key 1";
                 emit cmdBtns[0]->clicked();
                 break;
             case Qt::Key_2:
-                qInfo() << "Key 2";
+                // qInfo() << "Key 2";
                 emit cmdBtns[1]->clicked();
                 break;
             case Qt::Key_3:
-                qInfo() << "Key 3";
+                // qInfo() << "Key 3";
                 emit cmdBtns[2]->clicked();
                 break;
             case Qt::Key_4:
-                qInfo() << "Key 4";
+                // qInfo() << "Key 4";
                 emit cmdBtns[3]->clicked();
                 break;
             case Qt::Key_5:
-                qInfo() << "Key 5";
+                // qInfo() << "Key 5";
                 emit cmdBtns[4]->clicked();
                 break;
             case Qt::Key_6:
-                qInfo() << "Key 6";
+                // qInfo() << "Key 6";
                 emit cmdBtns[5]->clicked();
                 break;
             case Qt::Key_7:
-                qInfo() << "Key 7";
+                // qInfo() << "Key 7";
                 emit cmdBtns[6]->clicked();
                 break;
             case Qt::Key_8:
-                qInfo() << "Key 8";
+                // qInfo() << "Key 8";
                 emit cmdBtns[7]->clicked();
                 break;
             case Qt::Key_9:
-                qInfo() << "Key 9";
+                // qInfo() << "Key 9";
                 emit cmdBtns[8]->clicked();
                 break;
             case Qt::Key_0:
-                qInfo() << "Key 0";
+                // qInfo() << "Key 0";
                 emit cmdBtns[9]->clicked();
                 break;
             }

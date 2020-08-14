@@ -120,7 +120,7 @@ ViewInterface* Session::openAlways( const QString& file_name,
             }
         }
         else {
-            qInfo() << "Unknown IoDeviceSettings type: " << settings->getType();
+            qWarning() << "Unknown IoDeviceSettings type: " << settings->getType();
         }
 
     } else {

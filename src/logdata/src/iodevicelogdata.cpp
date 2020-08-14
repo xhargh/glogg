@@ -6,7 +6,7 @@ IoDeviceLogData::IoDeviceLogData()
     , m_showTimestamp(true)
     , m_includeTimestamp(true)
 {
-    qInfo() << __func__;
+    // qInfo() << __func__;
 }
 
 QStringList IoDeviceLogData::supportedTimestampFormats() {
@@ -15,7 +15,7 @@ QStringList IoDeviceLogData::supportedTimestampFormats() {
 
 void IoDeviceLogData::changeTimestampFormat(int index)
 {
-    qInfo() << __func__ << " " << index;
+    // qInfo() << __func__ << " " << index;
     m_timeRefType = static_cast<TimeReferenceType>(index);
 }
 
@@ -106,7 +106,8 @@ LineLength IoDeviceLogData::doGetLineLength(LineNumber line) const
 
 void IoDeviceLogData::doSetDisplayEncoding(const char *encoding)
 {
-    qInfo() << __func__ << encoding << "\n";
+    (void)encoding;
+    // qInfo() << __func__ << encoding << "\n";
 }
 
 QDateTime IoDeviceLogData::getLastModifiedDate() const
@@ -126,5 +127,5 @@ void IoDeviceLogData::addLine(QString d)
         m_maxLineLength = (timestampPrefix(ts) + d).length();
     }
     m_lines.push_back(std::make_pair(ts, d));
-    qDebug() << d;
+    // qDebug() << d;
 }

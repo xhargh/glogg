@@ -53,6 +53,14 @@ public:
         return false;
     };
 
+    virtual QStringList supportedTimestampFormats() {
+        return {};
+    }
+
+    virtual void changeTimestampFormat(int) {
+        // do nothing per default
+    }
+
     virtual void clearLog() = 0;
 
 signals:

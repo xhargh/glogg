@@ -2,11 +2,21 @@
 
 IoDeviceLogData::IoDeviceLogData()
     : LogDataBase()
-    , m_timeRefType(TimeReferenceType::UTC)
+    , m_timeRefType(TimeReferenceType::NoTimestamp)
     , m_showTimestamp(true)
     , m_includeTimestamp(true)
 {
     qInfo() << __func__;
+}
+
+QStringList IoDeviceLogData::supportedTimestampFormats() {
+    return TimestampFormats;
+}
+
+void IoDeviceLogData::changeTimestampFormat(int index)
+{
+    qInfo() << __func__ << " " << index;
+    m_timeRefType = static_cast<TimeReferenceType>(index);
 }
 
 QString IoDeviceLogData::timestampPrefix(QDateTime t) const {

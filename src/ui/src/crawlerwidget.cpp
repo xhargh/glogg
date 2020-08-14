@@ -438,6 +438,12 @@ void CrawlerWidget::executeCommand()
     logData_->write(cmd);
 }
 
+void CrawlerWidget::changeTimestampFormat(int index)
+{
+    logData_->changeTimestampFormat(index);
+    logMainView->forceRefresh();
+    filteredView->forceRefresh();
+}
 
 void CrawlerWidget::exportLog()
 {
@@ -986,6 +992,15 @@ void CrawlerWidget::setup()
     cmdEntryBox->setSizeAdjustPolicy( QComboBox::AdjustToMinimumContentsLengthWithIcon );
     cmdLayout->addWidget(cmdLbl);
     cmdLayout->addWidget(cmdEntryBox);
+
+    cmdTsSelectionBox = new QComboBox();
+    auto timestampFormats = logData_->supportedTimestampFormats();
+    if (timestampFormats.size()) {
+        for(auto s : timestampFormats) {
+            cmdTsSelectionBox->addItem(s);
+        }
+        cmdLayout->addWidget(cmdTsSelectionBox);
+    }
     cmdView->setLayout(cmdLayout);
 
     QWidget* btnRow = nullptr;
@@ -1092,6 +1107,9 @@ void CrawlerWidget::setup()
 
     connect(cmdEntryBox->lineEdit(), SIGNAL( returnPressed() ),
             this, SLOT( executeCommand() ) );
+
+    connect(cmdTsSelectionBox, SIGNAL( currentIndexChanged(int) ),
+            this, SLOT( changeTimestampFormat(int) ) );
 
     connect( visibilityBox, QOverload<int>::of( &QComboBox::currentIndexChanged ), this,
              &CrawlerWidget::changeFilteredViewVisibility );

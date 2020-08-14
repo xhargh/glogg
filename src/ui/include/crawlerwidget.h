@@ -169,6 +169,8 @@ class CrawlerWidget : public QSplitter,
     // Send a string to iodevice / execute a command
     void executeCommand();
     void executeBtnCommand(QString cmd);
+    // Change timestamp format
+    void changeTimestampFormat(int index);
     // Save Log As
     void exportLog();
     // Instructs the widget to start a search using the current search line.
@@ -296,6 +298,7 @@ class CrawlerWidget : public QSplitter,
     QLabel*         promptLbl;
     QWidget*        cmdView;
     QComboBox*      cmdEntryBox;
+    QComboBox*      cmdTsSelectionBox;
     QWidget*        mainWindow;
     std::vector<CmdButton*> cmdBtns;
     QWidget* bottomWindow;

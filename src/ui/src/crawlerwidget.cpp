@@ -419,7 +419,7 @@ std::shared_ptr<const ViewContextInterface> CrawlerWidget::doGetViewContext() co
 
 
 void CrawlerWidget::executeBtnCommand(QString cmd) {
-    qInfo() << __func__ << " " << cmd;
+    // qInfo() << __func__ << " " << cmd;
     logData_->write(cmd);
 }
 
@@ -434,7 +434,7 @@ void CrawlerWidget::executeCommand()
     // Update the EntryBox (history)
     updateCommandCombo();
     // Call the private function to do the search
-    qInfo() << "execute command: " << cmd;
+    // qInfo() << "execute command: " << cmd;
     logData_->write(cmd);
 }
 

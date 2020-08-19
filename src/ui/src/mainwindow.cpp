@@ -162,7 +162,7 @@ MainWindow::MainWindow( WindowSession session )
     mainTabWidget_.setTabsClosable( true );
 
     scratchPad_.setWindowIcon( mainIcon_ );
-    scratchPad_.setWindowTitle( "klogg - scratchpad" );
+    scratchPad_.setWindowTitle( "klogg-io - scratchpad" );
 
     connect( &mainTabWidget_, &TabbedCrawlerWidget::tabCloseRequested, this,
              QOverload<int>::of( &MainWindow::closeTab ) );
@@ -588,7 +588,7 @@ void MainWindow::createTrayIcon()
     } );
 
     trayIcon_->setIcon( mainIcon_ );
-    trayIcon_->setToolTip( "klogg log viewer" );
+    trayIcon_->setToolTip( "klogg-io log viewer" );
     trayIcon_->setContextMenu( trayMenu );
 
     connect( trayIcon_, &QSystemTrayIcon::activated,
@@ -670,11 +670,11 @@ void MainWindow::openRemoteFile( const QUrl& url )
             loadFile( tempFile->fileName() );
         }
         else {
-            QMessageBox::critical( this, "Klogg - File download", downloader.lastError() );
+            QMessageBox::critical( this, "Klogg-io - File download", downloader.lastError() );
         }
     }
     else {
-        QMessageBox::critical( this, "Klogg - File download", "Failed to create temp file" );
+        QMessageBox::critical( this, "Klogg-io - File download", "Failed to create temp file" );
     }
 }
 
@@ -739,7 +739,7 @@ void MainWindow::find()
 void MainWindow::clearLog()
 {
     const auto current_file = session_.getFilename( currentCrawlerWidget() );
-    if ( QMessageBox::question( this, "klogg - clear file",
+    if ( QMessageBox::question( this, "klogg-io - clear file",
                                 QString( "Clear file %1?" ).arg( current_file ) )
          == QMessageBox::Yes ) {
         emit clearLogSignal();

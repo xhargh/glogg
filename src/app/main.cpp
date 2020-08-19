@@ -142,7 +142,7 @@ struct CliParameters {
 
         options.add_flag(
             "-m,--multi", multi_instance,
-            "allow multiple instance of klogg to run simultaneously (use together with -s)" );
+            "allow multiple instance of klogg-io to run simultaneously (use together with -s)" );
         options.add_flag( "-s,--load-session", load_session,
                           "load the previous session (default when no file is passed)" );
         options.add_flag( "-n,--new-session", new_session,
@@ -181,7 +181,7 @@ int main( int argc, char* argv[] )
     // Configuration
 
     CliParameters parameters;
-    CLI::App options{ "Klogg -- fast log explorer" };
+    CLI::App options{ "Klogg-io -- fast log explorer" };
     try {
         parameters = CliParameters( options, argc, argv );
     } catch ( const CLI::ParseError& e ) {
@@ -192,7 +192,7 @@ int main( int argc, char* argv[] )
 
     app.initLogger( static_cast<plog::Severity>( parameters.log_level ), parameters.log_to_file );
 
-    LOG( logINFO ) << "Klogg instance " << app.instanceId();
+    LOG( logINFO ) << "Klogg-io instance " << app.instanceId();
 
     if ( !parameters.multi_instance && app.isSecondary() ) {
         LOG( logINFO ) << "Found another klogg, pid " << app.primaryPid();

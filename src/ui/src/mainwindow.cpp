@@ -1394,7 +1394,7 @@ void MainWindow::updateTitleBar( const QString& file_name )
         indexPart = QString( " #%1" ).arg( session_.windowIndex() + 1 );
     }
 
-    setWindowTitle( tr( "%1 - %2%3" ).arg( shownName, tr( "klogg" ), indexPart ) + " (build "
+    setWindowTitle( tr( "%1 - %2%3" ).arg( shownName, tr( "klogg-io" ), indexPart ) + " (build "
                     + kloggVersion() + ")" );
 }
 

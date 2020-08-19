@@ -1732,7 +1732,7 @@ void MainWindow::reportIssue() const
                                   "#### What did you see instead?\n\n\n"
                                   "Useful extra information\n"
                                   "-------------------------\n"
-                                  "> Klogg version %1 (built on %2 from commit %3) [built for %4]\n"
+                                  "> Klogg-io version %1 (built on %2 from commit %3) [built for %4]\n"
                                   "> running on %5 (%6/%7) [%8]\n"
                                   "> and Qt %9" )
                              .arg( version, buildDate, commit, built_for, os, kernelType,
@@ -1742,7 +1742,7 @@ void MainWindow::reportIssue() const
     query.addQueryItem( "labels", "type: bug" );
     query.addQueryItem( "body", body );
 
-    QUrl url( "https://github.com/variar/klogg/issues/new" );
+    QUrl url( "https://github.com/xhargh/klogg-io/issues/new" );
     url.setQuery( query );
     QDesktopServices::openUrl( url );
 }

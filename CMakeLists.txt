@@ -177,7 +177,7 @@ if(UNIX)
         set(CPACK_DEBIAN_PACKAGE_SECTION "utils")
         set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "http://github.com/xhargh/klogg-io")
         set(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS}
-                                            "libqt5widgets5 (>=5.9.5), libqt5concurrent5 (>=5.9.5), libqt5xml5 (>=5.9.5) libqt5serialport5 (>=5.9.5)")
+                                            "libqt5widgets5 (>=5.9.5), libqt5concurrent5 (>=5.9.5), libqt5xml5 (>=5.9.5), libqt5serialport5 (>=5.9.5)")
 
 
         #RPM

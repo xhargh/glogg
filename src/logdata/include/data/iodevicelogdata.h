@@ -18,7 +18,9 @@ public:
         UTC = 1,            // ISO-8601
         Local = 2,          // ISO-8601
         RelativeS = 3,      // s.mmm
-        RelativeMS = 4      // mmmmm
+        RelativeMS = 4,     // mmmmm
+        DeltaTimeS = 5,     // s.mmm
+        DeltaTimeMS = 6     // mmmmm
     };
 
     // Make sure numeric value of TimeReferenceType matches the index in this string list
@@ -27,7 +29,9 @@ public:
         "UTC",
         "Local",
         "Relative s",
-        "Relative ms"
+        "Relative ms",
+        "Delta s",
+        "Delta ms"
     };
 
 
@@ -60,7 +64,7 @@ protected:
 
 private:
     // Return timestamp as string including extra space, or empty string
-    QString timestampPrefix(QDateTime t) const;
+    QString timestampPrefix(QDateTime current, const QDateTime* const previous) const;
 };
 
 #endif // IODEVICELOGDATA_H

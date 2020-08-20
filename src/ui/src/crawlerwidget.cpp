@@ -220,17 +220,19 @@ void CrawlerWidget::keyPressEvent( QKeyEvent* keyEvent )
     keyEvent->accept();
     const auto noModifier = keyEvent->modifiers() == Qt::NoModifier;
 
-#if defined(Q_OS_MACOS)
+
     const Qt::KeyboardModifier controlModifier = Qt::MetaModifier;
+#if defined(Q_OS_MACOS)
+    bool useSpecialModifierForCmdButtons = true;
 #else
-    const Qt::KeyboardModifier controlModifier = Qt::ControlModifier; // qqq - not needed since Alt+number works on linux and windows
+    bool useSpecialModifierForCmdButtons = false;
 #endif
 
     if ( keyEvent->key() == Qt::Key_V && noModifier ) {
         visibilityBox->setCurrentIndex( ( visibilityBox->currentIndex() + 1 )
                                         % visibilityBox->count() );
     }
-    else if (keyEvent->modifiers() == controlModifier) {
+    else if (useSpecialModifierForCmdButtons && keyEvent->modifiers() == controlModifier) {
         if (logData_->isWritable())
         {
             switch (keyEvent->key()) {

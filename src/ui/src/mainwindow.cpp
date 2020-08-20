@@ -1043,7 +1043,7 @@ void MainWindow::currentTabChanged( int index )
         emit optionsChanged();
 
         updateMenuBarFromDocument( crawler_widget );
-        updateTitleBar( session_.getFilename( crawler_widget ) );
+        updateTitleBar( crawler_widget->getName() );
         updateFavoritesMenu();
 
         editMenu->setEnabled( true );

@@ -1,7 +1,7 @@
 {
     "ci":"20.5.0.599",
-    "ci_url" : "https://github.com/variar/klogg/releases/tag/continuous",
+    "ci_url" : "https://github.com/xhargh/klogg-io/releases/tag/continuous",
     "stable": "20.4.0.589",
-    "stable_url" : "https://github.com/variar/klogg/releases/tag/v20.4",
+    "stable_url" : "https://github.com/xhargh/klogg-io/releases/tag/v20.4",
     "releases": ["17.12.0.245", "19.2.0.366", "19.9.0.467", "20.4.0.589"]
 }

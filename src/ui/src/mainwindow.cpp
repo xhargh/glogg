@@ -105,7 +105,7 @@ MainWindow::MainWindow( WindowSession session )
     , signalMux_()
     , quickFindMux_( session_.getQuickFindPattern() )
     , mainTabWidget_()
-    , tempDir_( QDir::temp().filePath( "klogg_temp_" ) )
+    , tempDir_( QDir::temp().filePath( "klogg-io_temp_" ) )
 {
     createActions();
     createMenus();
@@ -777,7 +777,7 @@ void MainWindow::openClipboard()
         return;
     }
 
-    auto tempFile = new QTemporaryFile( tempDir_.filePath( "klogg_clipboard" ), this );
+    auto tempFile = new QTemporaryFile( tempDir_.filePath( "klogg-io_clipboard" ), this );
     if ( tempFile->open() ) {
         tempFile->write( text.toUtf8() );
         tempFile->flush();
@@ -1240,7 +1240,7 @@ bool MainWindow::extractAndLoadFile( const QString& fileName )
 
     if ( !config.extractArchivesAlways() ) {
         const auto userChoice
-            = QMessageBox::question( this, "klogg", "Extract archive to temp folder?" );
+            = QMessageBox::question( this, "klogg-io", "Extract archive to temp folder?" );
         if ( userChoice == QMessageBox::No ) {
             return false;
         }
@@ -1267,7 +1267,7 @@ bool MainWindow::extractAndLoadFile( const QString& fileName )
         }
         else {
             QMessageBox::warning(
-                this, "klogg",
+                this, "klogg-io",
                 QString( "Failed to decompress %1" ).arg( QDir::toNativeSeparators( fileName ) ) );
         }
     }
@@ -1287,7 +1287,7 @@ bool MainWindow::extractAndLoadFile( const QString& fileName )
         }
         else {
             QMessageBox::warning(
-                this, "klogg",
+                this, "klogg-io",
                 QString( "Failed to extract %1" ).arg( QDir::toNativeSeparators( fileName ) ) );
         }
     }

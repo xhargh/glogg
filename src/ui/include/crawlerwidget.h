@@ -89,6 +89,9 @@ class CrawlerWidget : public QSplitter,
     // True for partial selection
     bool isPartialSelection() const;
 
+    // Get name for the tab
+    QString getName() const;
+
     // Display the QFB at the bottom, remembering where the focus was
     void displayQuickFindBar( QuickFindMux::QFDirection direction );
 

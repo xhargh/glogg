@@ -114,6 +114,11 @@ LogData::LogData()
 
 LogData::~LogData() {}
 
+QString LogData::getName() const
+{
+    return indexingFileName_;
+}
+
 //
 // Public functions
 //

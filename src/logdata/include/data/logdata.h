@@ -70,6 +70,8 @@ class LogData : public LogDataBase {
     // Destroy an object
     ~LogData() override;
 
+    virtual QString getName() const;
+
     // Attaches the LogData to a file on disk
     // It starts the asynchronous indexing and returns (almost) immediately
     // Attaching to a non existant file works and the file is reported

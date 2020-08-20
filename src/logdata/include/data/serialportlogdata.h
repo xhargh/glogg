@@ -26,6 +26,7 @@ class SerialPortLogData : public IoDeviceLogData {
     // Destroy an object
     ~SerialPortLogData();
 
+    virtual QString getName() const override;
     virtual void attachFile( const QString& fileName ) override;
     virtual void write(QString str) override;
     virtual bool isWritable() const override;

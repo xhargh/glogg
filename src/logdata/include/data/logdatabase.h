@@ -42,6 +42,8 @@ public:
         return std::make_unique<LogFilteredData>( this );
     }
 
+    virtual QString getName() const { return ""; }
+
     virtual void attachFile( const QString& fileName ) {
         (void)fileName;
         // qInfo() << __func__ << "(" << fileName << ")";

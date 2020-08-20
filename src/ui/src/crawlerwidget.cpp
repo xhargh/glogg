@@ -173,6 +173,14 @@ bool CrawlerWidget::isPartialSelection() const
         return logMainView->isPartialSelection();
 }
 
+QString CrawlerWidget::getName() const
+{
+    if (logData_) {
+        return logData_->getName();
+    }
+    return "";
+}
+
 void CrawlerWidget::selectAll()
 {
     activeView()->selectAll();

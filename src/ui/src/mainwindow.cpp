@@ -230,7 +230,7 @@ void MainWindow::reloadSession()
         auto* crawler_widget = static_cast<CrawlerWidget*>( open_file.second );
 
         if ( crawler_widget ) {
-            mainTabWidget_.addCrawler( crawler_widget, file_name );
+            mainTabWidget_.addCrawler( crawler_widget, crawler_widget->getName());
 
             if ( followFileOnLoad ) {
                 signalCrawlerToFollowFile( crawler_widget );

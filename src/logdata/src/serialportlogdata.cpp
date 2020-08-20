@@ -28,6 +28,11 @@ SerialPortLogData::~SerialPortLogData()
 
 }
 
+QString SerialPortLogData::getName() const
+{
+    return m_serialPort.portName() + "@" + QString::number(m_serialPort.baudRate());
+}
+
 void SerialPortLogData::attachFile(const QString &fileName)
 {
     m_serialPort.setPortName(fileName);

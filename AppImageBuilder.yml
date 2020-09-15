@@ -8,7 +8,7 @@ AppDir:
     name: klogg-io
     icon: klogg-io
     version: latest
-    exec: opt/klogg/bin/klogg-io
+    exec: opt/klogg-io/bin/klogg-io
     exec_args: $@
 
   runtime:

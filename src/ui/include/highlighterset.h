@@ -66,11 +66,6 @@ class Highlighter {
     const QColor& backColor() const;
     void setBackColor( const QColor& backColor );
 
-    // Operators for serialization
-    // (must be kept to migrate filters from <=0.8.2)
-    friend QDataStream& operator<<( QDataStream& out, const Highlighter& object );
-    friend QDataStream& operator>>( QDataStream& in, Highlighter& object );
-
     // Reads/writes the current config in the QSettings object passed
     void saveToStorage( QSettings& settings ) const;
     void retrieveFromStorage( QSettings& settings );
@@ -82,47 +77,77 @@ class Highlighter {
 };
 
 // Represents an ordered set of filters to be applied to each line displayed.
-class HighlighterSet final : public Persistable<HighlighterSet> {
+class HighlighterSet {
   public:
     static const char* persistableName()
     {
         return "HighlighterSet";
     }
 
-    // Construct an empty filter set
-    HighlighterSet();
+    static HighlighterSet createNewSet( const QString& name );
+
+    HighlighterSet() = default;
+
+    QString name() const;
+    QString id() const;
 
     // Returns weither the passed line match a filter of the set,
     // if so, it returns the fore/back colors the line should use.
     // Ownership of the colors is transfered to the caller.
     bool matchLine( const QString& line, QColor* foreColor, QColor* backColor ) const;
 
+    bool isEmpty() const;
+
     // Reads/writes the current config in the QSettings object passed
     void saveToStorage( QSettings& settings ) const;
     void retrieveFromStorage( QSettings& settings );
 
-    // Should be private really, but I don't know how to have
-    // it recognised by QVariant then.
-    using HighlighterList = QList<Highlighter>;
-
-    // Operators for serialization
-    // (must be kept to migrate filters from <=0.8.2)
-    friend QDataStream& operator<<( QDataStream& out, const HighlighterSet& object );
-    friend QDataStream& operator>>( QDataStream& in, HighlighterSet& object );
+  private:
+    explicit HighlighterSet( const QString& name );
 
   private:
-    static constexpr int HighlighterSet_VERSION = 2;
+    static constexpr int HighlighterSet_VERSION = 3;
     static constexpr int FilterSet_VERSION = 2;
 
-    HighlighterList highlighterList_;
+    QString name_;
+    QString id_;
+    QList<Highlighter> highlighterList_;
+
+    // To simplify this class interface, HighlightersDialog can access our
+    // internal structure directly.
+    friend class HighlighterSetEdit;
+};
+
+class HighlighterSetCollection final : public Persistable<HighlighterSetCollection> {
+  public:
+    static const char* persistableName()
+    {
+        return "HighlighterSetCollection";
+    }
+
+    QList<HighlighterSet> highlighterSets() const;
+    void setHighlighterSets( const QList<HighlighterSet>& highlighters );
+
+    HighlighterSet currentSet() const;
+
+    bool hasSet( const QString& setId ) const;
+    QString currentSetId() const;
+    void setCurrentSet( const QString& setId );
+
+    // Reads/writes the current config in the QSettings object passed
+    void saveToStorage( QSettings& settings ) const;
+    void retrieveFromStorage( QSettings& settings );
+
+  private:
+    static constexpr int HighlighterSetCollection_VERSION = 1;
+
+  private:
+    QList<HighlighterSet> highlighters_;
+    QString currentSet_;
 
     // To simplify this class interface, HighlightersDialog can access our
     // internal structure directly.
     friend class HighlightersDialog;
 };
-
-Q_DECLARE_METATYPE( Highlighter )
-Q_DECLARE_METATYPE( HighlighterSet )
-Q_DECLARE_METATYPE( HighlighterSet::HighlighterList )
 
 #endif

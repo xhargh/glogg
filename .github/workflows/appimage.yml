@@ -1,0 +1,57 @@
+name: C/C++ AppImage
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+
+jobs:
+  build-appimage:
+
+    runs-on: ubuntu-16.04
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: seanmiddleditch/gha-setup-ninja@master
+
+      - name: Install Qt
+        run: |
+          sudo add-apt-repository ppa:beineri/opt-qt595-xenial
+          sudo apt-get update
+          sudo apt-get install -y qt59base mesa-common-dev
+        
+      - name: Prepare compiler env
+        run: |
+          echo "::set-env name=CC::gcc-8"
+          echo "::set-env name=CXX::g++-8"
+
+      - name: Configure
+        run: . /opt/qt59/bin/qt59-env.sh && cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/opt/klogg .
+
+      - name: Build
+        run: ninja klogg
+
+      - name: Install
+        run: |
+          DESTDIR=AppDir ninja install 
+          mkdir AppDir/usr
+          cp -a AppDir/opt/klogg/share AppDir/usr/share
+
+      - name: Bundle Qt
+        run: |
+          cp -a /opt/qt59/plugins AppDir/plugins
+      
+      - name: Build AppImage
+        uses: AppImageCrafters/build-appimage-action@master
+        env:
+          UPDATE_INFO: gh-releases-zsync|AppImageCrafters|klogg|latest|*x86_64.AppImage.zsync
+        with:
+          recipe: AppImageBuilder.yml
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: AppImage
+          path: './*.AppImage*'

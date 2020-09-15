@@ -38,11 +38,11 @@
 
 // This file implements classes Highlighter and HighlighterSet
 
-#include <QDataStream>
 #include <QSettings>
 
 #include "highlighterset.h"
 #include "log.h"
+#include "uuid.h"
 
 QRegularExpression::PatternOptions getPatternOptions( bool ignoreCase )
 {
@@ -109,37 +109,30 @@ bool Highlighter::hasMatch( const QString& string ) const
     return regexp_.match( string ).hasMatch();
 }
 
-//
-// Operators for serialization
-//
-
-QDataStream& operator<<( QDataStream& out, const Highlighter& object )
+HighlighterSet HighlighterSet::createNewSet( const QString& name )
 {
-    LOG( logDEBUG ) << "<<operator from Highlighter";
-    out << object.regexp_;
-    out << object.foreColor_;
-    out << object.backColor_;
-
-    return out;
+    return HighlighterSet{ name };
 }
 
-QDataStream& operator>>( QDataStream& in, Highlighter& object )
+HighlighterSet::HighlighterSet( const QString& name )
+    : name_( name )
+    , id_( generateIdFromUuid() )
 {
-    LOG( logDEBUG ) << ">>operator from Highlighter";
-    in >> object.regexp_;
-    in >> object.foreColor_;
-    in >> object.backColor_;
-
-    return in;
 }
 
-// Default constructor
-HighlighterSet::HighlighterSet()
+QString HighlighterSet::name() const
 {
-    qRegisterMetaTypeStreamOperators<Highlighter>( "Highlighter" );
-    qRegisterMetaTypeStreamOperators<HighlighterSet>( "HighlighterSet" );
-    qRegisterMetaTypeStreamOperators<HighlighterSet::HighlighterList>(
-        "HighlighterSet::HighlighterList" );
+    return name_;
+}
+
+QString HighlighterSet::id() const
+{
+    return id_;
+}
+
+bool HighlighterSet::isEmpty() const
+{
+    return highlighterList_.isEmpty();
 }
 
 bool HighlighterSet::matchLine( const QString& line, QColor* foreColor, QColor* backColor ) const
@@ -153,26 +146,6 @@ bool HighlighterSet::matchLine( const QString& line, QColor* foreColor, QColor* 
     }
 
     return false;
-}
-
-//
-// Operators for serialization
-//
-
-QDataStream& operator<<( QDataStream& out, const HighlighterSet& object )
-{
-    LOG( logDEBUG ) << "<<operator from HighlighterSet";
-    out << object.highlighterList_;
-
-    return out;
-}
-
-QDataStream& operator>>( QDataStream& in, HighlighterSet& object )
-{
-    LOG( logDEBUG ) << ">>operator from HighlighterSet";
-    in >> object.highlighterList_;
-
-    return in;
 }
 
 //
@@ -208,7 +181,9 @@ void HighlighterSet::saveToStorage( QSettings& settings ) const
 
     settings.beginGroup( "HighlighterSet" );
     settings.setValue( "version", HighlighterSet_VERSION );
-    settings.remove( "highlighterss" );
+    settings.setValue( "name", name_ );
+    settings.setValue( "id", id_ );
+    settings.remove( "highlighters" );
     settings.beginWriteArray( "highlighters" );
     for ( int i = 0; i < highlighterList_.size(); ++i ) {
         settings.setArrayIndex( i );
@@ -233,7 +208,7 @@ void HighlighterSet::retrieveFromStorage( QSettings& settings )
                 settings.setArrayIndex( i );
                 Highlighter highlighter;
                 highlighter.retrieveFromStorage( settings );
-                highlighterList_.append( highlighter );
+                highlighterList_.append( std::move( highlighter ) );
             }
             settings.endArray();
         }
@@ -249,12 +224,14 @@ void HighlighterSet::retrieveFromStorage( QSettings& settings )
     else if ( settings.contains( "HighlighterSet/version" ) ) {
         settings.beginGroup( "HighlighterSet" );
         if ( settings.value( "version" ).toInt() <= HighlighterSet_VERSION ) {
+            name_ = settings.value( "name", "Highlighters set" ).toString();
+            id_ = settings.value( "id", generateIdFromUuid() ).toString();
             int size = settings.beginReadArray( "highlighters" );
             for ( int i = 0; i < size; ++i ) {
                 settings.setArrayIndex( i );
                 Highlighter highlighter;
                 highlighter.retrieveFromStorage( settings );
-                highlighterList_.append( highlighter );
+                highlighterList_.append( std::move( highlighter ) );
             }
             settings.endArray();
         }
@@ -263,15 +240,99 @@ void HighlighterSet::retrieveFromStorage( QSettings& settings )
         }
         settings.endGroup();
     }
-    else {
-        LOG( logWARNING ) << "Trying to import legacy (<=0.8.2) filters...";
-        HighlighterSet tmp_highlighter_set = settings.value( "filterSet" ).value<HighlighterSet>();
-        *this = tmp_highlighter_set;
-        LOG( logWARNING ) << "...imported filterSet: " << highlighterList_.count() << " elements";
-        // Remove the old key once migration is done
-        settings.remove( "filterSet" );
-        // And replace it with the new one
-        saveToStorage( settings );
-        settings.sync();
+}
+
+QList<HighlighterSet> HighlighterSetCollection::highlighterSets() const
+{
+    return highlighters_;
+}
+
+void HighlighterSetCollection::setHighlighterSets( const QList<HighlighterSet>& highlighters )
+{
+    highlighters_ = highlighters;
+}
+
+HighlighterSet HighlighterSetCollection::currentSet() const
+{
+    auto set = std::find_if( highlighters_.begin(), highlighters_.end(),
+                             [this]( const auto& s ) { return s.id() == currentSet_; } );
+
+    if ( set != highlighters_.end() ) {
+        return *set;
     }
+    else {
+        return {};
+    }
+}
+
+QString HighlighterSetCollection::currentSetId() const
+{
+    return currentSet_;
+}
+
+void HighlighterSetCollection::setCurrentSet( const QString& current )
+{
+    currentSet_ = current;
+}
+
+bool HighlighterSetCollection::hasSet( const QString& setId ) const
+{
+    return std::any_of( highlighters_.begin(), highlighters_.end(),
+                        [setId]( const auto& s ) { return s.id() == setId; } );
+}
+
+void HighlighterSetCollection::saveToStorage( QSettings& settings ) const
+{
+    LOG( logDEBUG ) << "HighlighterSetCollection::saveToStorage";
+
+    settings.beginGroup( "HighlighterSetCollection" );
+    settings.setValue( "version", HighlighterSetCollection_VERSION );
+    settings.setValue( "current", currentSet_ );
+    settings.remove( "sets" );
+    settings.beginWriteArray( "sets" );
+    for ( int i = 0; i < highlighters_.size(); ++i ) {
+        settings.setArrayIndex( i );
+        highlighters_[ i ].saveToStorage( settings );
+    }
+    settings.endArray();
+    settings.endGroup();
+}
+
+void HighlighterSetCollection::retrieveFromStorage( QSettings& settings )
+{
+    LOG( logDEBUG ) << "HighlighterSetCollection::retrieveFromStorage";
+
+    highlighters_.clear();
+
+    if ( settings.contains( "HighlighterSetCollection/version" ) ) {
+        settings.beginGroup( "HighlighterSetCollection" );
+        if ( settings.value( "version" ).toInt() <= HighlighterSetCollection_VERSION ) {
+            int size = settings.beginReadArray( "sets" );
+            for ( int i = 0; i < size; ++i ) {
+                settings.setArrayIndex( i );
+                HighlighterSet highlighterSet;
+                highlighterSet.retrieveFromStorage( settings );
+                highlighters_.append( std::move( highlighterSet ) );
+            }
+            settings.endArray();
+            auto currentSet = settings.value( "current" ).toString();
+            setCurrentSet( currentSet );
+        }
+        else {
+            LOG( logERROR ) << "Unknown version of HighlighterSetCollection, ignoring it...";
+        }
+        settings.endGroup();
+    }
+
+    HighlighterSet oldHighlighterSet;
+    oldHighlighterSet.retrieveFromStorage( settings );
+    if ( !oldHighlighterSet.isEmpty() ) {
+        LOG( logINFO ) << "Importing old HighlighterSet";
+        setCurrentSet( oldHighlighterSet.id() );
+        highlighters_.append( std::move( oldHighlighterSet ) );
+        settings.remove( "HighlighterSet" );
+        saveToStorage( settings );
+    }
+
+    LOG( logINFO ) << "Loaded " << highlighters_.size() << " highlighter sets";
 }

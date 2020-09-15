@@ -4,16 +4,16 @@ AppDir:
   path: AppDir
 
   app_info:
-    id: klogg
-    name: klogg
-    icon: klogg
+    id: klogg-io
+    name: klogg-io
+    icon: klogg-io
     version: latest
-    exec: opt/klogg/bin/klogg
+    exec: opt/klogg/bin/klogg-io
     exec_args: $@
 
   runtime:
     env:
-      APPDIR_LIBRARY_PATH: $APPDIR/opt/klogg/lib:$APPDIR/opt/qt59/bin:$APPDIR/usr/lib/x86_64-linux-gnu:$APPDIR/lib/x86_64-linux-gnu
+      APPDIR_LIBRARY_PATH: $APPDIR/opt/klogg-io/lib:$APPDIR/opt/qt59/bin:$APPDIR/usr/lib/x86_64-linux-gnu:$APPDIR/lib/x86_64-linux-gnu
 
   apt:
     arch: amd64

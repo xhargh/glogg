@@ -29,16 +29,16 @@ jobs:
           echo "::set-env name=CXX::g++-8"
 
       - name: Configure
-        run: . /opt/qt59/bin/qt59-env.sh && cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/opt/klogg .
+        run: . /opt/qt59/bin/qt59-env.sh && cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/opt/klogg-io .
 
       - name: Build
-        run: ninja klogg
+        run: ninja klogg-io
 
       - name: Install
         run: |
           DESTDIR=AppDir ninja install 
           mkdir AppDir/usr
-          cp -a AppDir/opt/klogg/share AppDir/usr/share
+          cp -a AppDir/opt/klogg-io/share AppDir/usr/share
 
       - name: Bundle Qt
         run: |
@@ -47,7 +47,7 @@ jobs:
       - name: Build AppImage
         uses: AppImageCrafters/build-appimage-action@master
         env:
-          UPDATE_INFO: gh-releases-zsync|AppImageCrafters|klogg|latest|*x86_64.AppImage.zsync
+          UPDATE_INFO: gh-releases-zsync|AppImageCrafters|klogg-io|latest|*x86_64.AppImage.zsync
         with:
           recipe: AppImageBuilder.yml
 

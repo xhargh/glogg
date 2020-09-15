@@ -6,7 +6,7 @@ AppDir:
   app_info:
     id: klogg-io
     name: klogg-io
-    icon: klogg-io
+    icon: klogg
     version: latest
     exec: opt/klogg-io/bin/klogg-io
     exec_args: $@

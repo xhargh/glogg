@@ -96,8 +96,7 @@ PartialSearchResults filterLines( const QRegularExpression& regex,
     for ( size_t i = 0; i < lines.size(); ++i ) {
         const auto& l = lines.at( i );
         if ( regex.match( l ).hasMatch() ) {
-            results.maxLength
-                = qMax( results.maxLength, AbstractLogData::getUntabifiedLength( l ) );
+            results.maxLength = qMax( results.maxLength, getUntabifiedLength( l ) );
             results.matchingLines
                 = std::move( results.matchingLines )
                       .push_back( chunkStart
@@ -110,7 +109,7 @@ PartialSearchResults filterLines( const QRegularExpression& regex,
 
 SearchResults SearchData::takeCurrentResults() const
 {
-    QMutexLocker locker( &dataMutex_ );
+    ScopedLock locker( &dataMutex_ );
 
     auto results
         = SearchResults{ matches_, std::move( newMatches_ ), maxLength_, nbLinesProcessed_ };
@@ -120,7 +119,7 @@ SearchResults SearchData::takeCurrentResults() const
 
 void SearchData::setAll( LineLength length, SearchResultArray&& matches )
 {
-    QMutexLocker locker( &dataMutex_ );
+    ScopedLock locker( &dataMutex_ );
 
     maxLength_ = length;
     matches_ = matches;
@@ -132,7 +131,7 @@ void SearchData::addAll( LineLength length, const SearchResultArray& matches, Li
     using std::begin;
     using std::end;
 
-    QMutexLocker locker( &dataMutex_ );
+    ScopedLock locker( &dataMutex_ );
 
     maxLength_ = qMax( maxLength_, length );
     nbLinesProcessed_ = qMax( nbLinesProcessed_, lines );
@@ -145,7 +144,20 @@ void SearchData::addAll( LineLength length, const SearchResultArray& matches, Li
         const auto insertNewMatches = [&matches]( SearchResultArray& oldMatches ) {
             const auto insertIt
                 = std::lower_bound( begin( oldMatches ), end( oldMatches ), matches.front() );
-            assert( insertIt == end( oldMatches ) || !( *insertIt < matches.back() ) );
+
+            const auto areMatchesValid
+                = insertIt == end( oldMatches ) || !( *insertIt < matches.back() );
+
+            if ( !areMatchesValid ) {
+                LOG( logERROR ) << "Invalid matches";
+                LOG( logERROR ) << "insertIt: " << insertIt->lineNumber();
+                LOG( logERROR ) << "old matches: " << oldMatches.front().lineNumber() << "-"
+                                << oldMatches.back().lineNumber();
+                LOG( logERROR ) << "new matches: " << matches.front().lineNumber() << "-"
+                                << matches.back().lineNumber();
+            }
+
+            assert( areMatchesValid );
 
             auto insertPos = static_cast<SearchResultArray::size_type>(
                 distance( begin( oldMatches ), insertIt ) );
@@ -160,20 +172,26 @@ void SearchData::addAll( LineLength length, const SearchResultArray& matches, Li
 
 LinesCount SearchData::getNbMatches() const
 {
-    QMutexLocker locker( &dataMutex_ );
+    ScopedLock locker( &dataMutex_ );
 
     return LinesCount( static_cast<LinesCount::UnderlyingType>( matches_.size() ) );
 }
 
 LineNumber SearchData::getLastMatchedLineNumber() const
 {
-    QMutexLocker locker( &dataMutex_ );
+    ScopedLock locker( &dataMutex_ );
     return lastMatchedLineNumber_;
+}
+
+LineNumber SearchData::getLastProcessedLine() const
+{
+    ScopedLock locker( &dataMutex_ );
+    return LineNumber{ nbLinesProcessed_.get() };
 }
 
 void SearchData::deleteMatch( LineNumber line )
 {
-    QMutexLocker locker( &dataMutex_ );
+    ScopedLock locker( &dataMutex_ );
 
     auto i = matches_.size();
     while ( i != 0 ) {
@@ -191,7 +209,7 @@ void SearchData::deleteMatch( LineNumber line )
 
 void SearchData::clear()
 {
-    QMutexLocker locker( &dataMutex_ );
+    ScopedLock locker( &dataMutex_ );
 
     maxLength_ = LineLength( 0 );
     nbLinesProcessed_ = LinesCount( 0 );
@@ -212,7 +230,7 @@ LogFilteredDataWorker::LogFilteredDataWorker( const LogDataBase& sourceLogData )
 LogFilteredDataWorker::~LogFilteredDataWorker()
 {
     interruptRequested_.set();
-    QMutexLocker locker( &mutex_ );
+    ScopedLock locker( &mutex_ );
     operationWatcher_.waitForFinished();
 }
 
@@ -227,9 +245,9 @@ void LogFilteredDataWorker::connectSignalsAndRun( SearchOperation* operationRequ
 void LogFilteredDataWorker::search( const QRegularExpression& regExp, LineNumber startLine,
                                     LineNumber endLine )
 {
-    QMutexLocker locker( &mutex_ ); // to protect operationRequested_
+    ScopedLock locker( &mutex_ ); // to protect operationRequested_
 
-    LOG( logDEBUG ) << "Search requested";
+    LOG( logINFO ) << "Search requested";
 
     operationWatcher_.waitForFinished();
     interruptRequested_.clear();
@@ -246,9 +264,9 @@ void LogFilteredDataWorker::search( const QRegularExpression& regExp, LineNumber
 void LogFilteredDataWorker::updateSearch( const QRegularExpression& regExp, LineNumber startLine,
                                           LineNumber endLine, LineNumber position )
 {
-    QMutexLocker locker( &mutex_ ); // to protect operationRequested_
+    ScopedLock locker( &mutex_ ); // to protect operationRequested_
 
-    LOG( logDEBUG ) << "Search update requested";
+    LOG( logINFO ) << "Search update requested from " << position.get();
 
     operationWatcher_.waitForFinished();
     interruptRequested_.clear();
@@ -295,7 +313,7 @@ void SearchOperation::doSearch( SearchData& searchData, LineNumber initialLine )
 {
     const auto nbSourceLines = sourceLogData_.getNbLine();
 
-    LOG( logDEBUG ) << "Searching from line " << initialLine << " to " << nbSourceLines;
+    LOG( logINFO ) << "Searching from line " << initialLine << " to " << nbSourceLines;
 
     using namespace std::chrono;
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
@@ -333,8 +351,10 @@ void SearchOperation::doSearch( SearchData& searchData, LineNumber initialLine )
         searchGraph,
         [this, endLine, nbLinesInChunk, &chunkStart,
          &fileReadingDuration]( BlockDataType& blockData ) {
-            if ( interruptRequested_ )
+            if ( interruptRequested_ ) {
+                LOG( logINFO ) << "Block reader interrupted";
                 return false;
+            }
 
             if ( chunkStart >= endLine ) {
                 return false;
@@ -414,6 +434,11 @@ void SearchOperation::doSearch( SearchData& searchData, LineNumber initialLine )
     auto matchProcessor = tbb::flow::function_node<PartialResultType, tbb::flow::continue_msg,
                                                    tbb::flow::rejecting>(
         searchGraph, 1, [&]( const PartialResultType& matchResults ) {
+            if ( interruptRequested_ ) {
+                LOG( logINFO ) << "Match processor interrupted";
+                return tbb::flow::continue_msg{};
+            }
+
             const auto matchProcessorStartTime = high_resolution_clock::now();
 
             if ( matchResults->processedLines.get() ) {
@@ -502,7 +527,7 @@ void FullSearchOperation::start( SearchData& searchData )
 // Called in the worker thread's context
 void UpdateSearchOperation::start( SearchData& searchData )
 {
-    auto initial_line = initialPosition_;
+    auto initial_line = qMax( searchData.getLastProcessedLine(), initialPosition_ );
 
     if ( initial_line.get() >= 1 ) {
         // We need to re-search the last line because it might have

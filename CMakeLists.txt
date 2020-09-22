@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 project(klogg-io
-        VERSION 20.7.0
+        VERSION 20.9.0
         DESCRIPTION "klogg-io log viewer"
         LANGUAGES C CXX)
 
@@ -115,6 +115,7 @@ if (${BUILD_TESTS})
 endif()
 
 # Installation and packaging
+set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY true)
 if(UNIX)
     include(InstallRequiredSystemLibraries)
 

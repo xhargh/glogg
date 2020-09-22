@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Anton Filimonov and other contributors
+ * Copyright (C) 2016 -- 2019 Anton Filimonov
  *
  * This file is part of klogg.
  *
@@ -17,28 +17,21 @@
  * along with klogg.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef KLOGG_FILEDIGEST_H
-#define KLOGG_FILEDIGEST_H
+#ifndef KLOGG_SYNCHRONIZATION_H
+#define KLOGG_SYNCHRONIZATION_H
 
-#include <memory>
-#include <QByteArray>
+#include <mutex>
+#include <absl/synchronization/mutex.h>
 
-class DigestInternalState;
+using Lock = absl::Mutex;
+using ScopedLock = absl::MutexLock;
+using ScopedReaderLock = absl::ReaderMutexLock;
 
-class FileDigest {
-  public:
-    FileDigest();
-    ~FileDigest();
-
-    void addData( const char* data, size_t length );
-    uint64_t digest() const;
-
-    QByteArray hash() const;
-
-    void reset();
-
-  private:
-    std::unique_ptr<DigestInternalState> m_state;
+using RecursiveLock = std::recursive_mutex;
+struct ScopedRecursiveLock : std::lock_guard<RecursiveLock>
+{
+    ScopedRecursiveLock(RecursiveLock* lock) : lock_guard(*lock)
+    {}
 };
 
-#endif // KLOGG_FILEDIGEST_H
+#endif

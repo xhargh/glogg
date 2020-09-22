@@ -46,6 +46,7 @@
 #include <cassert>
 #include <chrono>
 
+#include <QAction>
 #include <QApplication>
 #include <QCompleter>
 #include <QFile>
@@ -509,6 +510,26 @@ void CrawlerWidget::stopSearch()
     printSearchInfoMessage();
 }
 
+void CrawlerWidget::clearSearchItems()
+{
+    // Clear line
+    searchLineEdit->clear();
+
+    // Sync and clear saved searches
+    auto& searches = SavedSearches::getSynced();
+    savedSearches_->clear();
+    searches.save();
+
+    QStringList empty_history{};
+    searchLineCompleter->setModel( new QStringListModel( empty_history, searchLineCompleter ) );
+}
+
+void CrawlerWidget::showSearchContextMenu()
+{
+    if(searchLineContextMenu)
+      searchLineContextMenu->exec(QCursor::pos());
+}
+
 // When receiving the 'newDataAvailable' signal from LogFilteredData
 void CrawlerWidget::updateFilteredView( LinesCount nbMatches, int progress,
                                         LineNumber initialPosition )
@@ -804,6 +825,11 @@ void CrawlerWidget::searchRefreshChangedHandler( bool isRefreshing )
     printSearchInfoMessage( logFilteredData_->getNbMatches() );
 }
 
+void CrawlerWidget::matchCaseChangedHandler( bool shouldMatchCase )
+{
+    searchLineCompleter->setCaseSensitivity( shouldMatchCase ? Qt::CaseSensitive : Qt::CaseInsensitive );
+}
+
 void CrawlerWidget::searchTextChangeHandler( QString )
 {
     // We suspend auto-refresh
@@ -1034,7 +1060,6 @@ void CrawlerWidget::setup()
 
     // Construct the Search line
     searchLineCompleter = new QCompleter( savedSearches_->recentSearches(), this );
-    searchLineCompleter->setCaseSensitivity( Qt::CaseInsensitive );
     searchLineEdit = new QComboBox;
     searchLineEdit->setEditable( true );
     searchLineEdit->setCompleter( searchLineCompleter );
@@ -1043,6 +1068,12 @@ void CrawlerWidget::setup()
     searchLineEdit->setSizeAdjustPolicy( QComboBox::AdjustToMinimumContentsLengthWithIcon );
     searchLineEdit->lineEdit()->setMaxLength( std::numeric_limits<int>::max() / 1024 );
     searchLineEdit->setContentsMargins( 2, 2, 2, 2 );
+
+    QAction *clearSearchItemsAction = new QAction( "Clear All Items", this );
+    searchLineContextMenu = searchLineEdit->lineEdit()->createStandardContextMenu();
+    searchLineContextMenu->addSeparator();
+    searchLineContextMenu->addAction(clearSearchItemsAction);
+    searchLineEdit->setContextMenuPolicy(Qt::CustomContextMenu);
 
     setFocusProxy( searchLineEdit );
 
@@ -1098,11 +1129,13 @@ void CrawlerWidget::setup()
     // Default search checkboxes
     auto& config = Configuration::get();
     searchRefreshButton->setChecked( config.isSearchAutoRefreshDefault() );
+    matchCaseButton->setChecked( config.isSearchIgnoreCaseDefault() ? false : true );
+    useRegexpButton->setChecked( config.mainRegexpType() == ExtendedRegexp );
+
     // Manually call the handler as it is not called when changing the state programmatically
     searchRefreshChangedHandler( searchRefreshButton->isChecked() );
-    matchCaseButton->setChecked( config.isSearchIgnoreCaseDefault() ? false : true );
+    matchCaseChangedHandler( matchCaseButton->isChecked() );
 
-    useRegexpButton->setChecked( config.mainRegexpType() == ExtendedRegexp );
 
     // Default splitter position (usually overridden by the config file)
     setSizes( config.splitterSizes() );
@@ -1112,6 +1145,9 @@ void CrawlerWidget::setup()
              &QToolButton::click );
     connect( searchLineEdit->lineEdit(), &QLineEdit::textEdited, this,
              &CrawlerWidget::searchTextChangeHandler );
+
+    connect( searchLineEdit, &QWidget::customContextMenuRequested, this, &CrawlerWidget::showSearchContextMenu);
+    connect( clearSearchItemsAction, &QAction::triggered, this, &CrawlerWidget::clearSearchItems );
     connect( searchButton, &QToolButton::clicked, this, &CrawlerWidget::startNewSearch );
     connect( stopButton, &QToolButton::clicked, this, &CrawlerWidget::stopSearch );
 
@@ -1184,6 +1220,9 @@ void CrawlerWidget::setup()
     // Search auto-refresh
     connect( searchRefreshButton, &QPushButton::toggled, this,
              &CrawlerWidget::searchRefreshChangedHandler );
+
+    connect( matchCaseButton, &QPushButton::toggled, this,
+            &CrawlerWidget::matchCaseChangedHandler );
 
     // Advise the parent the checkboxes have been changed
     // (for maintaining default config)
@@ -1340,7 +1379,6 @@ void CrawlerWidget::printSearchInfoMessage( LinesCount nbMatches )
 // Change the data status and, if needed, advise upstream.
 void CrawlerWidget::changeDataStatus( DataStatus status )
 {
-    LOG( logINFO ) << "New data status " << static_cast<int>( status );
     if ( ( status != dataStatus_ )
          && ( !( dataStatus_ == DataStatus::NEW_FILTERED_DATA
                  && status == DataStatus::NEW_DATA ) ) ) {

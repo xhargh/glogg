@@ -54,19 +54,105 @@
 #include "loadingstatus.h"
 
 #include "atomicflag.h"
-
 #include "filedigest.h"
+#include "synchronization.h"
 
 struct IndexedHash {
     qint64 size = 0;
     quint64 digest = 0;
+    QByteArray hash;
+};
+
+template <typename Data, typename LockGuard> class IndexingDataAccessor {
+  public:
+    IndexingDataAccessor( Data data )
+        : data_( data )
+        , guard_( &data->dataMutex_ )
+    {
+    }
+
+    ~IndexingDataAccessor() = default;
+
+    qint64 getIndexedSize() const
+    {
+        return data_->getIndexedSize();
+    }
+
+    IndexedHash getHash() const
+    {
+        return data_->getHash();
+    }
+
+    // Get the length of the longest line
+    LineLength getMaxLength() const
+    {
+        return data_->getMaxLength();
+    }
+
+    // Get the total number of lines
+    LinesCount getNbLines() const
+    {
+        return data_->getNbLines();
+    }
+
+    // Get the position (in byte from the beginning of the file)
+    // of the end of the passed line.
+    LineOffset getPosForLine( LineNumber line ) const
+    {
+        return data_->getPosForLine( line );
+    }
+
+    // Get the guessed encoding for the content.
+    QTextCodec* getEncodingGuess() const
+    {
+        return data_->getEncodingGuess();
+    }
+    void setEncodingGuess( QTextCodec* codec )
+    {
+        data_->setEncodingGuess( codec );
+    }
+
+    QTextCodec* getForcedEncoding() const
+    {
+        return data_->getForcedEncoding();
+    }
+    void forceEncoding( QTextCodec* codec )
+    {
+        return data_->forceEncoding( codec );
+    }
+
+    // Atomically add to all the existing
+    // indexing data.
+    void addAll( const QByteArray& block, LineLength length,
+                 const FastLinePositionArray& linePosition, QTextCodec* encoding )
+    {
+        data_->addAll( block, length, linePosition, encoding );
+    }
+
+    // Completely clear the indexing data.
+    void clear()
+    {
+        data_->clear();
+    }
+
+    size_t allocatedSize() const
+    {
+        return data_->allocatedSize();
+    }
+
+  private:
+    Data data_;
+    LockGuard guard_;
 };
 
 // This class is a thread-safe set of indexing data.
 class IndexingData {
   public:
-    // Get the total indexed size
-    qint64 getSize() const;
+    using ConstAccessor = IndexingDataAccessor<const IndexingData*, ScopedReaderLock>;
+    using MutateAccessor = IndexingDataAccessor<IndexingData*, ScopedLock>;
+
+  private:
+    qint64 getIndexedSize() const;
 
     IndexedHash getHash() const;
 
@@ -98,7 +184,7 @@ class IndexingData {
     size_t allocatedSize() const;
 
   private:
-    mutable QMutex dataMutex_;
+    mutable Lock dataMutex_;
 
     LinePositionArray linePosition_;
     LineLength maxLength_;
@@ -108,6 +194,9 @@ class IndexingData {
 
     QTextCodec* encodingGuess_{};
     QTextCodec* encodingForced_{};
+
+    friend ConstAccessor;
+    friend MutateAccessor;
 };
 
 struct IndexingState {
@@ -246,7 +335,7 @@ class LogDataWorker : public QObject {
     AtomicFlag interruptRequest_;
 
     // Mutex to protect operationRequested_ and friends
-    QMutex mutex_;
+    Lock mutex_;
     QString fileName_;
 
     // Pointer to the owner's indexing data (we modify it)

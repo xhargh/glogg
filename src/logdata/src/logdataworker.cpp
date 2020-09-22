@@ -54,9 +54,11 @@
 
 namespace {
 
-template <class... Fs> struct overload;
+template <class... Fs>
+struct overload;
 
-template <class F0, class... Frest> struct overload<F0, Frest...> : F0, overload<Frest...> {
+template <class F0, class... Frest>
+struct overload<F0, Frest...> : F0, overload<Frest...> {
     overload( F0 f0, Frest... rest )
         : F0( f0 )
         , overload<Frest...>( rest... )
@@ -67,7 +69,8 @@ template <class F0, class... Frest> struct overload<F0, Frest...> : F0, overload
     using overload<Frest...>::operator();
 };
 
-template <class F0> struct overload<F0> : F0 {
+template <class F0>
+struct overload<F0> : F0 {
     explicit overload( F0 f0 )
         : F0( f0 )
     {
@@ -76,69 +79,56 @@ template <class F0> struct overload<F0> : F0 {
     using F0::operator();
 };
 
-template <class... Fs> auto make_visitor( Fs... fs )
+template <class... Fs>
+auto make_visitor( Fs... fs )
 {
     return overload<Fs...>( fs... );
 }
 
 } // namespace
 
-qint64 IndexingData::getSize() const
+qint64 IndexingData::getIndexedSize() const
 {
-    QMutexLocker locker( &dataMutex_ );
-
     return hash_.size;
 }
 
 IndexedHash IndexingData::getHash() const
 {
-    QMutexLocker locker( &dataMutex_ );
-
     return hash_;
 }
 
 LineLength IndexingData::getMaxLength() const
 {
-    QMutexLocker locker( &dataMutex_ );
-
     return maxLength_;
 }
 
 LinesCount IndexingData::getNbLines() const
 {
-    QMutexLocker locker( &dataMutex_ );
-
     return LinesCount( linePosition_.size() );
 }
 
 LineOffset IndexingData::getPosForLine( LineNumber line ) const
 {
-    QMutexLocker locker( &dataMutex_ );
-
     return linePosition_.at( line.get() );
 }
 
 QTextCodec* IndexingData::getEncodingGuess() const
 {
-    QMutexLocker locker( &dataMutex_ );
     return encodingGuess_;
 }
 
 void IndexingData::setEncodingGuess( QTextCodec* codec )
 {
-    QMutexLocker locker( &dataMutex_ );
     encodingGuess_ = codec;
 }
 
 void IndexingData::forceEncoding( QTextCodec* codec )
 {
-    QMutexLocker locker( &dataMutex_ );
     encodingForced_ = codec;
 }
 
 QTextCodec* IndexingData::getForcedEncoding() const
 {
-    QMutexLocker locker( &dataMutex_ );
     return encodingForced_;
 }
 
@@ -146,22 +136,21 @@ void IndexingData::addAll( const QByteArray& block, LineLength length,
                            const FastLinePositionArray& linePosition, QTextCodec* encoding )
 
 {
-    QMutexLocker locker( &dataMutex_ );
-
     maxLength_ = qMax( maxLength_, length );
     linePosition_.append_list( linePosition );
 
-    indexHash_.addData( block.data(), static_cast<size_t>( block.size() ) );
-    hash_.digest = indexHash_.digest();
-    hash_.size += block.size();
+    if ( !block.isEmpty() ) {
+        indexHash_.addData( block.data(), static_cast<size_t>( block.size() ) );
+        hash_.digest = indexHash_.digest();
+        hash_.hash = indexHash_.hash();
+        hash_.size += block.size();
+    }
 
     encodingGuess_ = encoding;
 }
 
 void IndexingData::clear()
 {
-    QMutexLocker locker( &dataMutex_ );
-
     maxLength_ = 0_length;
     hash_ = {};
     indexHash_.reset();
@@ -185,19 +174,19 @@ LogDataWorker::LogDataWorker( IndexingData& indexing_data )
 LogDataWorker::~LogDataWorker()
 {
     interruptRequest_.set();
-    QMutexLocker locker( &mutex_ );
+    ScopedLock locker( &mutex_ );
     operationFuture_.waitForFinished();
 }
 
 void LogDataWorker::attachFile( const QString& fileName )
 {
-    QMutexLocker locker( &mutex_ ); // to protect fileName_
+    ScopedLock locker( &mutex_ ); // to protect fileName_
     fileName_ = fileName;
 }
 
 void LogDataWorker::indexAll( QTextCodec* forcedEncoding )
 {
-    QMutexLocker locker( &mutex_ );
+    ScopedLock locker( &mutex_ );
     LOG( logDEBUG ) << "FullIndex requested";
 
     operationWatcher_.waitForFinished();
@@ -214,7 +203,7 @@ void LogDataWorker::indexAll( QTextCodec* forcedEncoding )
 
 void LogDataWorker::indexAdditionalLines()
 {
-    QMutexLocker locker( &mutex_ );
+    ScopedLock locker( &mutex_ );
     LOG( logDEBUG ) << "AddLines requested";
 
     operationWatcher_.waitForFinished();
@@ -231,7 +220,7 @@ void LogDataWorker::indexAdditionalLines()
 
 void LogDataWorker::checkFileChanges()
 {
-    QMutexLocker locker( &mutex_ );
+    ScopedLock locker( &mutex_ );
     LOG( logDEBUG ) << "Check file changes requested";
 
     operationWatcher_.waitForFinished();
@@ -309,10 +298,10 @@ FastLinePositionArray IndexOperation::parseDataBlock( LineOffset::UnderlyingType
             LOG( logDEBUG1 ) << "Tab at " << pos_within_block;
 
             state.additional_spaces
-                += AbstractLogData::tabStop
+                += TabStop
                    - ( static_cast<int>( ( block_beginning - state.pos ) + pos_within_block
                                          + state.additional_spaces )
-                       % AbstractLogData::tabStop )
+                       % TabStop )
                    - 1;
 
             const auto tab_substring_size = static_cast<int>( next_tab - tab_search_start );
@@ -378,11 +367,13 @@ void IndexOperation::guessEncoding( const QByteArray& block, IndexingState& stat
         LOG( logINFO ) << "Encoding guess " << state.encodingGuess->name().toStdString();
     }
 
+    IndexingData::ConstAccessor scopedAccessor{ &indexing_data_ };
+
     if ( !state.fileTextCodec ) {
-        state.fileTextCodec = indexing_data_.getForcedEncoding();
+        state.fileTextCodec = scopedAccessor.getForcedEncoding();
 
         if ( !state.fileTextCodec ) {
-            state.fileTextCodec = indexing_data_.getEncodingGuess();
+            state.fileTextCodec = scopedAccessor.getEncodingGuess();
         }
 
         if ( !state.fileTextCodec ) {
@@ -404,8 +395,10 @@ void IndexOperation::doIndex( LineOffset initialPosition )
         // If the file cannot be open, we do as if it was empty
         LOG( logWARNING ) << "Cannot open file " << fileName_.toStdString();
 
-        indexing_data_.clear();
-        indexing_data_.setEncodingGuess( QTextCodec::codecForLocale() );
+        IndexingData::MutateAccessor scopedAccessor{ &indexing_data_ };
+
+        scopedAccessor.clear();
+        scopedAccessor.setEncodingGuess( QTextCodec::codecForLocale() );
 
         emit indexingProgressed( 100 );
         return;
@@ -415,12 +408,16 @@ void IndexOperation::doIndex( LineOffset initialPosition )
     state.pos = initialPosition.get();
     state.file_size = file.size();
 
-    state.fileTextCodec = indexing_data_.getForcedEncoding();
-    if ( !state.fileTextCodec ) {
-        state.fileTextCodec = indexing_data_.getEncodingGuess();
-    }
+    {
+        IndexingData::ConstAccessor scopedAccessor{ &indexing_data_ };
 
-    state.encodingGuess = indexing_data_.getEncodingGuess();
+        state.fileTextCodec = scopedAccessor.getForcedEncoding();
+        if ( !state.fileTextCodec ) {
+            state.fileTextCodec = scopedAccessor.getEncodingGuess();
+        }
+
+        state.encodingGuess = scopedAccessor.getEncodingGuess();
+    }
 
     const auto& config = Configuration::get();
     const auto prefetchBufferSize = static_cast<size_t>( config.indexReadBufferSizeMb() );
@@ -500,9 +497,11 @@ void IndexOperation::doIndex( LineOffset initialPosition )
 
             guessEncoding( block, state );
 
+            IndexingData::MutateAccessor scopedAccessor{ &indexing_data_ };
+
             if ( !block.isEmpty() ) {
                 auto line_positions = parseDataBlock( block_beginning, block, state );
-                indexing_data_.addAll( block, LineLength( state.max_length ), line_positions,
+                scopedAccessor.addAll( block, LineLength( state.max_length ), line_positions,
                                        state.encodingGuess );
 
                 // Update the caller for progress indication
@@ -512,7 +511,7 @@ void IndexOperation::doIndex( LineOffset initialPosition )
                 emit indexingProgressed( progress );
             }
             else {
-                indexing_data_.setEncodingGuess( state.encodingGuess );
+                scopedAccessor.setEncodingGuess( state.encodingGuess );
             }
 
             LOG( logDEBUG ) << "Indexing block " << block_beginning << " done";
@@ -530,6 +529,10 @@ void IndexOperation::doIndex( LineOffset initialPosition )
     indexingGraph.wait_for_all();
     localThreadPool.waitForDone();
 
+    IndexingData::MutateAccessor scopedAccessor{ &indexing_data_ };
+
+    LOG( logDEBUG ) << "Indexed up to " << state.pos;
+
     // Check if there is a non LF terminated line at the end of the file
     if ( !interruptRequest_ && state.file_size > state.pos ) {
         LOG( logWARNING ) << "Non LF terminated file, adding a fake end of line";
@@ -538,7 +541,7 @@ void IndexOperation::doIndex( LineOffset initialPosition )
         line_position.append( LineOffset( state.file_size + 1 ) );
         line_position.setFakeFinalLF();
 
-        indexing_data_.addAll( {}, 0_length, line_position, state.encodingGuess );
+        scopedAccessor.addAll( {}, 0_length, line_position, state.encodingGuess );
     }
 
     const auto indexingEndTime = high_resolution_clock::now();
@@ -546,15 +549,15 @@ void IndexOperation::doIndex( LineOffset initialPosition )
 
     LOG( logINFO ) << "Indexing done, took " << duration << ", io " << ioDuration;
     LOG( logINFO ) << "Index size "
-                   << readableSize( static_cast<uint64_t>( indexing_data_.allocatedSize() ) );
+                   << readableSize( static_cast<uint64_t>( scopedAccessor.allocatedSize() ) );
     LOG( logINFO ) << "Indexing perf "
                    << ( 1000.f * static_cast<float>( state.file_size )
                         / static_cast<float>( duration.count() ) )
                           / ( 1024 * 1024 )
                    << " MiB/s";
 
-    if ( !indexing_data_.getEncodingGuess() ) {
-        indexing_data_.setEncodingGuess( QTextCodec::codecForLocale() );
+    if ( !scopedAccessor.getEncodingGuess() ) {
+        scopedAccessor.setEncodingGuess( QTextCodec::codecForLocale() );
     }
 }
 
@@ -567,9 +570,11 @@ OperationResult FullIndexOperation::start()
 
     emit indexingProgressed( 0 );
 
-    // First empty the index
-    indexing_data_.clear();
-    indexing_data_.forceEncoding( forcedEncoding_ );
+    {
+        IndexingData::MutateAccessor scopedAccessor{ &indexing_data_ };
+        scopedAccessor.clear();
+        scopedAccessor.forceEncoding( forcedEncoding_ );
+    }
 
     doIndex( 0_offset );
 
@@ -584,7 +589,8 @@ OperationResult PartialIndexOperation::start()
 {
     LOG( logDEBUG ) << "PartialIndexOperation::start(), file " << fileName_.toStdString();
 
-    const auto initial_position = LineOffset( indexing_data_.getSize() );
+    const auto initial_position
+        = LineOffset( IndexingData::ConstAccessor{ &indexing_data_ }.getIndexedSize() );
 
     LOG( logDEBUG ) << "PartialIndexOperation: Starting the count at " << initial_position
                     << " ...";
@@ -603,7 +609,7 @@ OperationResult CheckFileChangesOperation::start()
     LOG( logINFO ) << "CheckFileChangesOperation::start(), file " << fileName_.toStdString();
 
     QFileInfo info( fileName_ );
-    const auto indexedHash = indexing_data_.getHash();
+    const auto indexedHash = IndexingData::ConstAccessor{ &indexing_data_ }.getHash();
     const auto realFileSize = info.size();
 
     if ( realFileSize == 0 || realFileSize < indexedHash.size ) {
@@ -616,6 +622,7 @@ OperationResult CheckFileChangesOperation::start()
         constexpr int blockSize = 5 * 1024 * 1024;
         QByteArray buffer{ blockSize, 0 };
 
+        QByteArray totalData;
         FileDigest fileDigest;
         if ( file.isOpen() || file.open( QIODevice::ReadOnly ) ) {
             auto readSize = 0ll;
@@ -634,8 +641,12 @@ OperationResult CheckFileChangesOperation::start()
 
             const auto realHashDigest = fileDigest.digest();
 
-            LOG( logINFO ) << "indexed hash " << indexedHash.digest << ", real file hash "
-                           << realHashDigest;
+            LOG( logINFO ) << "indexed size " << indexedHash.size << ", xxhash "
+                           << indexedHash.digest << ", crypto "
+                           << indexedHash.hash.toHex().toStdString();
+
+            LOG( logINFO ) << "current size " << totalSize << ", xxhash " << realHashDigest
+                           << ", crypto " << fileDigest.hash().toHex().toStdString();
 
             if ( realHashDigest != indexedHash.digest ) {
                 LOG( logINFO ) << "File changed in indexed range";

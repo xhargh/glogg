@@ -181,6 +181,8 @@ class LogData : public LogDataBase {
     void startOperation();
     void reOpenFile() const;
 
+    std::vector<QString> getLinesFromFile(LineNumber first, LinesCount number, QString(*processLine)(QString&&) ) const;
+
     mutable std::unique_ptr<FileHolder> attached_file_;
 
     QString indexingFileName_;

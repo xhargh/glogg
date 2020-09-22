@@ -96,50 +96,6 @@ int countDigits( quint64 n )
 
 } // namespace
 
-bool LineChunk::isOverlapping( int sel_start, int sel_end ) const
-{
-    return sel_start <= end_ && ( ( sel_start >= start_ ) || ( sel_end >= start_ ) );
-}
-
-bool LineChunk::isOverlapping( const LineChunk& other ) const
-{
-    return isOverlapping( other.start(), other.end() );
-}
-
-std::vector<LineChunk> LineChunk::overlap( const LineChunk& other ) const
-{
-    return overlap( other.start(), other.end(), other.foreColor(), other.backColor() );
-}
-
-std::vector<LineChunk> LineChunk::overlap( int sel_start, int sel_end, QColor overlapForeColor,
-                                           QColor overlapBackColor ) const
-{
-    std::vector<LineChunk> overlapped;
-
-    if ( !isOverlapping( sel_start, sel_end ) ) {
-        // Selection BEFORE or AFTER this chunk: no change
-        overlapped.emplace_back( *this );
-    }
-    else /* if ( ( sel_start >= start_ ) && ( sel_end <= end_ ) ) */
-    {
-        // We only want to consider what's inside THIS chunk
-        sel_start = qMax( sel_start, start_ );
-        sel_end = qMin( sel_end, end_ );
-
-        if ( sel_start > start_ ) {
-            overlapped.emplace_back( start_, sel_start - 1, foreColor_, backColor_ );
-        }
-
-        overlapped.emplace_back( sel_start, sel_end, overlapForeColor, overlapBackColor );
-
-        if ( sel_end < end_ ) {
-            overlapped.emplace_back( sel_end + 1, end_, foreColor_, backColor_ );
-        }
-    }
-
-    return overlapped;
-}
-
 inline void LineDrawer::addChunk( int first_col, int last_col, const QColor& fore,
                                   const QColor& back )
 {
@@ -1715,9 +1671,6 @@ void AbstractLogView::drawTextArea( QPaintDevice* paint_device )
     LOG( logDEBUG1 ) << "bottomOfTextPx: " << bottomOfTextPx;
     LOG( logDEBUG1 ) << "Height: " << paintDeviceHeight;
 
-    // Lines to write
-    const auto lines = logData->getExpandedLines( firstLine, nbLines );
-
     // First draw the bullet left margin
     painter.setPen( palette.color( QPalette::Text ) );
     painter.fillRect( 0, 0, BULLET_AREA_WIDTH, paintDeviceHeight, Qt::darkGray );
@@ -1774,9 +1727,13 @@ void AbstractLogView::drawTextArea( QPaintDevice* paint_device )
         return index;
     }();
 
+    // Lines to write
+    const auto expandedLines = logData->getExpandedLines( firstLine, nbLines );
+
     // Then draw each line
     for ( auto currentLine = 0_lcount; currentLine < nbLines; ++currentLine ) {
         const auto lineNumber = firstLine + currentLine;
+        const QString logLine = logData->getLineString( lineNumber );
 
         std::vector<HighlightedMatch> highlighterMatches;
 
@@ -1787,8 +1744,7 @@ void AbstractLogView::drawTextArea( QPaintDevice* paint_device )
             painter.setPen( palette.color( QPalette::Text ) );
         }
         else {
-            const auto highlightType = highlighterSet.matchLine(
-                logData->getLineString( lineNumber ), highlighterMatches );
+            const auto highlightType = highlighterSet.matchLine( logLine, highlighterMatches );
 
             if ( highlightType == HighlighterMatchType::LineMatch ) {
                 // color applies to whole line
@@ -1808,30 +1764,48 @@ void AbstractLogView::drawTextArea( QPaintDevice* paint_device )
             }
         }
 
+        std::vector<HighlightedMatch> allHighlights;
+        allHighlights.reserve( highlighterMatches.size() );
+        std::transform( highlighterMatches.begin(), highlighterMatches.end(),
+                        std::back_inserter( allHighlights ), [&logLine]( const auto& match ) {
+                            const auto prefix = logLine.leftRef( match.startColumn() );
+                            const auto expandedPrefixLength = untabify( prefix ).length();
+                            auto startDelta = expandedPrefixLength - prefix.length();
+
+                            const auto matchPart
+                                = logLine.midRef( match.startColumn(), match.length() );
+                            const auto expandedMatchLength = untabify( matchPart ).length();
+                            auto lengthDelta = expandedMatchLength - matchPart.length();
+
+                            return HighlightedMatch{ match.startColumn() + startDelta,
+                                                     match.length() + lengthDelta,
+                                                     match.foreColor(), match.backColor() };
+                        } );
+
         // string to print, cut to fit the length and position of the view
-        const QString line = lines[ currentLine.get() ];
-        const QString cutLine = line.mid( firstCol, nbCols );
+        const QString expandedLine = expandedLines[ currentLine.get() ];
+        const QString cutLine = expandedLine.mid( firstCol, nbCols );
 
         // Position in pixel of the base line of the line to print
         const int yPos = static_cast<int>( currentLine.get() ) * fontHeight;
         const int xPos = contentStartPosX + CONTENT_MARGIN_WIDTH;
 
         // Has the line got elements to be highlighted
-        std::vector<HighlightedMatch> qfMatches;
-        quickFindPattern_->matchLine( line, qfMatches );
-        highlighterMatches.insert( highlighterMatches.end(),
-                                   std::make_move_iterator( qfMatches.begin() ),
-                                   std::make_move_iterator( qfMatches.end() ) );
+        std::vector<HighlightedMatch> quickFindMatches;
+        quickFindPattern_->matchLine( expandedLine, quickFindMatches );
+        allHighlights.insert( allHighlights.end(),
+                              std::make_move_iterator( quickFindMatches.begin() ),
+                              std::make_move_iterator( quickFindMatches.end() ) );
 
         // Is there something selected in the line?
         int selectionStart, selectionEnd;
         if ( selection_.getPortionForLine( lineNumber, &selectionStart, &selectionEnd ) ) {
-            highlighterMatches.emplace_back( selectionStart, selectionEnd - selectionStart + 1,
-                                             palette.color( QPalette::HighlightedText ),
-                                             palette.color( QPalette::Highlight ) );
+            allHighlights.emplace_back( selectionStart, selectionEnd - selectionStart + 1,
+                                        palette.color( QPalette::HighlightedText ),
+                                        palette.color( QPalette::Highlight ) );
         }
 
-        if ( !highlighterMatches.empty() ) {
+        if ( !allHighlights.empty() ) {
             // We use the LineDrawer and its chunks because the
             // line has to be somehow highlighted
             LineDrawer lineDrawer( backColor );
@@ -1839,7 +1813,7 @@ void AbstractLogView::drawTextArea( QPaintDevice* paint_device )
             auto foreColors = std::vector<QColor>( static_cast<size_t>( nbCols + 1 ), foreColor );
             auto backColors = std::vector<QColor>( static_cast<size_t>( nbCols + 1 ), backColor );
 
-            for ( const auto& match : highlighterMatches ) {
+            for ( const auto& match : allHighlights ) {
                 const auto start = match.startColumn() - firstCol;
                 const auto end = start + match.length();
 

@@ -18,7 +18,8 @@ add_library(utils STATIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include/downloader.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/decompressor.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/klogg_version.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/readablesize.h)
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/readablesize.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/synchronization.h)
 
 set_target_properties(utils PROPERTIES AUTOMOC ON)
 
@@ -32,6 +33,7 @@ target_link_libraries(utils PUBLIC
         absl::optional
         absl::symbolize
         absl::failure_signal_handler
+        absl::synchronization
         klogg_karchive
         whereami
         plog)

@@ -147,7 +147,7 @@ void LogData::interruptLoading()
 
 qint64 LogData::getFileSize() const
 {
-    return indexing_data_.getSize();
+    return IndexingData::ConstAccessor{ &indexing_data_ }.getIndexedSize();
 }
 
 QDateTime LogData::getLastModifiedDate() const
@@ -217,7 +217,7 @@ void LogData::fileChangedOnDisk( const QString& filename )
     const auto currentFileId = FileId::getFileId( indexingFileName_ );
     const auto attachedFileId = attached_file_->getFileId();
 
-    const auto indexedHash = indexing_data_.getHash();
+    const auto indexedHash = IndexingData::ConstAccessor{ &indexing_data_ }.getHash();
 
     LOG( logINFO ) << "current indexed fileSize=" << indexedHash.size;
     LOG( logINFO ) << "current indexed hash=" << indexedHash.digest;
@@ -260,7 +260,7 @@ void LogData::indexingFinished( LoadingStatus status )
 
     LOG( logDEBUG ) << "indexingFinished for: " << indexingFileName_
                     << ( status == LoadingStatus::Successful ) << ", found "
-                    << indexing_data_.getNbLines() << " lines.";
+                    << IndexingData::ConstAccessor{ &indexing_data_ }.getNbLines() << " lines.";
 
     if ( status == LoadingStatus::Successful ) {
         FileWatcher::getFileWatcher().addFile( indexingFileName_ );
@@ -336,17 +336,17 @@ void LogData::checkFileChangesFinished( MonitoredFileStatus status )
 //
 LinesCount LogData::doGetNbLine() const
 {
-    return indexing_data_.getNbLines();
+    return IndexingData::ConstAccessor{ &indexing_data_ }.getNbLines();
 }
 
 LineLength LogData::doGetMaxLength() const
 {
-    return indexing_data_.getMaxLength();
+    return IndexingData::ConstAccessor{ &indexing_data_ }.getMaxLength();
 }
 
 LineLength LogData::doGetLineLength( LineNumber line ) const
 {
-    if ( line >= indexing_data_.getNbLines() ) {
+    if ( line >= IndexingData::ConstAccessor{ &indexing_data_ }.getNbLines() ) {
         return 0_length; /* exception? */
     }
 
@@ -358,13 +358,15 @@ void LogData::doSetDisplayEncoding( const char* encoding )
     LOG( logDEBUG ) << "AbstractLogData::setDisplayEncoding: " << encoding;
     codec_ = QTextCodec::codecForName( encoding );
 
-    const QTextCodec* currentIndexCodec = indexing_data_.getForcedEncoding();
+    IndexingData::ConstAccessor scopedAccessor{ &indexing_data_ };
+
+    const QTextCodec* currentIndexCodec = scopedAccessor.getForcedEncoding();
     if ( !currentIndexCodec )
-        currentIndexCodec = indexing_data_.getEncodingGuess();
+        currentIndexCodec = scopedAccessor.getEncodingGuess();
 
     if ( codec_->mibEnum() != currentIndexCodec->mibEnum() ) {
         if ( EncodingParameters( codec_ ) != EncodingParameters( currentIndexCodec ) ) {
-            bool isGuessedCodec = codec_->mibEnum() == indexing_data_.getEncodingGuess()->mibEnum();
+            bool isGuessedCodec = codec_->mibEnum() == scopedAccessor.getEncodingGuess()->mibEnum();
             reload( isGuessedCodec ? nullptr : codec_ );
         }
     }
@@ -377,17 +379,19 @@ QTextCodec* LogData::doGetDisplayEncoding() const
 
 QString LogData::doGetLineString( LineNumber line ) const
 {
-    if ( line >= indexing_data_.getNbLines() ) {
-        return ""; /* exception? */
-    }
-
     QByteArray rawString;
 
     {
+        IndexingData::ConstAccessor scopedAccessor{ &indexing_data_ };
+
+        if ( line >= scopedAccessor.getNbLines() ) {
+            return ""; /* exception? */
+        }
+
         ScopedFileHolder<FileHolder> locker( attached_file_.get() );
 
         locker.getFile()->seek(
-            ( line.get() == 0 ) ? 0 : indexing_data_.getPosForLine( line - 1_lcount ).get() );
+            ( line.get() == 0 ) ? 0 : scopedAccessor.getPosForLine( line - 1_lcount ).get() );
         rawString = locker.getFile()->readLine();
     }
 
@@ -410,28 +414,53 @@ QString LogData::doGetExpandedLineString( LineNumber line ) const
 // indexingFinished).
 std::vector<QString> LogData::doGetLines( LineNumber first_line, LinesCount number ) const
 {
+    return getLinesFromFile( first_line, number, []( QString&& lineData ) {
+        if ( lineData.endsWith( QChar::CarriageReturn ) ) {
+            lineData.chop( 1 );
+        }
+        return std::move( lineData );
+    } );
+}
+
+std::vector<QString> LogData::doGetExpandedLines( LineNumber first_line, LinesCount number ) const
+{
+    return getLinesFromFile( first_line, number,
+                             []( QString&& lineData ) { return untabify( lineData ); } );
+}
+
+std::vector<QString> LogData::getLinesFromFile( LineNumber first_line, LinesCount number,
+                                                QString ( *processLine )( QString&& ) ) const
+{
     const auto last_line = first_line + number - 1_lcount;
 
-    // LOG(logDEBUG) << "LogData::doGetLines first_line:" << first_line << " nb:" << number;
+    // LOG(logDEBUG) << "LogData::getLines first_line:" << first_line << " nb:" << number;
 
     if ( number.get() == 0 ) {
         return std::vector<QString>();
     }
 
-    if ( last_line >= indexing_data_.getNbLines() ) {
-        LOG( logWARNING ) << "LogData::doGetLines Lines out of bound asked for";
-        return std::vector<QString>(); /* exception? */
-    }
-
-    const auto first_byte = ( first_line.get() == 0 )
-                                ? 0
-                                : indexing_data_.getPosForLine( first_line - 1_lcount ).get();
-    const auto last_byte = indexing_data_.getPosForLine( last_line ).get();
-
     QByteArray buffer;
+    std::vector<qint64> endOfLines;
+    endOfLines.reserve( number.get() );
 
     {
+        IndexingData::ConstAccessor scopedAccessor{ &indexing_data_ };
+
+        if ( last_line >= scopedAccessor.getNbLines() ) {
+            LOG( logWARNING ) << "LogData::getLines Lines out of bound asked for";
+            return std::vector<QString>(); /* exception? */
+        }
+
         ScopedFileHolder<FileHolder> locker( attached_file_.get() );
+
+        const auto first_byte = ( first_line.get() == 0 )
+                                    ? 0
+                                    : scopedAccessor.getPosForLine( first_line - 1_lcount ).get();
+        const auto last_byte = scopedAccessor.getPosForLine( last_line ).get();
+
+        for ( LineNumber line = first_line; ( line <= last_line ); ++line ) {
+            endOfLines.emplace_back( scopedAccessor.getPosForLine( line ).get() - first_byte );
+        }
 
         locker.getFile()->seek( first_byte );
         buffer = locker.getFile()->read( last_byte - first_byte );
@@ -442,68 +471,19 @@ std::vector<QString> LogData::doGetLines( LineNumber first_line, LinesCount numb
 
     qint64 beginning = 0;
     qint64 end = 0;
+    size_t currentLine = 0;
     std::unique_ptr<QTextDecoder> decoder{ codec_->makeDecoder() };
 
     EncodingParameters encodingParams{ codec_ };
 
-    for ( LineNumber line = first_line; ( line <= last_line ); ++line ) {
-        end = indexing_data_.getPosForLine( line ).get() - first_byte;
+    for ( LineNumber line = first_line; ( line <= last_line ); ++line, ++currentLine ) {
+        end = endOfLines[ currentLine ];
+
         auto lineData = decoder->toUnicode( buffer.data() + beginning,
                                             static_cast<LineLength::UnderlyingType>(
                                                 end - beginning - encodingParams.lineFeedWidth ) );
 
-        if ( lineData.endsWith( QChar::CarriageReturn ) ) {
-            lineData.chop( 1 );
-        }
-
-        list.emplace_back( std::move( lineData ) );
-        beginning = end;
-    }
-
-    return list;
-}
-
-std::vector<QString> LogData::doGetExpandedLines( LineNumber first_line, LinesCount number ) const
-{
-    const auto last_line = first_line + number - 1_lcount;
-
-    if ( number.get() == 0 ) {
-        return std::vector<QString>();
-    }
-
-    if ( last_line >= indexing_data_.getNbLines() ) {
-        LOG( logWARNING ) << "LogData::doGetExpandedLines Lines out of bound asked for";
-        return std::vector<QString>(); /* exception? */
-    }
-
-    const auto first_byte = ( first_line.get() == 0 )
-                                ? 0
-                                : indexing_data_.getPosForLine( first_line - 1_lcount ).get();
-    const auto last_byte = indexing_data_.getPosForLine( last_line ).get();
-
-    QByteArray buffer;
-
-    {
-        ScopedFileHolder<FileHolder> locker( attached_file_.get() );
-
-        locker.getFile()->seek( first_byte );
-        buffer = locker.getFile()->read( last_byte - first_byte );
-    }
-
-    std::vector<QString> list;
-    list.reserve( number.get() );
-
-    qint64 beginning{};
-    qint64 end{};
-    std::unique_ptr<QTextDecoder> decoder{ codec_->makeDecoder() };
-
-    EncodingParameters encodingParams{ codec_ };
-
-    for ( auto line = first_line; ( line <= last_line ); ++line ) {
-        end = indexing_data_.getPosForLine( line ).get() - first_byte;
-        list.emplace_back( untabify( decoder->toUnicode(
-            buffer.data() + beginning, static_cast<LineLength::UnderlyingType>(
-                                           end - beginning - encodingParams.lineFeedWidth ) ) ) );
+        list.emplace_back( processLine( std::move( lineData ) ) );
         beginning = end;
     }
 
@@ -512,7 +492,7 @@ std::vector<QString> LogData::doGetExpandedLines( LineNumber first_line, LinesCo
 
 QTextCodec* LogData::getDetectedEncoding() const
 {
-    return indexing_data_.getEncodingGuess();
+    return IndexingData::ConstAccessor{ &indexing_data_ }.getEncodingGuess();
 }
 
 void LogData::clearLog()

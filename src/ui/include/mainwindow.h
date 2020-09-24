@@ -43,12 +43,13 @@
 #include <QSystemTrayIcon>
 #include <QTemporaryDir>
 
+#include <array>
 #include <memory>
 #include <mutex>
-#include <array>
 
 #include "crawlerwidget.h"
 #include "downloader.h"
+#include "iconloader.h"
 #include "pathline.h"
 #include "quickfindmux.h"
 #include "quickfindwidget.h"
@@ -58,6 +59,7 @@
 #include "tabbedscratchpad.h"
 #include "iconloader.h"
 #include "iodevicesettings.h"
+#include "recentfiles.h"
 
 class QAction;
 class QActionGroup;
@@ -98,7 +100,9 @@ class MainWindow : public QMainWindow {
 
   private slots:
     void open();
-    void openFileFromAction( QAction* action );
+    void openFileFromRecent( QAction* action );
+    void openFileFromFavorites( QAction* action );
+    void switchToOpenedFile( QAction* action );
     void closeTab();
     void closeAll();
     void selectAll();
@@ -178,9 +182,11 @@ class MainWindow : public QMainWindow {
 
   private:
     void createActions();
+    void loadIcons();
     void createMenus();
     void createToolBars();
     void createTrayIcon();
+    void applyStyle();
     void readSettings();
     void writeSettings();
     bool loadFile( const QString& fileName, std::shared_ptr<IoDeviceSettings> settings = nullptr, bool followFile = false );
@@ -196,7 +202,9 @@ class MainWindow : public QMainWindow {
     void updateMenuBarFromDocument( const CrawlerWidget* crawler );
     void updateInfoLine();
     void showInfoLabels( bool show );
-    void logScreenInfo(QScreen* screen);
+    void logScreenInfo( QScreen* screen );
+    void removeFromFavorites( const QString& pathToRemove );
+    void removeFromRecent( const RecentFileT& recentFileToRemove );
 
     WindowSession session_;
     QString loadingFileName;
@@ -258,7 +266,6 @@ class MainWindow : public QMainWindow {
     QAction* selectOpenFileAction;
     QActionGroup* favoritesGroup;
     QActionGroup* openedFilesGroup;
-
 
     QSystemTrayIcon* trayIcon_;
 

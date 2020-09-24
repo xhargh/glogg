@@ -63,6 +63,7 @@
 #include <QMimeData>
 #include <QProgressDialog>
 #include <QScreen>
+#include <QStyleFactory>
 #include <QTemporaryFile>
 #include <QTextBrowser>
 #include <QToolBar>
@@ -102,12 +103,14 @@ void signalCrawlerToFollowFile( CrawlerWidget* crawler_widget )
 MainWindow::MainWindow( WindowSession session )
     : session_( std::move( session ) )
     , mainIcon_()
+    , iconLoader_( this )
     , signalMux_()
     , quickFindMux_( session_.getQuickFindPattern() )
     , mainTabWidget_()
     , tempDir_( QDir::temp().filePath( "klogg-io_temp_" ) )
 {
     createActions();
+    loadIcons();
     createMenus();
     createToolBars();
 
@@ -207,6 +210,8 @@ MainWindow::MainWindow( WindowSession session )
     onClipboardDataChanged();
 
     updateTitleBar( "" );
+
+    applyStyle();
 }
 
 void MainWindow::reloadGeometry()
@@ -219,7 +224,8 @@ void MainWindow::reloadGeometry()
 
 void MainWindow::reloadSession()
 {
-    const auto followFileOnLoad = Configuration::get().followFileOnLoad();
+    const auto& config = Configuration::get();
+    const auto followFileOnLoad = config.followFileOnLoad() && config.anyFileWatchEnabled();
 
     int current_file_index = -1;
     const auto openedFiles
@@ -272,18 +278,15 @@ void MainWindow::createActions()
 
     openAction = new QAction( tr( "&Open..." ), this );
     openAction->setShortcuts( QKeySequence::keyBindings( QKeySequence::Open ) );
-    openAction->setIcon( iconLoader_.load( "icons8-add-file" ) );
     openAction->setStatusTip( tr( "Open a file" ) );
     connect( openAction, &QAction::triggered, [this]( auto ) { this->open(); } );
 
     openSerialPortAction = new QAction(tr("&Open Serial Port..."), this);
     openSerialPortAction->setShortcut(QKeySequence::Open);
-    openSerialPortAction->setIcon( iconLoader_.load( "open-serial" ) );
     openSerialPortAction->setStatusTip(tr("Open a Serial Port"));
     connect(openSerialPortAction, SIGNAL(triggered()), this, SLOT(openSerialPortDialog()));
 
     exportLogAction = new QAction(tr("&Export Log"), this);
-    exportLogAction->setIcon( iconLoader_.load( "export-file" ) );
     exportLogAction->setStatusTip(tr("Export Log to File"));
     signalMux_.connect( exportLogAction, SIGNAL(triggered()), SLOT(exportLog()) );
 
@@ -298,7 +301,7 @@ void MainWindow::createActions()
     connect( closeAllAction, &QAction::triggered, [this]( auto ) { this->closeAll(); } );
 
     recentFilesGroup = new QActionGroup( this );
-    connect( recentFilesGroup, &QActionGroup::triggered, this, &MainWindow::openFileFromAction );
+    connect( recentFilesGroup, &QActionGroup::triggered, this, &MainWindow::openFileFromRecent );
     for ( auto i = 0u; i < recentFileActions.size(); ++i ) {
         recentFileActions[ i ] = new QAction( this );
         recentFileActions[ i ]->setVisible( false );
@@ -374,21 +377,19 @@ void MainWindow::createActions()
              &MainWindow::toggleFilteredLineNumbersVisibility );
 
     followAction = new QAction( tr( "&Follow File" ), this );
-    followAction->setIcon( iconLoader_.load( "icons8-fast-forward" ) );
 
     followAction->setShortcuts( QList<QKeySequence>()
                                 << QKeySequence( Qt::Key_F ) << QKeySequence( Qt::Key_F10 ) );
 
     followAction->setCheckable( true );
+    followAction->setEnabled( config.anyFileWatchEnabled() );
     connect( followAction, &QAction::toggled, this, &MainWindow::followSet );
 
     reloadAction = new QAction( tr( "&Reload" ), this );
     reloadAction->setShortcuts( QKeySequence::keyBindings( QKeySequence::Refresh ) );
-    reloadAction->setIcon( iconLoader_.load( "icons8-restore-page" ) );
     signalMux_.connect( reloadAction, SIGNAL( triggered() ), SLOT( reload() ) );
 
     stopAction = new QAction( tr( "&Stop" ), this );
-    stopAction->setIcon( iconLoader_.load( "icons8-delete" ) );
     stopAction->setEnabled( true );
     signalMux_.connect( stopAction, SIGNAL( triggered() ), SLOT( stopLoading() ) );
 
@@ -419,7 +420,6 @@ void MainWindow::createActions()
 
     showScratchPadAction = new QAction( tr( "Scratchpad" ), this );
     showScratchPadAction->setStatusTip( tr( "Show the scratchpad" ) );
-    showScratchPadAction->setIcon( iconLoader_.load( "icons8-create" ) );
     connect( showScratchPadAction, &QAction::triggered,
              [this]( auto ) { this->showScratchPad(); } );
 
@@ -427,19 +427,17 @@ void MainWindow::createActions()
     connect( encodingGroup, &QActionGroup::triggered, this, &MainWindow::encodingChanged );
 
     favoritesGroup = new QActionGroup( this );
-    connect( favoritesGroup, &QActionGroup::triggered, this, &MainWindow::openFileFromAction );
+    connect( favoritesGroup, &QActionGroup::triggered, this, &MainWindow::openFileFromFavorites );
 
     openedFilesGroup = new QActionGroup( this );
-    connect( openedFilesGroup, &QActionGroup::triggered, this, &MainWindow::openFileFromAction );
+    connect( openedFilesGroup, &QActionGroup::triggered, this, &MainWindow::switchToOpenedFile );
 
     addToFavoritesAction = new QAction( tr( "Add to favorites" ), this );
-    addToFavoritesAction->setIcon( iconLoader_.load( "icons8-star" ) );
     addToFavoritesAction->setData( true );
     connect( addToFavoritesAction, &QAction::triggered,
              [this]( auto ) { this->addToFavorites(); } );
 
     addToFavoritesMenuAction = new QAction( tr( "Add to favorites" ), this );
-    addToFavoritesMenuAction->setIcon( iconLoader_.load( "icons8-star" ) );
     connect( addToFavoritesMenuAction, &QAction::triggered,
              [this]( auto ) { this->addToFavorites(); } );
 
@@ -452,6 +450,19 @@ void MainWindow::createActions()
              [this]( auto ) { this->selectOpenedFile(); } );
     selectOpenFileAction->setShortcuts( QList<QKeySequence>()
                                         << QKeySequence( Qt::SHIFT | Qt::CTRL | Qt::Key_O ) );
+}
+
+void MainWindow::loadIcons()
+{
+    openAction->setIcon( iconLoader_.load( "icons8-add-file" ) );
+    stopAction->setIcon( iconLoader_.load( "icons8-delete" ) );
+    reloadAction->setIcon( iconLoader_.load( "icons8-restore-page" ) );
+    followAction->setIcon( iconLoader_.load( "icons8-fast-forward" ) );
+    showScratchPadAction->setIcon( iconLoader_.load( "icons8-create" ) );
+    addToFavoritesAction->setIcon( iconLoader_.load( "icons8-star" ) );
+    addToFavoritesMenuAction->setIcon( iconLoader_.load( "icons8-star" ) );
+    openSerialPortAction->setIcon( iconLoader_.load( "open-serial" ) );
+    exportLogAction->setIcon( iconLoader_.load( "export-file" ) );
 }
 
 void MainWindow::createMenus()
@@ -570,6 +581,27 @@ void MainWindow::createToolBars()
     showInfoLabels( false );
 }
 
+void MainWindow::applyStyle()
+{
+    const auto& config = Configuration::get();
+    auto style = config.style();
+    LOG( logINFO ) << "Setting style to " << style;
+    if ( style == DarkStyleKey ) {
+        QFile styleFile( ":qdarkstyle/style.qss" );
+        styleFile.open( QFile::ReadOnly | QFile::Text );
+        QTextStream styleSream( &styleFile );
+        QApplication::setStyle( nullptr );
+        qApp->setStyleSheet( styleSream.readAll() );
+    }
+    else {
+        QApplication::setStyle( style );
+        qApp->setStyleSheet( "" );
+    }
+
+    loadIcons();
+    updateFavoritesMenu();
+}
+
 void MainWindow::createTrayIcon()
 {
     trayIcon_ = new QSystemTrayIcon( this );
@@ -678,12 +710,56 @@ void MainWindow::openRemoteFile( const QUrl& url )
     }
 }
 
-// Opens a log file from the recent files list
-void MainWindow::openFileFromAction( QAction* action )
+void MainWindow::switchToOpenedFile( QAction* action )
 {
-    if ( action ) {
-        RecentFileT rf = action->data().value<RecentFileT>();
-        loadFile( rf.name_, rf.settings_ );
+    if ( !action ) {
+        return;
+    }
+
+    loadFile( action->data().toString() );
+}
+
+void MainWindow::openFileFromRecent( QAction* action )
+{
+    if ( !action ) {
+        return;
+    }
+
+    const auto rf = action->data().value<RecentFileT>();
+    if ( rf.settings_ || QFileInfo{ rf.name_ }.isReadable() ) {
+		loadFile( rf.name_, rf.settings_ );
+    }
+    else {
+        const auto userAction = QMessageBox::question(
+            this, "klogg - remove from recent",
+            QString( "Could not read file %1. Remove it from recent files?" ).arg( rf.name_ ),
+            QMessageBox::Yes | QMessageBox::No, QMessageBox::No );
+
+        if ( userAction == QMessageBox::Yes ) {
+            removeFromRecent( rf );
+        }
+    }
+}
+
+void MainWindow::openFileFromFavorites( QAction* action )
+{
+    if ( !action ) {
+        return;
+    }
+
+    const auto filename = action->data().toString();
+    if ( QFileInfo{ filename }.isReadable() ) {
+        loadFile( filename );
+    }
+    else {
+        const auto userAction = QMessageBox::question(
+            this, "klogg - remove from favorites",
+            QString( "Could not read file %1. Remove it from favorites?" ).arg( filename ),
+            QMessageBox::Yes | QMessageBox::No, QMessageBox::No );
+
+        if ( userAction == QMessageBox::Yes ) {
+            removeFromFavorites( filename );
+        }
     }
 }
 
@@ -830,13 +906,19 @@ void MainWindow::options()
 {
     OptionsDialog dialog( this );
     signalMux_.connect( &dialog, SIGNAL( optionsChanged() ), SLOT( applyConfiguration() ) );
+
+    connect( &dialog, &OptionsDialog::optionsChanged, [this]() {
+        const auto& config = Configuration::get();
+        plog::EnableLogging( config.enableLogging(), config.loggingLevel() );
+
+        newWindowAction->setVisible( config.allowMultipleWindows() );
+        followAction->setEnabled( config.anyFileWatchEnabled() );
+
+        applyStyle();
+    } );
     dialog.exec();
+
     signalMux_.disconnect( &dialog, SIGNAL( optionsChanged() ), SLOT( applyConfiguration() ) );
-
-    const auto& config = Configuration::get();
-    plog::EnableLogging( config.enableLogging(), config.loggingLevel() );
-
-    newWindowAction->setVisible( config.allowMultipleWindows() );
 }
 
 void MainWindow::about()
@@ -851,7 +933,7 @@ void MainWindow::about()
             "<p>This is fork of glogg</p>"
             "<p><a href=\"http://glogg.bonnefon.org/\">http://glogg.bonnefon.org/</a></p>"
             "<p>Using icons from <a href=\"https://icons8.com\">icons8.com</a> project</p>"
-            "<p>Copyright &copy; 2019 Nicolas Bonnefon, Anton Filimonov, Gustav Andersson and other contributors</p>"
+            "<p>Copyright &copy; 2020 Nicolas Bonnefon, Anton Filimonov, Gustav Andersson and other contributors</p>"
             "<p>You may modify and redistribute the program under the terms of the GPL (version 3 "
             "or later).</p>" )
             .arg( kloggVersion(), kloggBuildDate(), kloggCommit() ) );
@@ -927,6 +1009,11 @@ void MainWindow::toggleFilteredLineNumbersVisibility( bool isVisible )
 
 void MainWindow::changeFollowMode( bool follow )
 {
+    auto& config = Configuration::get();
+    if ( follow && !( config.nativeFileWatchEnabled() || config.pollingEnabled() ) ) {
+        LOG( logWARNING ) << "File watch disabled in settings";
+    }
+
     followAction->setChecked( follow );
 }
 
@@ -1350,7 +1437,7 @@ bool MainWindow::loadFile( const QString& fileName, std::shared_ptr<IoDeviceSett
             updateOpenedFilesMenu();
 
             const auto& config = Configuration::get();
-            if ( followFile || config.followFileOnLoad() ) {
+            if ( config.anyFileWatchEnabled() && ( followFile || config.followFileOnLoad() ) ) {
                 signalCrawlerToFollowFile( crawler_widget );
                 followAction->setChecked( true );
             }
@@ -1405,7 +1492,7 @@ void MainWindow::updateRecentFileActions()
     auto recent_files = RecentFiles::get().recentFiles();
 
     for ( auto j = 0; j < MaxRecentFiles; ++j ) {
-        const auto actionIndex = static_cast<size_t>(j);
+        const auto actionIndex = static_cast<size_t>( j );
         if ( j < recent_files.count() ) {
             QString text = tr( "&%1 %2" ).arg( j + 1 ).arg( strippedName( recent_files[ j ].name_ ) );
             recentFileActions[ actionIndex ]->setText( text );
@@ -1544,7 +1631,7 @@ void MainWindow::updateFavoritesMenu()
 void MainWindow::addToFavorites()
 {
     if ( const auto crawler = currentCrawlerWidget() ) {
-        auto favorites = FavoriteFiles::get();
+        auto& favorites = FavoriteFiles::get();
         const auto path = session_.getFilename( crawler );
 
         if ( addToFavoritesAction->data().toBool() ) {
@@ -1562,7 +1649,7 @@ void MainWindow::addToFavorites()
 
 void MainWindow::removeFromFavorites()
 {
-    auto favoriteFiles = FavoriteFiles::get();
+    const auto& favoriteFiles = FavoriteFiles::get();
     const auto& favorites = favoriteFiles.favorites();
     QStringList files;
     std::transform( favorites.begin(), favorites.end(), std::back_inserter( files ),
@@ -1584,15 +1671,30 @@ void MainWindow::removeFromFavorites()
                                                      "Select item to remove from favorites", files,
                                                      currentIndex, false, &ok );
     if ( ok ) {
-        const auto selectedFile = std::find_if( favorites.begin(), favorites.end(),
-                                                FullPathNativeComparator( pathToRemove ) );
-
-        if ( selectedFile != favorites.end() ) {
-            favoriteFiles.remove( selectedFile->fullPath() );
-            favoriteFiles.save();
-            updateFavoritesMenu();
-        }
+        removeFromFavorites( pathToRemove );
     }
+}
+
+void MainWindow::removeFromFavorites( const QString& pathToRemove )
+{
+    auto& favoriteFiles = FavoriteFiles::get();
+    const auto& favorites = favoriteFiles.favorites();
+    const auto selectedFile = std::find_if( favorites.begin(), favorites.end(),
+                                            FullPathNativeComparator( pathToRemove ) );
+
+    if ( selectedFile != favorites.end() ) {
+        favoriteFiles.remove( selectedFile->fullPath() );
+        favoriteFiles.save();
+        updateFavoritesMenu();
+    }
+}
+
+void MainWindow::removeFromRecent( const RecentFileT& recentFileToRemove )
+{
+    auto& recentFiles = RecentFiles::get();
+    recentFiles.removeRecent( recentFileToRemove );
+    recentFiles.save();
+    updateRecentFileActions();
 }
 
 void MainWindow::selectOpenedFile()

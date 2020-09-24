@@ -17,8 +17,8 @@
  * along with glogg.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QSettings>
 #include <QFile>
+#include <QSettings>
 
 #include "log.h"
 #include "recentfiles.h"
@@ -30,6 +30,19 @@ bool operator==(const RecentFileT& lhs, const RecentFileT& rhs)
 {
     return lhs.name_ == rhs.name_;
 }
+
+void RecentFiles::removeRecent( const RecentFileT& recentFile )
+{
+    // First prune non existent files
+    QMutableListIterator<RecentFileT> i(recentFiles_);
+    while ( i.hasNext() ) {
+        if ( !QFile::exists( i.next().name_ ) )
+            i.remove();
+    }
+
+    recentFiles_.removeAll( recentFile );
+}
+
 
 void RecentFiles::addRecent( const QString& text, std::shared_ptr<IoDeviceSettings> settings)
 {
@@ -66,13 +79,13 @@ RecentFilesT RecentFiles::recentFiles() const
 
 void RecentFiles::saveToStorage( QSettings& settings ) const
 {
-    LOG(logDEBUG) << "RecentFiles::saveToStorage";
+    LOG( logDEBUG ) << "RecentFiles::saveToStorage";
 
     settings.beginGroup( "RecentFiles" );
     settings.setValue( "version", RECENTFILES_VERSION );
     settings.remove( "filesHistory" );
     settings.beginWriteArray( "filesHistory" );
-    for (int i = 0; i < recentFiles_.size(); ++i) {
+    for ( int i = 0; i < recentFiles_.size(); ++i ) {
         settings.setArrayIndex( i );
         settings.setValue( "name", recentFiles_.at( i ).name_ );
         if (recentFiles_.at( i ).settings_) {
@@ -86,7 +99,7 @@ void RecentFiles::saveToStorage( QSettings& settings ) const
 
 void RecentFiles::retrieveFromStorage( QSettings& settings )
 {
-    LOG(logDEBUG) << "RecentFiles::retrieveFromStorage";
+    LOG( logDEBUG ) << "RecentFiles::retrieveFromStorage";
 
     recentFiles_.clear();
 
@@ -103,7 +116,7 @@ void RecentFiles::retrieveFromStorage( QSettings& settings )
             settings.endArray();
         }
         else {
-            LOG(logERROR) << "Unknown version of recent files, ignoring it...";
+            LOG( logERROR ) << "Unknown version of recent files, ignoring it...";
         }
         settings.endGroup();
     }

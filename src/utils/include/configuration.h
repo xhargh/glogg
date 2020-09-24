@@ -52,6 +52,8 @@ enum SearchRegexpType {
     FixedString,
 };
 
+static constexpr QLatin1String DarkStyleKey = QLatin1String( "Dark", 4 );
+
 // Configuration class containing everything in the "Settings" dialog
 class Configuration final : public Persistable<Configuration> {
   public:
@@ -92,6 +94,11 @@ class Configuration final : public Persistable<Configuration> {
     }
 
     // "Advanced" settings
+    bool anyFileWatchEnabled() const
+    {
+        return nativeFileWatchEnabled() || pollingEnabled();
+    }
+
     bool nativeFileWatchEnabled() const
     {
         return nativeFileWatchEnabled_;
@@ -116,6 +123,17 @@ class Configuration final : public Persistable<Configuration> {
     {
         pollIntervalMs_ = interval;
     }
+
+    bool fastModificationDetection() const
+    {
+        return fastModificationDetection_;
+    }
+
+    void setFastModificationDetection( bool fastDetection )
+    {
+        fastModificationDetection_ = fastDetection;
+    }
+
     bool loadLastSession() const
     {
         return loadLastSession_;
@@ -239,6 +257,10 @@ class Configuration final : public Persistable<Configuration> {
     {
         return minimizeToTray_;
     }
+    QString style() const
+    {
+        return style_;
+    }
     void setMainLineNumbersVisible( bool lineNumbersVisible )
     {
         lineNumbersVisibleInMain_ = lineNumbersVisible;
@@ -250,6 +272,10 @@ class Configuration final : public Persistable<Configuration> {
     void setMinimizeToTray( bool minimizeToTray )
     {
         minimizeToTray_ = minimizeToTray;
+    }
+    void setStyle( const QString& style )
+    {
+        style_ = style;
     }
 
     bool enableLogging() const
@@ -370,6 +396,8 @@ class Configuration final : public Persistable<Configuration> {
 
     int pollIntervalMs_ = 2000;
 
+    bool fastModificationDetection_ = false;
+
     bool loadLastSession_ = true;
     bool followFileOnLoad_ = false;
     bool allowMultipleWindows_ = false;
@@ -379,6 +407,7 @@ class Configuration final : public Persistable<Configuration> {
     bool lineNumbersVisibleInMain_ = false;
     bool lineNumbersVisibleInFiltered_ = true;
     bool minimizeToTray_ = false;
+    QString style_;
 
     // Default settings for new views
     bool searchAutoRefresh_ = false;

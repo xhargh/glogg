@@ -49,6 +49,7 @@ class RecentFiles final : public Persistable<RecentFiles, session_settings> {
 
     // Adds the passed filename to the list of recently used searches
     void addRecent( const QString& text, std::shared_ptr<IoDeviceSettings> settings );
+    void removeRecent( const RecentFileT& recentFile );
 
     // Returns a list of recent files (latest loaded first)
     RecentFilesT recentFiles() const;

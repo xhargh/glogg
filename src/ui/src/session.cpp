@@ -69,13 +69,7 @@ ViewInterface* Session::open( const QString& file_name,
                               std::shared_ptr<IoDeviceSettings> settings,
                               const std::function<ViewInterface*()>& view_factory )
 {
-    QFileInfo fileInfo( file_name );
-    if ( settings || fileInfo.isReadable() ) {
-        return openAlways( file_name, settings, view_factory, nullptr );
-    }
-    else {
-        throw FileUnreadableErr();
-    }
+    return openAlways( file_name, settings, view_factory, nullptr );
 }
 
 void Session::close( const ViewInterface* view )

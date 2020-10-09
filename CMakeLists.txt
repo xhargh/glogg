@@ -118,11 +118,10 @@ add_subdirectory(website)
 
 
 enable_testing()
-# QQQ - disabled, this seems to open a window and the CI does not like that
-#add_test(
-#    NAME klogg_io_smoke
-#    COMMAND klogg-io -platform offscreen -v
-#)
+add_test(
+    NAME klogg_io_smoke
+    COMMAND klogg-io -platform offscreen -v
+)
 
 if (${BUILD_TESTS})
     add_subdirectory(tests)

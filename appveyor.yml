@@ -20,7 +20,6 @@ environment:
   GITHUB_RELEASE_TAG: continuous-win
   GITHUB_TOKEN:
       secure: +YCbYxqzyLV57jhslXRatlbk1eMU2wJptb+YmcaxdFXO7B+TaCNpym1AdoOKrTid
-  GITHUB_RELEASE_TAG: continuous-win
   NINJA_URL: https://github.com/ninja-build/ninja/releases/download/v1.9.0/ninja-win.zip
 
 matrix:

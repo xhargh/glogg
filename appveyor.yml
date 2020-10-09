@@ -29,7 +29,6 @@ matrix:
 
 install:
   - appveyor DownloadFile %NINJA_URL% -FileName ninja.zip
-  - appveyor DownloadFile %SENTRY_CLI_URL% -FileName sentry-cli.exe
   - 7z x ninja.zip -o%APPVEYOR_BUILD_FOLDER%\ninja > nul
   - set PATH=%APPVEYOR_BUILD_FOLDER%\ninja;%PATH%
   - ninja --version

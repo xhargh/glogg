@@ -15,8 +15,8 @@ add_custom_command (OUTPUT ${DOCUMENTATION_HTML}
         DEPENDS maddy ${DOCUMENTATION_FILE})
 
 set(MAIN_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/crashhandler.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/crashhandler.h
+    #${CMAKE_CURRENT_SOURCE_DIR}/crashhandler.cpp
+    #${CMAKE_CURRENT_SOURCE_DIR}/crashhandler.h
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/messagereceiver.h
     ${CMAKE_CURRENT_SOURCE_DIR}/kloggapp.h
@@ -40,7 +40,7 @@ set_property(TARGET klogg-io PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 set_property(TARGET klogg_io_portable PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
-set(MAIN_LIBS ui cli11 singleapp sentry)
+set(MAIN_LIBS ui cli11 singleapp)
 if (NOT APPLE)
     if (TBB_BUILD_TBBMALLOC)
         LIST(APPEND MAIN_LIBS klogg_tbbmalloc_proxy)

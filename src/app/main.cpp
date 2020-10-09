@@ -186,7 +186,7 @@ int main( int argc, char* argv[] )
     }
 
     app.initLogger( static_cast<plog::Severity>( parameters.log_level ), parameters.log_to_file );
-    app.initCrashHandler();
+    // app.initCrashHandler();
 
     LOG( logINFO ) << "Klogg-io instance " << app.instanceId();
 

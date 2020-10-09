@@ -28,6 +28,8 @@ set(MAIN_SOURCES
 add_executable(klogg-io ${OS_BUNDLE} ${MAIN_SOURCES})
 add_executable(klogg_io_portable ${OS_BUNDLE} ${MAIN_SOURCES})
 
+add_dependencies(ci_build klogg-io klogg_io_portable)
+
 set_target_properties(klogg-io PROPERTIES AUTORCC ON)
 set_target_properties(klogg-io PROPERTIES AUTOMOC ON)
 set_target_properties(klogg_io_portable PROPERTIES AUTORCC ON)

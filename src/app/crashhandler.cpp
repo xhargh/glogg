@@ -23,13 +23,17 @@
 
 #include "klogg_version.h"
 #include "log.h"
+#include "openfilehelper.h"
 
 #include <QByteArray>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QDir>
+#include <QHBoxLayout>
 #include <QJsonDocument>
 #include <QLabel>
+#include <QPushButton>
+#include <QStandardPaths>
 #include <QTextEdit>
 #include <QVBoxLayout>
 
@@ -37,6 +41,17 @@ namespace {
 
 constexpr const char* DSN
     = "https://aad3b270e5ba4ec2915eb5caf6e6d929@o453796.ingest.sentry.io/5442855";
+
+QString sentryDatabasePath()
+{
+#ifdef KLOGG_PORTABLE
+    auto basePath = QCoreApplication::applicationDirPath();
+#else
+    auto basePath = QStandardPaths::writableLocation( QStandardPaths::AppDataLocation );
+#endif
+
+    return basePath.append( "/klogg_dump" );
+}
 
 void logSentry( sentry_level_t level, const char* message, va_list args, void* userdata )
 {
@@ -69,27 +84,33 @@ QJsonDocument extractJson( const QByteArray& data, int& lastOffset )
     return envelopeJson;
 }
 
+std::vector<QJsonDocument> extractMessage( const QByteArray& envelopeString )
+{
+    std::vector<QJsonDocument> messages;
+    int position = 0;
+    auto offset = 0;
+    do {
+        messages.push_back( extractJson( envelopeString.mid( position ), offset ) );
+        position += offset;
+    } while ( offset > 0 && position < envelopeString.size() );
+
+    return messages;
+}
+
 int askUserConfirmation( sentry_envelope_t* envelope, void* )
 {
     size_t size_out = 0;
     char* rawEnvelope = sentry_envelope_serialize( envelope, &size_out );
+    LOG( logINFO ) << "raw envelope:" << rawEnvelope;
     auto envelopeString = QByteArray( rawEnvelope );
     sentry_free( rawEnvelope );
 
-    std::vector<QJsonDocument> messages;
-    int offset = 0;
-    do {
-        auto newOffset = 0;
-        messages.push_back( extractJson( envelopeString.mid( offset ), newOffset ) );
-        offset += newOffset;
-    } while ( offset < envelopeString.size() );
-
+    const auto messages = extractMessage( envelopeString );
     QString formattedReport;
     for ( const auto& message : messages ) {
-        formattedReport.append(
-            QString::fromUtf8( message.toJson( QJsonDocument::Indented ) ) );
+        formattedReport.append( QString::fromUtf8( message.toJson( QJsonDocument::Indented ) ) );
     }
-    
+
     LOG( logINFO ) << "Envelope: " << formattedReport;
 
     auto message = std::make_unique<QLabel>();
@@ -106,6 +127,26 @@ int askUserConfirmation( sentry_envelope_t* envelope, void* )
     auto sendReportLabel = std::make_unique<QLabel>();
     sendReportLabel->setText(
         "Klogg may send this report to sentry.io for developers to analyze and fix the issue" );
+
+    auto privacyPolicy = std::make_unique<QLabel>();
+    privacyPolicy->setText(
+        "<a href=\"https://klogg.filimonov.dev/docs/privacy_policy\">Privacy policy</a>" );
+
+    privacyPolicy->setTextFormat( Qt::RichText );
+    privacyPolicy->setTextInteractionFlags( Qt::TextBrowserInteraction );
+    privacyPolicy->setOpenExternalLinks( true );
+
+    auto exploreButton = std::make_unique<QPushButton>();
+    exploreButton->setText( "Open report directory" );
+    exploreButton->setFlat( true );
+    QObject::connect( exploreButton.get(), &QPushButton::clicked, [] {
+        showPathInFileExplorer( sentryDatabasePath().append( "/last_crash" ) );
+    } );
+
+    auto privacyLayout = std::make_unique<QHBoxLayout>();
+    privacyLayout->addWidget( privacyPolicy.release() );
+    privacyLayout->addStretch();
+    privacyLayout->addWidget( exploreButton.release() );
 
     auto buttonBox = std::make_unique<QDialogButtonBox>();
     buttonBox->addButton( "Send report", QDialogButtonBox::AcceptRole );
@@ -124,6 +165,7 @@ int askUserConfirmation( sentry_envelope_t* envelope, void* )
     layout->addWidget( crashReportHeader.release() );
     layout->addWidget( report.release() );
     layout->addWidget( sendReportLabel.release() );
+    layout->addLayout( privacyLayout.release() );
     layout->addWidget( buttonBox.release() );
 
     confirmationDialog->setLayout( layout.release() );
@@ -141,7 +183,7 @@ CrashHandler::CrashHandler()
     sentry_options_set_logger( sentryOptions, logSentry, nullptr );
     sentry_options_set_debug( sentryOptions, 1 );
 
-    const auto dumpPath = QDir::temp().filePath( "klogg_dump" );
+    const auto dumpPath = sentryDatabasePath();
 
 #ifdef Q_OS_WIN
     sentry_options_set_database_pathw( sentryOptions, dumpPath.toStdWString().c_str() );

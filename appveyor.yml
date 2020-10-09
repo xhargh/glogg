@@ -17,17 +17,19 @@ environment:
   SSL_DIR_32: C:\OpenSSL-v111-Win32\bin
   CMAKE_GENERATOR_NAME: Ninja
   CMAKE_BUILD_TYPE: RelWithDebInfo
+  GITHUB_RELEASE_TAG: continuous-win
   GITHUB_TOKEN:
       secure: +YCbYxqzyLV57jhslXRatlbk1eMU2wJptb+YmcaxdFXO7B+TaCNpym1AdoOKrTid
   GITHUB_RELEASE_TAG: continuous-win
+  NINJA_URL: https://github.com/ninja-build/ninja/releases/download/v1.9.0/ninja-win.zip
 
 matrix:
     allow_failures:
     - platform: x86
 
 install:
-  - set NINJA_URL="https://github.com/ninja-build/ninja/releases/download/v1.9.0/ninja-win.zip"
   - appveyor DownloadFile %NINJA_URL% -FileName ninja.zip
+  - appveyor DownloadFile %SENTRY_CLI_URL% -FileName sentry-cli.exe
   - 7z x ninja.zip -o%APPVEYOR_BUILD_FOLDER%\ninja > nul
   - set PATH=%APPVEYOR_BUILD_FOLDER%\ninja;%PATH%
   - ninja --version
@@ -57,7 +59,7 @@ before_build:
 - cmake  -G "%CMAKE_GENERATOR_NAME%" -DCMAKE_BUILD_TYPE=%CMAKE_BUILD_TYPE% -DBUILD_NUMBER=%APPVEYOR_BUILD_NUMBER% %APPVEYOR_BUILD_FOLDER%
 
 build_script:
-  - cmake --build .
+  - cmake --build . -t ci_build
 
 test_script:
   - cmd: cd %APPVEYOR_BUILD_FOLDER%\build

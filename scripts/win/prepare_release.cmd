@@ -1,11 +1,15 @@
 md %APPVEYOR_BUILD_FOLDER%\release
 
 xcopy %APPVEYOR_BUILD_FOLDER%\build\output\klogg_io_portable.exe %APPVEYOR_BUILD_FOLDER%\release\ /y
+xcopy %APPVEYOR_BUILD_FOLDER%\build\output\klogg_io_portable.pdb %APPVEYOR_BUILD_FOLDER%\release\ /y
 xcopy %APPVEYOR_BUILD_FOLDER%\build\output\klogg-io.exe %APPVEYOR_BUILD_FOLDER%\release\ /y
+xcopy %APPVEYOR_BUILD_FOLDER%\build\output\klogg-io.pdb %APPVEYOR_BUILD_FOLDER%\release\ /y
 xcopy %APPVEYOR_BUILD_FOLDER%\build\generated\documentation.html %APPVEYOR_BUILD_FOLDER%\release\ /y
 
 xcopy %APPVEYOR_BUILD_FOLDER%\build\output\klogg_tbbmalloc.dll %APPVEYOR_BUILD_FOLDER%\release\ /y
+xcopy %APPVEYOR_BUILD_FOLDER%\build\output\klogg_tbbmalloc.pdb %APPVEYOR_BUILD_FOLDER%\release\ /y
 xcopy %APPVEYOR_BUILD_FOLDER%\build\output\klogg_tbbmalloc_proxy.dll %APPVEYOR_BUILD_FOLDER%\release\ /y
+xcopy %APPVEYOR_BUILD_FOLDER%\build\output\klogg_tbbmalloc_proxy.pdb %APPVEYOR_BUILD_FOLDER%\release\ /y
 
 xcopy %APPVEYOR_BUILD_FOLDER%\COPYING %APPVEYOR_BUILD_FOLDER%\release\ /y
 xcopy %APPVEYOR_BUILD_FOLDER%\NOTICE %APPVEYOR_BUILD_FOLDER%\release\ /y

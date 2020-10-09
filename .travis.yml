@@ -50,7 +50,7 @@ matrix:
 env:
     global:
         - KLOGG_VERSION_EVAL='KLOGG_VERSION=20.9.0.$TRAVIS_BUILD_NUMBER'
-        - COMMON_CMAKE_OPTS_EVAL='COMMON_CMAKE_OPTS="-G Ninja -DBUILD_NUMBER=$TRAVIS_BUILD_NUMBER -DCMAKE_BUILD_TYPE=Release"'
+        - COMMON_CMAKE_OPTS_EVAL='COMMON_CMAKE_OPTS="-G Ninja -DBUILD_NUMBER=$TRAVIS_BUILD_NUMBER -DCMAKE_BUILD_TYPE=RelWithDebInfo"'
 
 before_install:
  - '[ "$TRAVIS_OS_NAME" != linux ] || eval "${MATRIX_EVAL}"'
@@ -75,7 +75,8 @@ script:
  - '[ "$TRAVIS_OS_NAME" != linux ] || VERSION=$KLOGG_VERSION ${SCRIPTS_PATH}/make_appimage.sh'
  - cpack --verbose -G "${CPACK_GENERATOR}"
  - '[ "$TRAVIS_OS_NAME" != linux ] || cp klogg-io-$KLOGG_VERSION-x86_64.AppImage packages/klogg-io-$KLOGG_VERSION-x86_64.AppImage'
-
+ - cp ./output/klogg-io.sym packages/klogg-io.sym
+ 
 after_success:
   - ls -lh packages/*
   - wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh

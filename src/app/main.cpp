@@ -53,18 +53,15 @@
 #include "kloggapp.h"
 
 #include "configuration.h"
+#include "klogg_version.h"
 #include "mainwindow.h"
 #include "persistentinfo.h"
 #include "recentfiles.h"
 #include "savedsearches.h"
 #include "versionchecker.h"
 
-#include "klogg_version.h"
-
 #include <QFileInfo>
 #include <QtCore/QJsonDocument>
-
-#include "sentry.h"
 
 #ifdef KLOGG_PORTABLE
 const bool PersistentInfo::forcePortable = true;
@@ -174,39 +171,9 @@ struct CliParameters {
 
 int main( int argc, char* argv[] )
 {
-    sentry_options_t* sentryOptions = sentry_options_new();
-
-    const auto dumpPath = QDir::temp().filePath( "klogg_dump" );
-
-#ifdef Q_OS_WIN
-    sentry_options_set_database_pathw( sentryOptions, dumpPath.toStdWString().c_str() );
-#else
-    sentry_options_set_database_path( sentryOptions, dumpPath.toStdString().c_str() );
-#endif
-
-    sentry_options_set_auto_session_tracking( sentryOptions, false );
-    sentry_options_set_symbolize_stacktraces( sentryOptions, true );
-
-    sentry_options_set_environment( sentryOptions, "development" );
-    sentry_init( sentryOptions );
-
-    {
-        sentry_value_t versionContext = sentry_value_new_object();
-        sentry_value_set_by_key( versionContext, "version",
-                                 sentry_value_new_string( kloggVersion().data() ) );
-        sentry_value_set_by_key( versionContext, "buildDate",
-                                 sentry_value_new_string( kloggBuildDate().data() ) );
-        sentry_value_set_by_key( versionContext, "commit",
-                                 sentry_value_new_string( kloggCommit().data() ) );
-
-        sentry_set_context("version", versionContext);
-    }
-
     setApplicationAttributes();
 
     KloggApp app( argc, argv );
-
-    // Configuration
 
     CliParameters parameters;
     CLI::App options{ "Klogg-io -- fast log explorer" };
@@ -219,6 +186,7 @@ int main( int argc, char* argv[] )
     }
 
     app.initLogger( static_cast<plog::Severity>( parameters.log_level ), parameters.log_to_file );
+    app.initCrashHandler();
 
     LOG( logINFO ) << "Klogg-io instance " << app.instanceId();
 
@@ -253,11 +221,7 @@ int main( int argc, char* argv[] )
         app.startBackgroundTasks();
     }
 
-    const auto resultCode = app.exec();
-
-    sentry_shutdown();
-
-    return resultCode;
+    return app.exec();
 }
 
 static void print_version()

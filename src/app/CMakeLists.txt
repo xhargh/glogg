@@ -15,6 +15,8 @@ add_custom_command (OUTPUT ${DOCUMENTATION_HTML}
         DEPENDS maddy ${DOCUMENTATION_FILE})
 
 set(MAIN_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/crashhandler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/crashhandler.h
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/messagereceiver.h
     ${CMAKE_CURRENT_SOURCE_DIR}/kloggapp.h
@@ -49,6 +51,20 @@ target_link_libraries(klogg-io PUBLIC ${MAIN_LIBS})
 target_link_libraries(klogg_io_portable PUBLIC ${MAIN_LIBS})
 
 target_compile_definitions(klogg_io_portable PUBLIC -DKLOGG_PORTABLE)
+
+if (NOT WIN32)
+    add_custom_command(TARGET klogg-io POST_BUILD
+        COMMAND ${DUMP_SYMS} $<TARGET_FILE:klogg-io> > ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/klogg.sym
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Generating symbols for $<TARGET_FILE:klogg>"
+    )
+
+    add_custom_command(TARGET klogg_io_portable POST_BUILD
+        COMMAND ${DUMP_SYMS} $<TARGET_FILE:klogg_io_portable> > ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/klogg_portable.sym
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Generating symbols for $<TARGET_FILE:klogg_portable>"
+    )
+endif()
 
 if (WIN32)
 

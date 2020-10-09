@@ -306,6 +306,18 @@ void CrawlerWidget::keyPressEvent( QKeyEvent* keyEvent )
     }
 }
 
+void CrawlerWidget::changeEvent( QEvent* event )
+{
+    if ( event->type() == QEvent::StyleChange ) {
+        QTimer::singleShot( 0, [this] {
+            loadIcons();
+            searchInfoLineDefaultPalette = searchInfoLine->palette();
+        } );
+    }
+
+    QWidget::changeEvent( event );
+}
+
 //
 // Public slots
 //
@@ -694,9 +706,6 @@ void CrawlerWidget::applyConfiguration()
     logMainView->update();
     filteredView->updateDisplaySize();
     filteredView->update();
-
-    loadIcons();
-    searchInfoLineDefaultPalette = searchInfoLine->palette();
 
     // Update the SearchLine (history)
     updateSearchCombo();
@@ -1135,7 +1144,7 @@ void CrawlerWidget::setup()
     auto& config = Configuration::get();
     searchRefreshButton->setChecked( config.isSearchAutoRefreshDefault() );
     matchCaseButton->setChecked( config.isSearchIgnoreCaseDefault() ? false : true );
-    useRegexpButton->setChecked( config.mainRegexpType() == ExtendedRegexp );
+    useRegexpButton->setChecked( config.mainRegexpType() == SearchRegexpType::ExtendedRegexp );
 
     // Manually call the handler as it is not called when changing the state programmatically
     searchRefreshChangedHandler( searchRefreshButton->isChecked() );
@@ -1549,7 +1558,7 @@ void CrawlerWidgetContext::loadFromString( const QString& string )
         follow_file_ = false;
     }
 
-    use_regexp_ = Configuration::get().mainRegexpType() == ExtendedRegexp;
+    use_regexp_ = Configuration::get().mainRegexpType() == SearchRegexpType::ExtendedRegexp;
 }
 
 void CrawlerWidgetContext::loadFromJson( const QString& json )
@@ -1570,7 +1579,7 @@ void CrawlerWidgetContext::loadFromJson( const QString& json )
         use_regexp_ = properties.value( "RE" ).toBool();
     }
     else {
-        use_regexp_ = Configuration::get().mainRegexpType() == ExtendedRegexp;
+        use_regexp_ = Configuration::get().mainRegexpType() == SearchRegexpType::ExtendedRegexp;
     }
 
     if ( properties.contains( "M" ) ) {

@@ -342,7 +342,7 @@ void AbstractLogView::mousePressEvent( QMouseEvent* mouseEvent )
         }
 
         // "Add to search" only makes sense in regexp mode
-        if ( config.mainRegexpType() != ExtendedRegexp )
+        if ( config.mainRegexpType() != SearchRegexpType::ExtendedRegexp )
             addToSearchAction_->setEnabled( false );
 
         const auto& highlightersCollection = HighlighterSetCollection::get();
@@ -1779,7 +1779,7 @@ void AbstractLogView::drawTextArea( QPaintDevice* paint_device )
 
                             const auto matchPart
                                 = logLine.midRef( match.startColumn(), match.length() );
-                            const auto expandedMatchLength = untabify( matchPart ).length();
+                            const auto expandedMatchLength = untabify( matchPart, expandedPrefixLength ).length();
                             auto lengthDelta = expandedMatchLength - matchPart.length();
 
                             return HighlightedMatch{ match.startColumn() + startDelta,
@@ -1865,7 +1865,7 @@ void AbstractLogView::drawTextArea( QPaintDevice* paint_device )
         }
 
         // Then draw the bullet
-        painter.setPen( palette.color( QPalette::Text ) );
+        painter.setPen( Qt::black );
         const int circleSize = 3;
         const int arrowHeight = 4;
         const int middleXLine = BULLET_AREA_WIDTH / 2;

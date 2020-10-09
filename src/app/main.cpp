@@ -40,11 +40,10 @@
 #include <tbb/tbbmalloc_proxy.h>
 #endif
 
-#include <QFileInfo>
-
+#include <iostream>
 #include <memory>
 
-#include <iostream>
+#include <cli11/cli11.hpp>
 
 #ifdef Q_OS_WIN
 #define WIN32_LEAN_AND_MEAN
@@ -62,9 +61,8 @@
 
 #include "klogg_version.h"
 
+#include <QFileInfo>
 #include <QtCore/QJsonDocument>
-
-#include <cli11/cli11.hpp>
 
 #ifdef KLOGG_PORTABLE
 const bool PersistentInfo::forcePortable = true;

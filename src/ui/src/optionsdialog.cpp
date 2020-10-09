@@ -36,12 +36,11 @@
  * along with klogg.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QStyleFactory>
 #include <QtGui>
 
-#include "optionsdialog.h"
-
 #include "log.h"
+#include "optionsdialog.h"
+#include "styles.h"
 
 static constexpr int POLL_INTERVAL_MIN = 10;
 static constexpr int POLL_INTERVAL_MAX = 3600000;
@@ -125,8 +124,7 @@ void OptionsDialog::setupRegexp()
 
 void OptionsDialog::setupStyles()
 {
-    styleComboBox->addItems( QStyleFactory::keys() );
-    styleComboBox->addItem( DarkStyleKey );
+    styleComboBox->addItems( availableStyles() );
 }
 
 // Enable/disable the QuickFind options depending on the state
@@ -134,7 +132,7 @@ void OptionsDialog::setupStyles()
 void OptionsDialog::setupIncremental()
 {
     if ( incrementalCheckBox->isChecked() ) {
-        quickFindSearchBox->setCurrentIndex( getRegexpIndex( FixedString ) );
+        quickFindSearchBox->setCurrentIndex( getRegexpIndex( SearchRegexpType::FixedString ) );
         quickFindSearchBox->setEnabled( false );
     }
     else {
@@ -168,7 +166,7 @@ int OptionsDialog::getRegexpIndex( SearchRegexpType syntax ) const
     int index;
 
     switch ( syntax ) {
-    case FixedString:
+    case SearchRegexpType::FixedString:
         index = 1;
         break;
     default:
@@ -186,10 +184,10 @@ SearchRegexpType OptionsDialog::getRegexpTypeFromIndex( int index ) const
 
     switch ( index ) {
     case 1:
-        type = FixedString;
+        type = SearchRegexpType::FixedString;
         break;
     default:
-        type = ExtendedRegexp;
+        type = SearchRegexpType::ExtendedRegexp;
         break;
     }
 

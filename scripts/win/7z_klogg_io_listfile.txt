@@ -1,11 +1,7 @@
-<<<<<<< HEAD:scripts/win/7z_klogg_io_listfile.txt
-.\release\klogg_io_portable.exe
-=======
 .\release\*.dll
 .\release\platforms\*.dll
 .\release\styles\*.dll
-.\release\klogg_portable.exe
->>>>>>> 076d16b155395998f6ba8958382c9c8bf9f16953:scripts/win/7z_klogg_listfile.txt
+.\release\klogg_io_portable.exe
 .\release\documentation.html
 .\COPYING
 .\NOTICE

@@ -49,5 +49,5 @@ xcopy %KLOGG_WORKSPACE%\packaging\windows\chocolatelyInstall.ps1 chocolately\too
 xcopy %KLOGG_WORKSPACE%\packaging\windows\klogg-io.nsi  /y
 xcopy %KLOGG_WORKSPACE%\packaging\windows\FileAssociation.nsh  /y
 
-7z a %KLOGG_WORKSPACE%\klogg-%KLOGG_VERSION%-%KLOGG_ARCH%-portable.7z @%KLOGG_WORKSPACE%\scripts\win\7z_klogg_io_listfile.txt
-7z a %KLOGG_WORKSPACE%\klogg-%KLOGG_VERSION%-%KLOGG_ARCH%-pdb.7z @%KLOGG_WORKSPACE%\scripts\win\7z_pdb_listfile.txt
+7z a %KLOGG_WORKSPACE%\klogg-io-%KLOGG_VERSION%-%KLOGG_ARCH%-portable.7z @%KLOGG_WORKSPACE%\scripts\win\7z_klogg_io_listfile.txt
+7z a %KLOGG_WORKSPACE%\klogg-io-%KLOGG_VERSION%-%KLOGG_ARCH%-pdb.7z @%KLOGG_WORKSPACE%\scripts\win\7z_pdb_listfile.txt

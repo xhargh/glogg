@@ -5,10 +5,22 @@ on:
     branches: [ master ]
     paths-ignore:
       - 'website/**'
+      - BUILD.md
+      - CODE_OF_CONDUCT.md
+      - CONTRIBUTING.md
+      - README.md
+      - latest.json
+      - .gitignore
   pull_request:
     branches: [ master ]
     paths-ignore:
       - 'website/**'
+      - BUILD.md
+      - CODE_OF_CONDUCT.md
+      - CONTRIBUTING.md
+      - README.md
+      - latest.json
+      - .gitignore
   workflow_dispatch:
 
 jobs:
@@ -78,7 +90,7 @@ jobs:
         echo "::set-env name=SSL_DIR::${{ github.workspace }}\openssl-1.1\${{ matrix.config.arch }}\bin"
 
     - name: Set ssl arch
-      if: ${{ matrix.config.arch == 'x64' }} 
+      if: ${{ matrix.config.os == 'windows' && matrix.config.arch == 'x64' }} 
       run: |
         echo "::set-env name=SSL_ARCH::-x64"
         
@@ -126,7 +138,7 @@ jobs:
       run: |
         cd build
         cpack --verbose -G "RPM;DEB"
-        cp ./output/klogg.sym ./packages/klogg.sym
+        cp ./output/klogg-io.sym ./packages/klogg-io.sym
 
     - name: Mac package
       if: ${{ matrix.config.os == 'macos' }} 
@@ -134,7 +146,7 @@ jobs:
         cd build
         ../scripts/osx/prepare_bundle.sh
         cpack --verbose -G "DragNDrop"
-        cp ./output/klogg.sym ./packages/klogg.sym
+        cp ./output/klogg-io.sym ./packages/klogg-io.sym
 
     - name: Win portable
       if: ${{ matrix.config.os == 'windows' }} 
@@ -146,7 +158,7 @@ jobs:
       if: ${{ matrix.config.os == 'windows' }} 
       uses: joncloud/makensis-action@v3.3
       with:
-        script-file: klogg.nsi
+        script-file: klogg-io.nsi
         arguments: "-DVERSION=%KLOGG_VERSION% -DPLATFORM=%KLOGG_ARCH%"
 
     - name: Win package
@@ -154,9 +166,9 @@ jobs:
       shell: cmd
       run: |
         md build\packages
-        xcopy klogg-%KLOGG_VERSION%-%KLOGG_ARCH%-portable.7z build\packages\ /y
-        xcopy klogg-%KLOGG_VERSION%-%KLOGG_ARCH%-pdb.7z build\packages\ /y
-        xcopy klogg-%KLOGG_VERSION%-%KLOGG_ARCH%-setup.exe build\packages\ /y
+        xcopy klogg-io-%KLOGG_VERSION%-%KLOGG_ARCH%-portable.7z build\packages\ /y
+        xcopy klogg-io-%KLOGG_VERSION%-%KLOGG_ARCH%-pdb.7z build\packages\ /y
+        xcopy klogg-io-%KLOGG_VERSION%-%KLOGG_ARCH%-setup.exe build\packages\ /y
 
     - uses: actions/upload-artifact@v2
       with:
@@ -166,24 +178,15 @@ jobs:
     - uses: "marvinpinto/action-automatic-releases@latest"
       if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
       with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        repo_token: ${{ secrets.KLOGG_GITHUB_TOKEN }}
         automatic_release_tag: continuous-${{ matrix.config.release_tag }}-${{ matrix.config.arch }}
         prerelease: true
         files: ./build/packages/*
 
-    - name: Setup Sentry CLI
-      uses: mathrix-education/setup-sentry-cli@0.1.0
-      with:
-        token: ${{ secrets.SENTRY_TOKEN }}
-        organization: anton-filimonov
-        project: klogg
-
     - name: Upload symbols
       shell: sh
       run: |
-        sentry-cli upload-dif ./build/output/*.sym
-        sentry-cli upload-dif ./build/output/*.pdb
-
+        sentry-cli upload-dif ./build/output/klogg-io.sym ./build/output/klogg*.pdb
 
     
         

@@ -68,7 +68,7 @@ after_test:
 - scripts\win\prepare_release.cmd
 
 - 7z a klogg-io-%APPVEYOR_BUILD_VERSION%-%PLATFORM%-portable.7z -r @scripts\win\7z_dll_listfile.txt
-- 7z a klogg-io-%APPVEYOR_BUILD_VERSION%-%PLATFORM%-portable.7z @scripts\win\7z_klogg_listfile.txt
+- 7z a klogg-io-%APPVEYOR_BUILD_VERSION%-%PLATFORM%-portable.7z @scripts\win\7z_klogg_io_listfile.txt
 
 - 7z a klogg-io-%APPVEYOR_BUILD_VERSION%-%PLATFORM%-pdb.7z @scripts\win\7z_pdb_listfile.txt
 

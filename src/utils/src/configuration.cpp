@@ -37,11 +37,10 @@
  */
 
 #include <QFontInfo>
-#include <QStyleFactory>
-
-#include "log.h"
 
 #include "configuration.h"
+#include "log.h"
+#include "styles.h"
 
 Configuration::Configuration()
 {
@@ -90,9 +89,10 @@ void Configuration::retrieveFromStorage( QSettings& settings )
 
     // Regexp types
     mainRegexpType_ = static_cast<SearchRegexpType>(
-        settings.value( "regexpType.main", Default.mainRegexpType_ ).toInt() );
+        settings.value( "regexpType.main", static_cast<int>( Default.mainRegexpType_ ) ).toInt() );
     quickfindRegexpType_ = static_cast<SearchRegexpType>(
-        settings.value( "regexpType.quickfind", Default.quickfindRegexpType_ ).toInt() );
+        settings.value( "regexpType.quickfind", static_cast<int>( Default.quickfindRegexpType_ ) )
+            .toInt() );
     quickfindIncremental_
         = settings.value( "quickfind.incremental", Default.quickfindIncremental_ ).toBool();
 
@@ -167,15 +167,14 @@ void Configuration::retrieveFromStorage( QSettings& settings )
 
     style_ = settings.value( "view.style", Default.style_ ).toString();
 
-    auto availableStyles = QStyleFactory::keys();
-    availableStyles << DarkStyleKey;
-    if ( !availableStyles.contains( style_ ) ) {
-        style_ = availableStyles.front();
+    auto styles = availableStyles();
+    if ( !styles.contains( style_ ) ) {
+        style_ = styles.front();
     }
 
     // Some sanity check (mainly for people upgrading)
     if ( quickfindIncremental_ )
-        quickfindRegexpType_ = FixedString;
+        quickfindRegexpType_ = SearchRegexpType::FixedString;
 
     // Default crawler settings
     searchAutoRefresh_

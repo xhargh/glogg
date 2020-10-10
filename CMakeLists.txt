@@ -74,6 +74,14 @@ if(MSVC)
     ENDIF (CMAKE_C_FLAGS MATCHES "/W[0-4]")
 endif(MSVC)
 
+if (WIN32)
+    set(DUMP_SYMS ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sentry/dump_syms/win/dump_syms.exe)
+elseif(APPLE)
+    set(DUMP_SYMS ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sentry/dump_syms/mac/dump_syms)
+else()
+    set(DUMP_SYMS ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sentry/dump_syms/linux/dump_syms)
+endif()
+
 # standard compiler warnings
 # Link this 'library' to use the warnings specified in CompilerWarnings.cmake
 include(CompilerWarnings)
@@ -95,9 +103,14 @@ include(StaticAnalyzers)
 ucm_print_flags()
 
 find_package(Qt5 COMPONENTS Core Widgets Concurrent Network Xml SerialPort REQUIRED)
+
+message("Qt version ${Qt5Core_VERSION}")
+
 set(CMAKE_AUTOMOC OFF)
 set(CMAKE_INCLUDE_CURRENT_DIR OFF)
 set(BUILD_SHARED_LIBS OFF)
+
+add_custom_target(ci_build)
 
 add_subdirectory(3rdparty)
 add_subdirectory(src)

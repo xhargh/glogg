@@ -63,7 +63,6 @@
 #include <QMimeData>
 #include <QProgressDialog>
 #include <QScreen>
-#include <QStyleFactory>
 #include <QTemporaryFile>
 #include <QTextBrowser>
 #include <QToolBar>
@@ -73,23 +72,22 @@
 #include <serialsettingsdialog.h>
 #include "iodevicesettings.h"
 
-#include "downloader.h"
-#include "log.h"
-#include "openfilehelper.h"
-
 #include "mainwindow.h"
 
 #include "crawlerwidget.h"
 #include "decompressor.h"
+#include "downloader.h"
 #include "encodings.h"
 #include "favoritefiles.h"
 #include "highlightersdialog.h"
-#include "optionsdialog.h"
-#include "recentfiles.h"
-#include "tabbedcrawlerwidget.h"
-
 #include "klogg_version.h"
+#include "log.h"
+#include "openfilehelper.h"
+#include "optionsdialog.h"
 #include "readablesize.h"
+#include "recentfiles.h"
+#include "styles.h"
+#include "tabbedcrawlerwidget.h"
 
 namespace {
 
@@ -110,7 +108,6 @@ MainWindow::MainWindow( WindowSession session )
     , tempDir_( QDir::temp().filePath( "klogg-io_temp_" ) )
 {
     createActions();
-    loadIcons();
     createMenus();
     createToolBars();
 
@@ -418,6 +415,10 @@ void MainWindow::createActions()
     reportIssueAction->setStatusTip( tr( "Report an issue on GitHub" ) );
     connect( reportIssueAction, &QAction::triggered, [this]( auto ) { this->reportIssue(); } );
 
+    generateDumpAction = new QAction( tr( "Generate crash dump" ), this );
+    generateDumpAction->setStatusTip( tr( "Generate diagnostic crash dump" ) );
+    connect( generateDumpAction, &QAction::triggered, [this]( auto ) { this->generateDump(); } );
+
     showScratchPadAction = new QAction( tr( "Scratchpad" ), this );
     showScratchPadAction->setStatusTip( tr( "Show the scratchpad" ) );
     connect( showScratchPadAction, &QAction::triggered,
@@ -529,6 +530,7 @@ void MainWindow::createMenus()
     helpMenu->addAction( showDocumentationAction );
     helpMenu->addSeparator();
     helpMenu->addAction( reportIssueAction );
+    helpMenu->addAction( generateDumpAction );
     helpMenu->addSeparator();
     helpMenu->addAction( aboutQtAction );
     helpMenu->addAction( aboutAction );
@@ -590,16 +592,13 @@ void MainWindow::applyStyle()
         QFile styleFile( ":qdarkstyle/style.qss" );
         styleFile.open( QFile::ReadOnly | QFile::Text );
         QTextStream styleSream( &styleFile );
-        QApplication::setStyle( nullptr );
+        QApplication::setStyle( availableStyles().front() );
         qApp->setStyleSheet( styleSream.readAll() );
     }
     else {
         QApplication::setStyle( style );
         qApp->setStyleSheet( "" );
     }
-
-    loadIcons();
-    updateFavoritesMenu();
 }
 
 void MainWindow::createTrayIcon()
@@ -1239,6 +1238,12 @@ void MainWindow::changeEvent( QEvent* event )
             }
         }
     }
+    else if ( event->type() == QEvent::StyleChange ) {
+        QTimer::singleShot( 0, [this] {
+            loadIcons();
+            updateFavoritesMenu();
+        } );
+    }
 
     QMainWindow::changeEvent( event );
 }
@@ -1838,7 +1843,7 @@ void MainWindow::reportIssue() const
                                   "> running on %5 (%6/%7) [%8]\n"
                                   "> and Qt %9" )
                              .arg( version, buildDate, commit, built_for, os, kernelType,
-                                   kernelVersion, arch, QT_VERSION_STR );
+                                   kernelVersion, arch, qVersion() );
 
     QUrlQuery query;
     query.addQueryItem( "labels", "type: bug" );
@@ -1847,4 +1852,17 @@ void MainWindow::reportIssue() const
     QUrl url( "https://github.com/xhargh/klogg-io/issues/new" );
     url.setQuery( query );
     QDesktopServices::openUrl( url );
+}
+
+void MainWindow::generateDump()
+{
+    const auto userAction = QMessageBox::warning(
+            this, "klogg - generate crash dump",
+            QString( "This will shutdown klogg and generate diagnostic crash dump. Continue?" ),
+            QMessageBox::Yes | QMessageBox::No, QMessageBox::No );
+
+        if ( userAction == QMessageBox::Yes ) {
+            int *a = nullptr;
+            *a = 1;
+        }
 }

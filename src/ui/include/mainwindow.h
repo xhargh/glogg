@@ -127,6 +127,7 @@ class MainWindow : public QMainWindow {
     void removeFromFavorites();
     void selectOpenedFile();
     void reportIssue() const;
+    void generateDump();
 
     // Change the view settings
     void toggleOverviewVisibility( bool isVisible );
@@ -259,6 +260,7 @@ class MainWindow : public QMainWindow {
     QAction* aboutAction;
     QAction* aboutQtAction;
     QAction* reportIssueAction;
+    QAction* generateDumpAction;
     QActionGroup* encodingGroup;
     QAction* addToFavoritesAction;
     QAction* addToFavoritesMenuAction;

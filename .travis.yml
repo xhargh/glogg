@@ -40,17 +40,12 @@ matrix:
         artifacts:
           paths:
             - ./build/packages
-        homebrew:
-          packages:
-            - cmake
-            - ninja
-            - qt
-          update: true
 
 env:
     global:
+        - UPLOADTOOL_ISPRERELEASE="true"
         - KLOGG_VERSION_EVAL='KLOGG_VERSION=20.9.0.$TRAVIS_BUILD_NUMBER'
-        - COMMON_CMAKE_OPTS_EVAL='COMMON_CMAKE_OPTS="-G Ninja -DBUILD_NUMBER=$TRAVIS_BUILD_NUMBER -DCMAKE_BUILD_TYPE=Release"'
+        - COMMON_CMAKE_OPTS_EVAL='COMMON_CMAKE_OPTS="-G Ninja -DBUILD_NUMBER=$TRAVIS_BUILD_NUMBER -DCMAKE_BUILD_TYPE=RelWithDebInfo"'
 
 before_install:
  - '[ "$TRAVIS_OS_NAME" != linux ] || eval "${MATRIX_EVAL}"'
@@ -65,17 +60,19 @@ before_script:
  - cd build
  - eval "${COMMON_CMAKE_OPTS_EVAL}"
  - eval "${KLOGG_VERSION_EVAL}"
- - '[ "$TRAVIS_OS_NAME" != osx ] || cmake ${COMMON_CMAKE_OPTS} -DCMAKE_PREFIX_PATH=$(brew --prefix qt5) ..'
+ - '[ "$TRAVIS_OS_NAME" != osx   ] || PATH=$TRAVIS_BUILD_DIR:$PATH cmake ${COMMON_CMAKE_OPTS} -DCMAKE_PREFIX_PATH=$(brew --prefix qt5) ..'
  - '[ "$TRAVIS_OS_NAME" != linux ] || cmake ${COMMON_CMAKE_OPTS} -DCMAKE_INSTALL_PREFIX=/usr ..'
 
 script:
- - cmake --build .
+ - '[ "$TRAVIS_OS_NAME" != osx   ] || cmake --build . -t ci_build'
+ - '[ "$TRAVIS_OS_NAME" != linux ] || ninja ci_build'
  - ctest --verbose
  - '[ "$TRAVIS_OS_NAME" != osx   ] || ${SCRIPTS_PATH}/prepare_bundle.sh'
  - '[ "$TRAVIS_OS_NAME" != linux ] || VERSION=$KLOGG_VERSION ${SCRIPTS_PATH}/make_appimage.sh'
  - cpack --verbose -G "${CPACK_GENERATOR}"
  - '[ "$TRAVIS_OS_NAME" != linux ] || cp klogg-io-$KLOGG_VERSION-x86_64.AppImage packages/klogg-io-$KLOGG_VERSION-x86_64.AppImage'
-
+ - cp ./output/klogg-io.sym packages/klogg-io.sym
+ 
 after_success:
   - ls -lh packages/*
   - wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh

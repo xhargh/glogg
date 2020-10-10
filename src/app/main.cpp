@@ -40,11 +40,10 @@
 #include <tbb/tbbmalloc_proxy.h>
 #endif
 
-#include <QFileInfo>
-
+#include <iostream>
 #include <memory>
 
-#include <iostream>
+#include <cli11/cli11.hpp>
 
 #ifdef Q_OS_WIN
 #define WIN32_LEAN_AND_MEAN
@@ -54,17 +53,15 @@
 #include "kloggapp.h"
 
 #include "configuration.h"
+#include "klogg_version.h"
 #include "mainwindow.h"
 #include "persistentinfo.h"
 #include "recentfiles.h"
 #include "savedsearches.h"
 #include "versionchecker.h"
 
-#include "klogg_version.h"
-
+#include <QFileInfo>
 #include <QtCore/QJsonDocument>
-
-#include <cli11/cli11.hpp>
 
 #ifdef KLOGG_PORTABLE
 const bool PersistentInfo::forcePortable = true;
@@ -178,8 +175,6 @@ int main( int argc, char* argv[] )
 
     KloggApp app( argc, argv );
 
-    // Configuration
-
     CliParameters parameters;
     CLI::App options{ "Klogg-io -- fast log explorer" };
     try {
@@ -191,6 +186,7 @@ int main( int argc, char* argv[] )
     }
 
     app.initLogger( static_cast<plog::Severity>( parameters.log_level ), parameters.log_to_file );
+    // app.initCrashHandler();
 
     LOG( logINFO ) << "Klogg-io instance " << app.instanceId();
 

@@ -122,7 +122,7 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+        cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=/usr ..
 
     - name: build
       run: |
@@ -139,6 +139,13 @@ jobs:
         cd build
         cpack --verbose -G "RPM;DEB"
         cp ./output/klogg-io.sym ./packages/klogg-io.sym
+    
+    - name: Linux AppImage 
+      if: ${{ matrix.config.os == 'ubuntu' }} 
+      run: |
+        cd build
+        VERSION=$KLOGG_VERSION ../scripts/linux/make_appimage.sh
+        cp ./klogg-io-$KLOGG_VERSION-x86_64.AppImage ./packages/klogg-io-$KLOGG_VERSION-x86_64.AppImage
 
     - name: Mac package
       if: ${{ matrix.config.os == 'macos' }} 
@@ -183,10 +190,6 @@ jobs:
         prerelease: true
         files: ./build/packages/*
 
-    - name: Upload symbols
-      shell: sh
-      run: |
-        sentry-cli upload-dif ./build/output/klogg-io.sym ./build/output/klogg*.pdb
 
     
         

@@ -72,7 +72,7 @@ jobs:
 
     - name: build
       run: |
-        cmake --build build -t klogg
+        cmake --build build -t klogg-io
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1

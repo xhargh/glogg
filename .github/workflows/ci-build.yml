@@ -164,6 +164,16 @@ jobs:
         cp -a ./output/klogg-io.dSym ./packages/
         cp -a ./output/klogg-io.app ./packages/
 
+    #- name: Win codesign executables
+    #  if: ${{ matrix.config.os == 'windows' }}
+    #  uses: DanaBear/code-sign-action@v4
+    #  with:
+    #    certificate: '${{ secrets.MS_CODESIGN_BASE64 }}'
+    #    password: '${{ secrets.MS_CODESIGN_PASSWORD }}'
+    #    certificatesha1: '${{ secrets.MS_CODESIGN_HASH }}'
+    #    folder: 'build\output'
+    #    recursive: true
+
     - name: Win portable
       if: ${{ matrix.config.os == 'windows' }} 
       shell: cmd
@@ -185,6 +195,16 @@ jobs:
         xcopy klogg-io-%KLOGG_VERSION%-%KLOGG_ARCH%-portable.zip build\packages\ /y
         xcopy klogg-io-%KLOGG_VERSION%-%KLOGG_ARCH%-pdb.zip build\packages\ /y
         xcopy klogg-io-%KLOGG_VERSION%-%KLOGG_ARCH%-setup.exe build\packages\ /y
+
+    #- name: Win codesign installer
+    #  if: ${{ matrix.config.os == 'windows' }}
+    #  uses: DanaBear/code-sign-action@v4
+    #  with:
+    #    certificate: '${{ secrets.MS_CODESIGN_BASE64 }}'
+    #    password: '${{ secrets.MS_CODESIGN_PASSWORD }}'
+    #    certificatesha1: '${{ secrets.MS_CODESIGN_HASH }}'
+    #    folder: 'build\packages'
+    #    recursive: true
 
     - uses: actions/upload-artifact@v2
       with:

@@ -28,7 +28,7 @@ page for how to use Klogg.
 
 | Windows | Linux | Mac |
 | ------------- |------------- | ------------- |
-| [continuous-win](https://github.com/xhargh/klogg-ui/releases/tag/continuous-win) | [continuous-linux](https://github.com/xhargh/klogg-io/releases/tag/continuous-linux) | [continuous-osx](https://github.com/xhargh/klogg-io/releases/tag/continuous-osx) |
+| [continuous-win](https://github.com/xhargh/klogg-io/releases/tag/continuous-win) | [continuous-linux](https://github.com/xhargh/klogg-io/releases/tag/continuous-linux) | [continuous-osx](https://github.com/xhargh/klogg-io/releases/tag/continuous-osx) |
 
 <!--
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/f6db6ef0be3a4a5abff94111a5291c45)](https://www.codacy.com/manual/variar/klogg?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=variar/klogg&amp;utm_campaign=Badge_Grade)

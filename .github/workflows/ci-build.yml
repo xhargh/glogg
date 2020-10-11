@@ -63,7 +63,6 @@ jobs:
             arch: x86
             qt_arch: win32_msvc2019
 
-
     runs-on: ${{ matrix.config.os }}-${{ matrix.config.os_version }}
     
     steps:
@@ -74,7 +73,7 @@ jobs:
       shell: sh
       run: |
         echo "::set-env name=KLOGG_WORKSPACE::${{ github.workspace }}"
-        echo "::set-env name=KLOGG_VERSION::20.9.0.$((${{ github.run_number }} + 717))"
+        echo "::set-env name=KLOGG_VERSION::20.10.0.$((${{ github.run_number }} + 717))"
         echo "::set-env name=KLOGG_ARCH::${{ matrix.config.arch }}"
 
     - name: Install curl
@@ -147,13 +146,23 @@ jobs:
         VERSION=$KLOGG_VERSION ../scripts/linux/make_appimage.sh
         cp ./klogg-io-$KLOGG_VERSION-x86_64.AppImage ./packages/klogg-io-$KLOGG_VERSION-x86_64.AppImage
 
+    #- name: Prepare codesign
+    #  if: ${{ matrix.config.os == 'macos' }} 
+    #  uses: apple-actions/import-codesign-certs@v1
+    #  with: 
+    #    p12-file-base64: ${{ secrets.CODESIGN_BASE64 }}
+    #    p12-password: ${{ secrets.CODESIGN_PASSWORD }}
+
     - name: Mac package
       if: ${{ matrix.config.os == 'macos' }} 
       run: |
         cd build
         ../scripts/osx/prepare_bundle.sh
         cpack --verbose -G "DragNDrop"
+        #codesign -v -f -o runtime --timestamp -s "Developer ID Application: Anton Filimonov (GAW773U324)" ./packages/*
         cp ./output/klogg-io.sym ./packages/klogg-io.sym
+        cp -a ./output/klogg-io.dSym ./packages/
+        cp -a ./output/klogg-io.app ./packages/
 
     - name: Win portable
       if: ${{ matrix.config.os == 'windows' }} 
@@ -173,8 +182,8 @@ jobs:
       shell: cmd
       run: |
         md build\packages
-        xcopy klogg-io-%KLOGG_VERSION%-%KLOGG_ARCH%-portable.7z build\packages\ /y
-        xcopy klogg-io-%KLOGG_VERSION%-%KLOGG_ARCH%-pdb.7z build\packages\ /y
+        xcopy klogg-io-%KLOGG_VERSION%-%KLOGG_ARCH%-portable.zip build\packages\ /y
+        xcopy klogg-io-%KLOGG_VERSION%-%KLOGG_ARCH%-pdb.zip build\packages\ /y
         xcopy klogg-io-%KLOGG_VERSION%-%KLOGG_ARCH%-setup.exe build\packages\ /y
 
     - uses: actions/upload-artifact@v2
@@ -182,19 +191,80 @@ jobs:
         name: packages-${{ matrix.config.os }}-${{ matrix.config.arch }}
         path: './build/packages/*'
 
-    - uses: "marvinpinto/action-automatic-releases@latest"
-      if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+  release:
+    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    needs: build 
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set workspace environment
+      shell: sh
+      run: |
+        echo "::set-env name=KLOGG_VERSION::20.10.0.$((${{ github.run_number }} + 717))"
+
+    - uses: actions/download-artifact@v2
+
+    - name: Display structure of downloaded files
+      run: ls -R
+
+    - name: Release win
+      uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        automatic_release_tag: continuous-win
+        prerelease: true
+        files: |
+          ./packages-windows-x64/*
+          ./packages-windows-x86/*
+
+    - name: Release linux
+      uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        automatic_release_tag: continuous-linux
+        prerelease: true
+        files: ./packages-ubuntu-x64/*
+
+    - name: Release mac
+      uses: "marvinpinto/action-automatic-releases@latest"
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         automatic_release_tag: continuous-${{ matrix.config.release_tag }}-${{ matrix.config.arch }}
         prerelease: true
-        files: ./build/packages/*
+        files: ./packages-macos-x64/*
 
+    #- name: Setup Sentry CLI
+    #  uses: mathrix-education/setup-sentry-cli@0.1.0
+    #  with:
+    #    token: ${{ secrets.SENTRY_TOKEN }}
+    #    organization: anton-filimonov
+    #    project: klogg
 
-    
-        
-        
+    #- name: Create Sentry release
+    #  shell: sh
+    #  run: |
+    #    sentry-cli releases new $KLOGG_VERSION
+    #    sentry-cli releases set-commits --auto $KLOGG_VERSION
 
+    #- name: Upload symbols linux
+    #  shell: sh
+    #  run: |
+    #    sentry-cli upload-dif ./packages-ubuntu-x64/klogg.sym 
 
+    #- name: Upload symbols mac
+    #  shell: sh
+    #  run: |
+    #    sentry-cli upload-dif ./packages-macos-x64/klogg.app/Contents/MacOS/klogg ./packages-macos-x64/klogg.dSym
+
+    #- name: Upload symbols win x64
+    #  shell: sh
+    #  run: |
+    #    sentry-cli upload-dif ./packages-windows-x64/klogg-$KLOGG_VERSION-x64-pdb.zip
+
+    #- name: Upload symbols win x86
+    #  shell: sh
+    #  run: |
+    #    sentry-cli upload-dif ./packages-windows-x86/klogg-$KLOGG_VERSION-x86-pdb.zip 
 
 

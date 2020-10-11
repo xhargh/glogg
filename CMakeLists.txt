@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 project(klogg-io
-        VERSION 20.9.0
+        VERSION 20.10.0
         DESCRIPTION "klogg-io log viewer"
         LANGUAGES C CXX)
 
@@ -54,7 +54,7 @@ set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)	
-set(CMAKE_CXX_EXTENSIONS OFF)
+#set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(StandardProjectSettings)
 include(ucm)
@@ -75,11 +75,11 @@ if(MSVC)
 endif(MSVC)
 
 if (WIN32)
-    set(DUMP_SYMS ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sentry/dump_syms/win/dump_syms.exe)
+    set(SYMS_TOOLS ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sentry/dump_syms/win)
 elseif(APPLE)
-    set(DUMP_SYMS ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sentry/dump_syms/mac/dump_syms)
+    set(SYMS_TOOLS ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sentry/dump_syms/mac)
 else()
-    set(DUMP_SYMS ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sentry/dump_syms/linux/dump_syms)
+    set(SYMS_TOOLS ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/sentry/dump_syms/linux)
 endif()
 
 # standard compiler warnings

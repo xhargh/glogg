@@ -103,6 +103,7 @@ class MainWindow : public QMainWindow {
     void openFileFromRecent( QAction* action );
     void openFileFromFavorites( QAction* action );
     void switchToOpenedFile( QAction* action );
+    void setCurrentHighlighter( QAction* action );
     void closeTab();
     void closeAll();
     void selectAll();
@@ -114,9 +115,9 @@ class MainWindow : public QMainWindow {
     void openInEditor();
     void openClipboard();
     void openUrl();
+    void editHighlighters();
     void openSerialPortDialog();
     void openIoDevice(std::shared_ptr<IoDeviceSettings> settings);
-    void highlighters();
     void options();
     void about();
     void aboutQt();
@@ -197,6 +198,7 @@ class MainWindow : public QMainWindow {
     void updateRecentFileActions();
     void updateFavoritesMenu();
     void updateOpenedFilesMenu();
+    void updateHighlightersMenu();
     QString strippedName( const QString& fullFileName ) const;
     CrawlerWidget* currentCrawlerWidget() const;
     void displayQuickFindBar( QuickFindMux::QFDirection direction );
@@ -219,6 +221,7 @@ class MainWindow : public QMainWindow {
     QMenu* viewMenu;
     QMenu* toolsMenu;
     QMenu* favoritesMenu;
+    QMenu* highlightersMenu;
     QMenu* openedFilesMenu;
     QMenu* helpMenu;
 
@@ -253,7 +256,7 @@ class MainWindow : public QMainWindow {
     QAction* followAction;
     QAction* reloadAction;
     QAction* stopAction;
-    QAction* highlightersAction;
+    QAction* editHighlightersAction;
     QAction* optionsAction;
     QAction* showScratchPadAction;
     QAction* showDocumentationAction;
@@ -268,6 +271,7 @@ class MainWindow : public QMainWindow {
     QAction* selectOpenFileAction;
     QActionGroup* favoritesGroup;
     QActionGroup* openedFilesGroup;
+    QActionGroup* highlightersActionGroup = nullptr;
 
     QSystemTrayIcon* trayIcon_;
 

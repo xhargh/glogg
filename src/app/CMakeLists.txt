@@ -55,18 +55,70 @@ target_link_libraries(klogg_io_portable PUBLIC ${MAIN_LIBS})
 target_compile_definitions(klogg_io_portable PUBLIC -DKLOGG_PORTABLE)
 
 if (NOT WIN32)
+
     add_custom_command(TARGET klogg-io POST_BUILD
-        COMMAND ${DUMP_SYMS} $<TARGET_FILE:klogg-io> > ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/klogg-io.sym
+        COMMAND ${SYMS_TOOLS}/dump_syms $<TARGET_FILE:klogg-io> > ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/klogg-io.sym
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Generating symbols for $<TARGET_FILE:klogg-io>"
     )
 
     add_custom_command(TARGET klogg_io_portable POST_BUILD
-        COMMAND ${DUMP_SYMS} $<TARGET_FILE:klogg_io_portable> > ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/klogg_io_portable.sym
+        COMMAND ${SYMS_TOOLS}/dump_syms $<TARGET_FILE:klogg_io_portable> > ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/klogg_io_portable.sym
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMENT "Generating symbols for $<TARGET_FILE:klogg_io_portable>"
     )
+
+    if (APPLE)
+        find_program (DSYMUTIL dsymutil)
+        add_custom_command(TARGET klogg-io POST_BUILD
+            COMMAND ${DSYMUTIL} --out=${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/klogg-io.dSym $<TARGET_FILE:klogg-io>
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMENT "Generating symbols for $<TARGET_FILE:klogg-io>"
+        )
+
+        add_custom_command(TARGET klogg_io_portable POST_BUILD
+            COMMAND ${DSYMUTIL} --out=${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/klogg_io_portable.dSym $<TARGET_FILE:klogg_io_portable>
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMENT "Generating symbols for $<TARGET_FILE:klogg_io_portable>"
+        )
+
+    endif()
+
+    #add_custom_command(TARGET klogg POST_BUILD
+    #    COMMAND cmake -E copy $<TARGET_FILE:crashpad_handler> $<TARGET_FILE_DIR:klogg>/klogg_crashpad_handler
+    #    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    #    COMMENT "Copy crash_handler"
+    #)
+
+    #add_custom_command(TARGET klogg POST_BUILD
+    #    COMMAND cmake -E copy  ${SYMS_TOOLS}/minidump_dump $<TARGET_FILE_DIR:klogg>/klogg_minidump_dump
+    #    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    #    COMMENT "Copy stackwalk"
+    #)
+else()
+    #add_custom_command(TARGET klogg POST_BUILD
+    #    COMMAND cmake -E copy $<TARGET_FILE:crashpad_handler> $<TARGET_FILE_DIR:klogg>/klogg_crashpad_handler.exe
+    #    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    #    COMMENT "Copy crash_handler"
+    #)
+
+    #if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    #    add_custom_command(TARGET klogg POST_BUILD
+    #        COMMAND cmake -E copy  ${SYMS_TOOLS}/minidump_dump_x64.exe $<TARGET_FILE_DIR:klogg>/klogg_minidump_dump.exe
+    #        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    #        COMMENT "Copy stackwalk"
+    #    )
+    #else()
+    #    add_custom_command(TARGET klogg POST_BUILD
+    #        COMMAND cmake -E copy  ${SYMS_TOOLS}/minidump_dump_x86.exe $<TARGET_FILE_DIR:klogg>/klogg_minidump_dump.exe
+    #        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    #        COMMENT "Copy stackwalk"
+    #    )
+    #endif()
 endif()
+
+
+
 
 if (WIN32)
 
@@ -93,8 +145,25 @@ elseif (APPLE)
 
 endif()
 
+
+
 install(TARGETS
     klogg-io
     DESTINATION bin
     BUNDLE DESTINATION .
 )
+
+#if(APPLE)
+#    install(PROGRAMS
+#        $<TARGET_FILE_DIR:klogg>/klogg_minidump_dump
+#        $<TARGET_FILE_DIR:klogg>/klogg_crashpad_handler
+#        DESTINATION $<TARGET_BUNDLE_CONTENT_DIR:klogg>/MacOS
+#    )
+#elseif(NOT WIN32)
+#    install(PROGRAMS
+#        $<TARGET_FILE_DIR:klogg>/klogg_minidump_dump
+#        $<TARGET_FILE_DIR:klogg>/klogg_crashpad_handler
+#        DESTINATION bin
+#    )
+#endif()
+

@@ -122,6 +122,9 @@ class CrawlerWidget : public QSplitter,
 
     void focusSearchEdit();
 
+    // Instructs the widget to reconfigure itself because Config() has changed.
+    void applyConfiguration();
+
   public:
     template <class T> struct access_by;
 
@@ -182,8 +185,6 @@ class CrawlerWidget : public QSplitter,
     void startNewSearch();
     // Stop the currently ongoing search (if one exists)
     void stopSearch();
-    // Instructs the widget to reconfigure itself because Config() has changed.
-    void applyConfiguration();
     void loadIcons();
     // QuickFind is being entered, save the focus for incremental qf.
     void enteringQuickFind();

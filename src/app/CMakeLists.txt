@@ -76,7 +76,7 @@ if (NOT WIN32)
             COMMENT "Generating symbols for $<TARGET_FILE:klogg-io>"
         )
 
-        add_custom_command(TARGET klogg_portable POST_BUILD
+        add_custom_command(TARGET klogg_io_portable POST_BUILD
             COMMAND ${DSYMUTIL} --out=${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/klogg_io_portable.dSym $<TARGET_FILE:klogg_io_portable>
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
             COMMENT "Generating symbols for $<TARGET_FILE:klogg_io_portable>"

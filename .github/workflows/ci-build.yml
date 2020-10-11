@@ -250,7 +250,7 @@ jobs:
       uses: "marvinpinto/action-automatic-releases@latest"
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        automatic_release_tag: continuous-${{ matrix.config.release_tag }}-${{ matrix.config.arch }}
+        automatic_release_tag: continuous-osx
         prerelease: true
         files: ./packages-macos-x64/*
 

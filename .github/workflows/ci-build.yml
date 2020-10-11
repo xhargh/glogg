@@ -161,8 +161,8 @@ jobs:
         cpack --verbose -G "DragNDrop"
         #codesign -v -f -o runtime --timestamp -s "Developer ID Application: Anton Filimonov (GAW773U324)" ./packages/*
         cp ./output/klogg-io.sym ./packages/klogg-io.sym
-        cp -a ./output/klogg.dSym ./packages/
-        cp -a ./output/klogg.app ./packages/
+        cp -a ./output/klogg-io.dSym ./packages/
+        cp -a ./output/klogg-io.app ./packages/
 
     - name: Win portable
       if: ${{ matrix.config.os == 'windows' }} 
@@ -211,7 +211,7 @@ jobs:
     - name: Release win
       uses: "marvinpinto/action-automatic-releases@latest"
       with:
-        repo_token: ${{ secrets.KLOGG_GITHUB_TOKEN }}
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
         automatic_release_tag: continuous-win
         prerelease: true
         files: |
@@ -221,7 +221,7 @@ jobs:
     - name: Release linux
       uses: "marvinpinto/action-automatic-releases@latest"
       with:
-        repo_token: ${{ secrets.KLOGG_GITHUB_TOKEN }}
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
         automatic_release_tag: continuous-linux
         prerelease: true
         files: ./packages-ubuntu-x64/*
@@ -229,8 +229,8 @@ jobs:
     - name: Release mac
       uses: "marvinpinto/action-automatic-releases@latest"
       with:
-        repo_token: ${{ secrets.KLOGG_GITHUB_TOKEN }}
-        automatic_release_tag: continuous-osx
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        automatic_release_tag: continuous-${{ matrix.config.release_tag }}-${{ matrix.config.arch }}
         prerelease: true
         files: ./packages-macos-x64/*
 

@@ -55,14 +55,18 @@
 #include <QClipboard>
 #include <QCloseEvent>
 #include <QDesktopWidget>
+#include <QDialogButtonBox>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QInputDialog>
+#include <QListView>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QMimeData>
 #include <QProgressDialog>
 #include <QScreen>
+#include <QSortFilterProxyModel>
+#include <QStringListModel>
 #include <QTemporaryFile>
 #include <QTextBrowser>
 #include <QToolBar>
@@ -80,6 +84,7 @@
 #include "encodings.h"
 #include "favoritefiles.h"
 #include "highlightersdialog.h"
+#include "highlightersmenu.h"
 #include "klogg_version.h"
 #include "log.h"
 #include "openfilehelper.h"
@@ -390,9 +395,10 @@ void MainWindow::createActions()
     stopAction->setEnabled( true );
     signalMux_.connect( stopAction, SIGNAL( triggered() ), SLOT( stopLoading() ) );
 
-    highlightersAction = new QAction( tr( "&Highlighters..." ), this );
-    highlightersAction->setStatusTip( tr( "Show the Highlighters box" ) );
-    connect( highlightersAction, &QAction::triggered, [this]( auto ) { this->highlighters(); } );
+    editHighlightersAction = new QAction( tr( "Configure &highlighters..." ), this );
+    editHighlightersAction->setStatusTip( tr( "Show highlighters configuration" ) );
+    connect( editHighlightersAction, &QAction::triggered,
+             [this]( auto ) { this->editHighlighters(); } );
 
     optionsAction = new QAction( tr( "&Options..." ), this );
     optionsAction->setStatusTip( tr( "Show the Options box" ) );
@@ -513,7 +519,13 @@ void MainWindow::createMenus()
     viewMenu->addAction( reloadAction );
 
     toolsMenu = menuBar()->addMenu( tr( "&Tools" ) );
-    toolsMenu->addAction( highlightersAction );
+
+    highlightersMenu = toolsMenu->addMenu( "Highlighters" );
+    connect(highlightersMenu, &QMenu::aboutToShow, [this]()
+    {
+        setCurrentHighlighterAction(highlightersActionGroup);
+    });
+
     toolsMenu->addSeparator();
     toolsMenu->addAction( optionsAction );
 
@@ -840,14 +852,19 @@ void MainWindow::openInEditor()
 void MainWindow::onClipboardDataChanged()
 {
     auto clipboard = QGuiApplication::clipboard();
-    auto text = clipboard->text();
+    QString subtype;
+    auto text = clipboard->text(subtype);
+
+    LOG(logINFO) << "Clipboard data type: " << subtype;
+
     openClipboardAction->setEnabled( !text.isEmpty() );
 }
 
 void MainWindow::openClipboard()
 {
     auto clipboard = QGuiApplication::clipboard();
-    auto text = clipboard->text();
+    QString subtype;
+    auto text = clipboard->text(subtype);
     if ( text.isEmpty() ) {
         return;
     }
@@ -892,10 +909,13 @@ void MainWindow::openIoDevice(std::shared_ptr<IoDeviceSettings> settings) {
 
 
 // Opens the 'Highlighters' dialog box
-void MainWindow::highlighters()
+void MainWindow::editHighlighters()
 {
     HighlightersDialog dialog( this );
     signalMux_.connect( &dialog, SIGNAL( optionsChanged() ), SLOT( applyConfiguration() ) );
+
+    connect( &dialog, &HighlightersDialog::optionsChanged, [this]() { updateHighlightersMenu(); } );
+
     dialog.exec();
     signalMux_.disconnect( &dialog, SIGNAL( optionsChanged() ), SLOT( applyConfiguration() ) );
 }
@@ -1241,7 +1261,9 @@ void MainWindow::changeEvent( QEvent* event )
     else if ( event->type() == QEvent::StyleChange ) {
         QTimer::singleShot( 0, [this] {
             loadIcons();
+            updateOpenedFilesMenu();
             updateFavoritesMenu();
+            updateHighlightersMenu();
         } );
     }
 
@@ -1590,6 +1612,32 @@ void MainWindow::updateOpenedFilesMenu()
     selectOpenFileAction->setDisabled( files.empty() );
 }
 
+void MainWindow::updateHighlightersMenu()
+{
+    highlightersMenu->clear();
+    if ( highlightersActionGroup ) {
+        highlightersActionGroup->deleteLater();
+    }
+
+    highlightersActionGroup = new QActionGroup( this );
+    connect( highlightersActionGroup, &QActionGroup::triggered, this,
+             &MainWindow::setCurrentHighlighter );
+
+    highlightersMenu->addAction( editHighlightersAction );
+    highlightersMenu->addSeparator();
+
+    populateHighlightersMenu( highlightersMenu, highlightersActionGroup );
+}
+
+void MainWindow::setCurrentHighlighter( QAction* action )
+{
+    saveCurrentHighlighterFromAction( action );
+
+    if ( auto current = currentCrawlerWidget() ) {
+        current->applyConfiguration();
+    }
+}
+
 void MainWindow::updateFavoritesMenu()
 {
     favoritesMenu->clear();
@@ -1714,28 +1762,68 @@ void MainWindow::selectOpenedFile()
     std::transform( openedFiles.begin(), openedFiles.end(), std::back_inserter( filesToShow ),
                     []( const auto& f ) { return f.nativeFullPath(); } );
 
-    auto currentIndex = 0;
+    auto selectFileDialog = std::make_unique<QDialog>( this );
+    selectFileDialog->setWindowTitle( "klogg -- switch to file" );
+    selectFileDialog->setMinimumWidth( 800 );
+    selectFileDialog->setMinimumHeight( 600 );
 
-    if ( const auto crawler = currentCrawlerWidget() ) {
-        const auto currentPath = session_.getFilename( crawler );
-        const auto currentItem = std::find_if( openedFiles.begin(), openedFiles.end(),
-                                               FullPathComparator( currentPath ) );
-        if ( currentItem != openedFiles.end() ) {
-            currentIndex = static_cast<int>( std::distance( openedFiles.begin(), currentItem ) );
-        }
-    }
+    auto filesModel = std::make_unique<QStringListModel>( filesToShow, selectFileDialog.get() );
+    auto filteredModel = std::make_unique<QSortFilterProxyModel>( selectFileDialog.get() );
+    filteredModel->setSourceModel( filesModel.get() );
 
-    bool ok = false;
-    const auto pathToSelect = QInputDialog::getItem( this, "Switch to file", "Select opened file",
-                                                     filesToShow, currentIndex, false, &ok );
-    if ( ok ) {
-        const auto selectedFile = std::find_if( openedFiles.begin(), openedFiles.end(),
-                                                FullPathNativeComparator( pathToSelect ) );
+    auto filesView = std::make_unique<QListView>();
+    filesView->setModel( filteredModel.get() );
+    filesView->setEditTriggers( QAbstractItemView::NoEditTriggers );
+    filesView->setSelectionMode( QAbstractItemView::SingleSelection );
 
-        if ( selectedFile != openedFiles.end() ) {
-            loadFile( selectedFile->fullPath() );
-        }
-    }
+    auto filterEdit = std::make_unique<QLineEdit>();
+    auto buttonBox
+        = std::make_unique<QDialogButtonBox>( QDialogButtonBox::Ok | QDialogButtonBox::Cancel );
+
+    connect( buttonBox.get(), &QDialogButtonBox::accepted, selectFileDialog.get(),
+             &QDialog::accept );
+    connect( buttonBox.get(), &QDialogButtonBox::rejected, selectFileDialog.get(),
+             &QDialog::reject );
+
+    connect( filterEdit.get(), &QLineEdit::textEdited,
+             [model = filteredModel.get(), view = filesView.get()]( const QString& filter ) {
+                 model->setFilterWildcard( filter );
+                 model->invalidate();
+                 view->selectionModel()->select( model->index( 0, 0 ),
+                                                 QItemSelectionModel::SelectCurrent );
+             } );
+
+    QTimer::singleShot( 0, [edit = filterEdit.get()]() { edit->setFocus(); } );
+
+    connect( selectFileDialog.get(), &QDialog::finished,
+             [this, openedFiles, dialog = selectFileDialog.get(), model = filteredModel.get(),
+              view = filesView.get()]( auto result ) {
+                 dialog->deleteLater();
+                 if ( result != QDialog::Accepted || !view->selectionModel()->hasSelection() ) {
+                     return;
+                 }
+                 const auto selectedPath
+                     = model->data( view->selectionModel()->selectedIndexes().front() ).toString();
+                 const auto selectedFile = std::find_if( openedFiles.begin(), openedFiles.end(),
+                                                         FullPathNativeComparator( selectedPath ) );
+
+                 if ( selectedFile != openedFiles.end() ) {
+                     loadFile( selectedFile->fullPath() );
+                 }
+             } );
+
+    auto layout = std::make_unique<QVBoxLayout>();
+    layout->addWidget( filesView.release() );
+    layout->addWidget( filterEdit.release() );
+    layout->addWidget( buttonBox.release() );
+
+    selectFileDialog->setLayout( layout.release() );
+    selectFileDialog->setModal( true );
+    selectFileDialog->open();
+
+    filesModel.release();
+    filteredModel.release();
+    selectFileDialog.release();
 }
 
 void MainWindow::showInfoLabels( bool show )
@@ -1780,10 +1868,11 @@ void MainWindow::readSettings()
     RecentFiles::getSynced();
     updateRecentFileActions();
 
-    HighlighterSetCollection::getSynced();
-
     FavoriteFiles::getSynced();
     updateFavoritesMenu();
+
+    HighlighterSetCollection::getSynced();
+    updateHighlightersMenu();
 }
 
 void MainWindow::displayQuickFindBar( QuickFindMux::QFDirection direction )
@@ -1857,12 +1946,12 @@ void MainWindow::reportIssue() const
 void MainWindow::generateDump()
 {
     const auto userAction = QMessageBox::warning(
-            this, "klogg - generate crash dump",
-            QString( "This will shutdown klogg and generate diagnostic crash dump. Continue?" ),
-            QMessageBox::Yes | QMessageBox::No, QMessageBox::No );
+        this, "klogg - generate crash dump",
+        QString( "This will shutdown klogg and generate diagnostic crash dump. Continue?" ),
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::No );
 
-        if ( userAction == QMessageBox::Yes ) {
-            int *a = nullptr;
-            *a = 1;
-        }
+    if ( userAction == QMessageBox::Yes ) {
+        int* a = nullptr;
+        *a = 1;
+    }
 }
